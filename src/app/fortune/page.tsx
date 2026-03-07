@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Clock, CalendarDays, Sparkles, MoonStar, Scroll } from "lucide-react";
 import { calculateSaju } from "ssaju";
+import TraditionalBackground from "@/components/TraditionalBackground";
+import Disclaimer from "@/components/Disclaimer";
 
-export default function FortunePage() {
+function FortuneContent() {
   const searchParams = useSearchParams();
   const typeParam = searchParams.get("type") || "daily";
 
@@ -88,7 +90,7 @@ export default function FortunePage() {
     setIsLoading(true);
     setBazi(null);
     setReading("");
-    setActiveTab(1); // 기본은 '현재' (오늘/이번달/올해)
+    setActiveTab(1); 
 
     try {
         const [year, month, day] = date.split("-").map(Number);
@@ -107,7 +109,18 @@ export default function FortunePage() {
 
         if (!sajuRes) throw new Error("사주 산출에 실패했습니다.");
 
-        // 한자 → 한글 독음 변환 매핑
+        // 캐시 키 생성 (날짜, 시간, 음양력, 성별, 운세타입)
+        const cacheKey = `fortune_${date}_${time}_${isLunar}_${gender}_${typeParam}`;
+        const cachedData = localStorage.getItem(cacheKey);
+        
+        if (cachedData) {
+          const parsed = JSON.parse(cachedData);
+          setBazi(sajuRes);
+          setReading(parsed.reading);
+          setIsLoading(false);
+          return;
+        }
+
         const HANJA_TO_KR: Record<string, string> = {
           '甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계',
           '子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신2','酉':'유','戌':'술','亥':'해'
@@ -119,7 +132,6 @@ export default function FortunePage() {
         const dayKr   = toKr(sajuRes.pillarDetails.day.stem   + sajuRes.pillarDetails.day.branch);
         const timeKr  = toKr(sajuRes.pillarDetails.hour.stem  + sajuRes.pillarDetails.hour.branch);
 
-        // 오행 카운팅
         const sajuMap: Record<string, string> = {
             '갑': '목', '을': '목', '병': '화', '정': '화', '무': '토', '기': '토', '경': '금', '신': '금', '임': '수', '계': '수',
             '자': '수', '축': '토', '인': '목', '묘': '목', '진': '토', '사': '화', '오': '화', '미': '토', '신2': '금', '유': '금', '술': '토', '해': '수'
@@ -135,6 +147,27 @@ export default function FortunePage() {
         const sortedByRatio = Object.entries(elementCounts).sort(([,a],[,b]) => b - a);
         const strongestElem = sortedByRatio[0]?.[0] || '토'; 
         const weakestElem = sortedByRatio[sortedByRatio.length-1]?.[0] || '수';
+
+        // 앵커 키워드 추출
+        const anchorKeywords = [
+          `#${dayKr[0]}일간`,
+          `#${strongestElem}기운강함`,
+          `#${timeKr}시`,
+        ];
+
+        // 경계 시간(Cusp) 체크 (시가 바뀌는 23, 01, 03... 의 30분 전후 5분)
+        let cuspScript = "";
+        const sajuHours = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23];
+        if (sajuHours.includes(hour) && min >= 30 && min <= 35) {
+          const currentHourBranch = toKr(sajuRes.pillarDetails.hour.branch);
+          // 이전 시지(Branch) 이름 유추 (단순화: 자축인묘... 순서에서 하나 앞)
+          const branches = ['자','축','인','묘','진','사','오','미','신2','유','술','해'];
+          const idx = branches.indexOf(currentHourBranch);
+          const prevIdx = (idx - 1 + 12) % 12;
+          const prevHourBranch = branches[prevIdx];
+          
+          cuspScript = `당신은 ${prevHourBranch}(${prevHourBranch === '신2' ? '申' : ''})시의 묵직함과 ${currentHourBranch}시의 화려함이 교차하는 ${hour}시 ${min}분에 태어났습니다. 정밀 보정상 '${currentHourBranch}시'의 기운이 중심이지만, 이전 시간의 신중함 또한 내면에 깊이 뿌리박혀 있는 독특한 명식입니다.`;
+        }
 
         const elemTraits: Record<string, string> = { 
             "목": "성장 욕구가 강하고 뻗어나가려는 성향이", 
@@ -165,62 +198,129 @@ export default function FortunePage() {
 
         const dayMasterChar = dayKr[0] || '알수없음';
 
-        const systemPrompt = "System: 당신은 통찰력 있고 다정한 명리학 에세이스트이자 심리 상담가입니다. 말투는 '~해요', '~군요', '~했나요?' 등 부드럽고 따뜻한 경어체를 사용하세요. " +
-"내담자의 상황을 깊이 이해하고 위로하되, 다가올 시간의 길흉을 명확하면서도 다정하게 짚어주는 따뜻한 카리스마를 보여주세요.\n\n" +
-"단, 미래를 100% 단언하거나 확정 짓는 어투('무조건 ~합니다', '절대 ~하지 마세요', '망합니다', '성공합니다')는 절대 사용하지 마세요. 대신 '~할 가능성이 높아요', '~하는 경향이 있어요', '~하기 쉬운 흐름이 들어와 있어요' 같은 유연하고 확률적인 언어(일기예보식 화법)를 사용하세요.\n\n" +
-"절대 금지 사항 (Negative Prompt):\n" +
-"1. 인사말이나 본인 소개 절대 금지.\n" +
-"2. 마크다운 소제목(**)이나 기호 노출 절대 금지.\n" +
-"3. 명리학 전문 용어(관성, 비견, 원진살 등) 그대로 출력 금지. 쉬운 심리적 언어로 번역하세요.\n\n" +
-"User: 이 내담자는 일간이 " + dayMasterChar + "이며, " + strongStr + " " + weakStr + "\n" +
-timeContext + "\n\n" +
-"각 시점(과거, 현재, 미래)에 대해 다음 3단 스토리텔링 구조를 자연스러운 3개의 문단으로 구분하여 각각 400자 이내로 작성하세요 (기호 절대 금지):\n" +
-"- [1문단 - 공감 및 상황 분석]: 해당 시점에 겪은/겪을 감정과 상황을 일기예보처럼 묘사.\n" +
-"- [2문단 - 기운의 판도]: 길흉의 포인트를 확률적 언어로 명확히 짚기.\n" +
-"- [3문단 - 구체적 처방]: 뻔한 말 금지. 당장 실천 가능한 다정한 행동 지침 제안.";
+        const systemPrompt = `System: 당신은 통찰력 있고 다정한 명리학 에세이스트이자 심리 상담가입니다. 말투는 '~해요', '~군요', '~했나요?' 등 부드럽고 따뜻한 경어체를 사용하세요. 
+내담자의 상황을 깊이 이해하고 위로하되, 다가올 시간의 길흉을 명확하면서도 다정하게 짚어주는 따뜻한 카리스마를 보여주세요.
+
+단, 미래를 100% 단언하거나 확정 짓는 어투('무조건 ~합니다', '절대 ~하지 마세요', '망합니다', '성공합니다')는 절대 사용하지 마세요. 대신 '~할 가능성이 높아요', '~하는 경향이 있어요', '~하기 쉬운 흐름이 들어와 있어요' 같은 유연하고 확률적인 언어(일기예보식 화법)를 사용하세요.
+
+반드시 포함해야 할 핵심 키워드: ${anchorKeywords.join(", ")}
+${cuspScript ? `경계 시간 안내: ${cuspScript}` : ""}
+
+절대 금지 사항 (Negative Prompt):
+1. 인사말이나 본인 소개 절대 금지.
+2. 마크다운 소제목(**)이나 기호 노출 절대 금지.
+3. 명리학 전문 용어(관성, 비견, 원진살 등) 그대로 출력 금지. 쉬운 심리적 언어로 번역하세요.
+
+User: 이 내담자는 일간이 ${dayMasterChar}이며, ${strongStr} ${weakStr}
+${timeContext}
+
+각 시점(과거, 현재, 미래)에 대해 다음 3단 스토리텔링 구조를 자연스러운 3개의 문단으로 구분하여 각각 400자 이내로 작성하세요 (기호 절대 금지):
+- [3문단 - 구체적 처방]: 뻔한 말 금지. 당장 실천 가능한 다정한 행동 지침 제안.
+
+반드시 순수 JSON 객체만 출력하세요. 앞뒤에 어떠한 설명(Preamble), 마크다운 형태의 기호(\`\`\`json 등)도 붙이지 마세요. 오직 유효한 JSON 문자열만 반환해야 합니다.`;
 
         const sajuAnalysisJson = {
              user_info: { gender, day_master: dayMasterChar },
              elements_counts: elementCounts,
-             time_context: typeParam
+             time_context: typeParam,
+             anchor_keywords: anchorKeywords,
+             cusp_script: cuspScript
         };
+
+        const payload = { 
+            systemPrompt: systemPrompt, 
+            sajuJson: sajuAnalysisJson,
+            cityName: "서울", // Fortune page currently doesn't have city selection, defaulting to Seoul for safety
+            expectedKeys: ["past", "present", "future"] 
+        };
+        console.log("Payload:", payload);
 
         const apiRes = await fetch("/api/saju", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-                systemPrompt: systemPrompt, 
-                sajuJson: sajuAnalysisJson,
-                expectedKeys: ["past", "present", "future"] 
-            })
+            body: JSON.stringify(payload)
         });
 
-        if (!apiRes.ok) throw new Error("API 연동 오류");
+        if (!apiRes.ok) {
+            const errorText = await apiRes.text();
+            console.error("❌ [DEBUG] 서버 응답 에러 (Fortune):", apiRes.status, errorText);
+            throw new Error(`API 연동 오류 (${apiRes.status})`);
+        }
 
-        const llmResult = await apiRes.json();
+        const rawText = await apiRes.text();
+        console.log("🔥 [DEBUG] AI 원본 응답 텍스트 (Fortune):", rawText);
+
+        let cleanJsonString = rawText
+          .replace(/```json/gi, '')
+          .replace(/```/g, '')
+          .trim();
+
+        const jsonMatch = cleanJsonString.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          cleanJsonString = jsonMatch[0];
+        }
+
+        let llmResult: any = null;
+        try {
+          llmResult = JSON.parse(cleanJsonString);
+          console.log("✅ [DEBUG] 파싱 성공 데이터 (Fortune):", llmResult);
+        } catch (parseError) {
+          console.error("❌ [DEBUG] JSON 파싱 실패 (Fortune):", parseError);
+          throw new Error("AI 응답 데이터 형식이 올바르지 않습니다.");
+        }
+
+        if (!llmResult) {
+          throw new Error("JSON 파싱은 성공했으나 데이터가 비어있습니다.");
+        }
         
-        setBazi(sajuRes);
-        setReading({
-            past: llmResult.past || "데이터를 불러오지 못했습니다.",
-            present: llmResult.present || "데이터를 불러오지 못했습니다.",
-            future: llmResult.future || "데이터를 불러오지 못했습니다."
-        });
+        const finalReading = {
+            past: llmResult?.past || "데이터를 불러오지 못했습니다.",
+            present: llmResult?.present || "데이터를 불러오지 못했습니다.",
+            future: llmResult?.future || "데이터를 불러오지 못했습니다."
+        };
 
-    } catch (err) {
+        setBazi(sajuRes);
+        setReading(finalReading);
+
+        // 결과 캐시 저장
+        localStorage.setItem(cacheKey, JSON.stringify({
+          reading: finalReading,
+          timestamp: Date.now()
+        }));
+
+    } catch (err: any) {
         console.error(err);
-        alert("운세 연산 중 에러가 발생했습니다.");
+        if (err.message?.includes("429")) {
+            alert("현재 접속자가 많아 우주의 기운을 읽어오는 데 시간이 걸리고 있습니다. 약 1분 뒤에 다시 시도해 주세요. 🌌");
+        } else {
+            alert("네트워크 연결이 불안정합니다. 잠시 후 다시 시도해 주세요.");
+        }
     } finally {
         setIsLoading(false);
     }
   };
 
+  const renderHighlightedText = (text: string) => {
+    if (!text) return null;
+    const parts = text.split(/(【.*?】)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('【') && part.endsWith('】')) {
+        return <strong key={part + i} style={{ color: "var(--accent-gold)", fontWeight: "bold" }}>{part}</strong>;
+      }
+      return part;
+    });
+  };
+
   return (
-    <main className="page-wrapper container">
-      <Link href="/" style={{ textDecoration: "none" }}>
-        <button className="btn-secondary" style={{ padding: "8px 16px", marginBottom: "40px" }}>
-          <ArrowLeft className="w-5 h-5" /> 홈으로
-        </button>
-      </Link>
+    <main style={{ width: "100%", minHeight: "100vh", position: "relative", overflow: "hidden", background: "var(--bg-primary)" }}>
+      <Disclaimer />
+      <TraditionalBackground />
+      <div style={{ position: "relative", zIndex: 1, minHeight: "100vh" }} className="container py-12">
+        <Link href="/" style={{ textDecoration: "none" }}>
+          <button className="btn-secondary" style={{ padding: "8px 16px", marginBottom: "40px" }}>
+            <ArrowLeft className="w-5 h-5" /> 홈으로
+          </button>
+        </Link>
 
       <div className="text-center" style={{ marginBottom: "50px" }}>
         <h1 className="text-gradient" style={{ fontSize: "2.5rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
@@ -343,7 +443,7 @@ timeContext + "\n\n" +
               ) : bazi && reading && (
                 <>
                   {/* 동적 탭 UI */}
-                  <div style={{ display: "flex", gap: "8px", marginBottom: "30px", padding: "4px", background: "rgba(0,0,0,0.2)", borderRadius: "12px" }}>
+                  <div style={{ display: "flex", gap: "8px", marginBottom: "30px", padding: "4px", background: "rgba(139, 94, 60, 0.05)", borderRadius: "12px", border: "1px solid rgba(139, 94, 60, 0.1)" }}>
                     {currentType.tabs.map((tabStr: string, index: number) => {
                        const isActive = activeTab === index;
                        return (
@@ -351,15 +451,15 @@ timeContext + "\n\n" +
                              key={index}
                              onClick={() => setActiveTab(index)}
                              style={{
-                               flex: 1,
-                               padding: "12px",
-                               borderRadius: "8px",
-                               fontSize: "1rem",
-                               fontWeight: isActive ? "bold" : "normal",
-                               backgroundColor: isActive ? "rgba(226, 192, 115, 0.15)" : "transparent",
-                               color: isActive ? "var(--accent-gold)" : "var(--text-secondary)",
-                               border: `1px solid ${isActive ? "rgba(226, 192, 115, 0.3)" : "transparent"}`,
-                               transition: "all 0.3s ease"
+                                flex: 1,
+                                padding: "12px",
+                                borderRadius: "8px",
+                                fontSize: "1rem",
+                                fontWeight: isActive ? "bold" : "normal",
+                                backgroundColor: isActive ? "rgba(226, 192, 115, 0.15)" : "transparent",
+                                color: isActive ? "var(--accent-gold)" : "var(--text-secondary)",
+                                border: `1px solid ${isActive ? "rgba(226, 192, 115, 0.3)" : "transparent"}`,
+                                transition: "all 0.3s ease"
                              }}
                            >
                               {tabStr}
@@ -369,22 +469,23 @@ timeContext + "\n\n" +
                   </div>
 
                   <motion.div
-                    key={activeTab} // 탭 변경 시 애니메이션 리렌더링
+                    key={activeTab}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
                     style={{
-                      background: "rgba(0, 0, 0, 0.2)",
+                      background: "rgba(255, 255, 255, 0.3)",
                       padding: "30px",
                       borderRadius: "16px",
-                      border: "1px solid rgba(255,255,255,0.05)"
+                      border: "1px solid var(--glass-border)",
+                      whiteSpace: "pre-line"
                     }}
                   >
                     <h3 style={{ color: "var(--accent-gold)", marginBottom: "20px", fontSize: "1.2rem", borderBottom: "1px solid rgba(226, 192, 115, 0.2)", paddingBottom: "10px" }}>
                        {currentType.tabs[activeTab]}의 기운석
                     </h3>
                     <div className="markdown-content" style={{ fontSize: "1.05rem", lineHeight: 1.8, color: "var(--text-primary)", whiteSpace: "pre-line" }}>
-                      {activeTab === 0 ? reading.past : activeTab === 1 ? reading.present : reading.future}
+                      {renderHighlightedText(activeTab === 0 ? reading.past : activeTab === 1 ? reading.present : reading.future)}
                     </div>
                   </motion.div>
                 </>
@@ -393,6 +494,15 @@ timeContext + "\n\n" +
           )}
         </AnimatePresence>
       </div>
+      </div>
     </main>
+  );
+}
+
+export default function FortunePage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center">우주의 기운을 불러오는 중입니다...</div>}>
+      <FortuneContent />
+    </Suspense>
   );
 }

@@ -40,13 +40,22 @@ Return ONLY valid JSON. Do not wrap in markdown code blocks (\`\`\`json).
     const text = response.text;
     if (!text) throw new Error("Empty response from AI");
 
-    const parsed = JSON.parse(text);
-    return NextResponse.json(parsed);
+    // Robust JSON extraction: Find the first '{' and the last '}'
+    let jsonMatch = text.match(/\{[\s\S]*\}/);
+    let jsonStr = jsonMatch ? jsonMatch[0] : text;
+
+    try {
+      const parsed = JSON.parse(jsonStr);
+      return NextResponse.json(parsed);
+    } catch (parseError) {
+      console.error('JSON Parse Error. Raw text:', text);
+      throw new Error("Failed to parse AI response as JSON");
+    }
 
   } catch (error: any) {
     console.error('LLM API Error:', error);
     return NextResponse.json(
-      { error: error.message || 'Error generating Saju reading' },
+      { error: error.message || 'Error generating Saju reading', details: error.toString() },
       { status: 500 }
     );
   }
