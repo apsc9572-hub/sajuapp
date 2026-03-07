@@ -184,22 +184,43 @@ p {
     padding: 0 16px;
   }
   
-  h1 { font-size: 1.8rem !important; }
-  h2 { font-size: 1.4rem !important; }
+  h1 { 
+    font-size: 2.2rem !important; 
+    line-height: 1.2 !important;
+  }
+  
+  h2 { font-size: 1.3rem !important; }
   
   .glass-panel {
-    padding: 20px 16px;
-    border-radius: 4px; /* Keep rectangular even on mobile for trad feel */
+    padding: 24px 20px;
   }
   
   .btn-primary, .btn-secondary {
     padding: 12px 24px;
-    width: 100%; /* Make buttons full width on small screens if appropriate */
+    width: 100%;
   }
 
   .page-wrapper {
-    padding-top: 80px;
+    padding-top: 60px;
   }
+
+  .menu-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  width: 100%;
 }
 
 /* Custom Scrollbar */

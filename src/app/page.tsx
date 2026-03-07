@@ -32,30 +32,22 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
             className="text-center"
-            style={{ marginBottom: "60px" }}
+            style={{ marginBottom: "clamp(30px, 8vw, 60px)" }}
           >
-            <div className="animate-float" style={{ display: "inline-block", marginBottom: "20px" }}>
-              <Navigation className="text-gradient w-14 h-14" style={{ transform: "rotate(45deg)" }} />
+            <div className="animate-float" style={{ display: "inline-block", marginBottom: "clamp(12px, 3vw, 20px)" }}>
+              <Navigation className="text-gradient w-12 h-12 md:w-14 md:h-14" style={{ transform: "rotate(45deg)" }} />
             </div>
-            <h1 className="text-gradient" style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", marginBottom: "16px" }}>
+            <h1 className="text-gradient" style={{ fontSize: "clamp(2rem, 8vw, 4rem)", lineHeight: 1.1, marginBottom: "16px" }}>
               운명의 결을 읽다
             </h1>
-            <p style={{ fontSize: "1.2rem", color: "var(--text-secondary)", maxWidth: "500px", margin: "0 auto", lineHeight: 1.6 }}>
+            <p style={{ fontSize: "clamp(1rem, 3vw, 1.2rem)", color: "var(--text-secondary)", maxWidth: "500px", margin: "0 auto", lineHeight: 1.6 }}>
               AI와 고대의 역법이 빚어낸 거울. 당신이 태어난 순간의 우주와 무의식을 한곳에서 마주하세요.
             </p>
           </motion.div>
 
-          <div 
-            style={{ 
-              display: "grid", 
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", 
-              gap: "20px",
-              maxWidth: "1100px",
-              margin: "0 auto"
-            }}
-          >
+          <div className="menu-grid" style={{ maxWidth: "1100px", margin: "0 auto" }}>
             {menus.map((menu, index) => (
-              <Link href={menu.link} key={menu.title} style={{ textDecoration: "none" }}>
+              <Link href={menu.link} key={menu.title} style={{ width: "100%", textDecoration: "none" }}>
                 <motion.div
                   initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
