@@ -11,10 +11,10 @@ import TraditionalBackground from "@/components/TraditionalBackground";
 
 export default function Home() {
   const menus = [
-    { title: "오늘의 운세", desc: "어제, 오늘, 내일의 기운 흐름", icon: <Sparkles className="w-7 h-7" />, color: "var(--accent-red)", link: "/fortune?type=daily" },
-    { title: "월간 운세", desc: "전월, 이번 달, 다음 달의 방향성", icon: <MoonStar className="w-7 h-7" />, color: "var(--accent-wood)", link: "/fortune?type=monthly" },
-    { title: "년간 운세", desc: "작년, 올해, 내년의 거시적 판도", icon: <Scroll className="w-7 h-7" />, color: "var(--accent-gold)", link: "/fortune?type=yearly" },
-    { title: "정통 사주팔자", desc: "정통 명리학 기반의 심층 분석", icon: <BookOpen className="w-7 h-7" />, color: "var(--text-primary)", link: "/saju" },
+    { title: "오늘의 흐름", icon: <Sparkles className="w-8 h-8" strokeWidth={1.5} />, color: "var(--accent-red)", link: "/fortune?type=daily" },
+    { title: "이달의 흐름", icon: <MoonStar className="w-8 h-8" strokeWidth={1.5} />, color: "var(--accent-wood)", link: "/fortune?type=monthly" },
+    { title: "올해의 흐름", icon: <Scroll className="w-8 h-8" strokeWidth={1.5} />, color: "var(--accent-gold)", link: "/fortune?type=yearly" },
+    { title: "나를 비추는 시간", icon: <BookOpen className="w-8 h-8" strokeWidth={1.5} />, color: "var(--text-primary)", link: "/saju" },
   ];
 
   return (
@@ -31,17 +31,17 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, ease: "easeOut" }}
-            className="text-center"
-            style={{ marginBottom: "clamp(30px, 8vw, 60px)" }}
+            className="text-center hero-glass"
+            style={{ marginBottom: "clamp(30px, 8vw, 60px)", display: "flex", flexDirection: "column", alignItems: "center", justifySelf: "center", maxWidth: "600px", margin: "0 auto 60px auto" }}
           >
             <div className="animate-float" style={{ display: "inline-block", marginBottom: "clamp(12px, 3vw, 20px)" }}>
-              <Navigation className="text-gradient w-12 h-12 md:w-14 md:h-14" style={{ transform: "rotate(45deg)" }} />
+              <Navigation className="text-gradient w-12 h-12 md:w-14 md:h-14" style={{ transform: "rotate(45deg)", filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.3))" }} />
             </div>
-            <h1 className="text-gradient" style={{ fontSize: "clamp(2rem, 8vw, 4rem)", lineHeight: 1.1, marginBottom: "16px" }}>
+            <h1 className="title-glow" style={{ fontSize: "clamp(2.2rem, 8vw, 4.5rem)", lineHeight: 1.1, marginBottom: "16px" }}>
               운명의 결을 읽다
             </h1>
-            <p style={{ fontSize: "clamp(1rem, 3vw, 1.2rem)", color: "var(--text-secondary)", maxWidth: "500px", margin: "0 auto", lineHeight: 1.6 }}>
-              AI와 고대의 역법이 빚어낸 거울. 당신이 태어난 순간의 우주와 무의식을 한곳에서 마주하세요.
+            <p style={{ fontSize: "clamp(1.05rem, 3.5vw, 1.25rem)", color: "var(--text-secondary)", fontWeight: 500, maxWidth: "550px", margin: "0 auto", lineHeight: 1.6 }}>
+              태어난 시간을 바탕으로 나만의 고유한 흐름을 짚어봅니다.
             </p>
           </motion.div>
 
@@ -57,17 +57,22 @@ export default function Home() {
                     cursor: "pointer", 
                     position: "relative",
                     overflow: "hidden",
-                    padding: "30px 24px",
+                    padding: "40px 24px",
                     height: "100%",
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    textAlign: "center"
+                    justifyContent: "center",
+                    textAlign: "center",
+                    background: "transparent",
+                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    borderRadius: "20px",
                   }}
                   whileHover={{ 
-                    y: -8, 
-                    borderColor: `${menu.color}60`,
-                    boxShadow: `0 15px 30px ${menu.color}25`
+                    y: -4, 
+                    borderColor: `rgba(255, 255, 255, 0.3)`,
+                    background: "rgba(255, 255, 255, 0.02)",
+                    boxShadow: `0 10px 30px rgba(0,0,0,0.5)`
                   }}
                 >
                   <div 
@@ -87,13 +92,12 @@ export default function Home() {
                       style={{
                         color: menu.color,
                         marginBottom: "16px",
-                        filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.1))`
+                        filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.3))`
                       }}
                     >
                       {menu.icon}
                     </div>
-                    <h2 style={{ fontSize: "1.4rem", marginBottom: "12px", color: "var(--text-primary)" }}>{menu.title}</h2>
-                    <p style={{ fontSize: "0.95rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>{menu.desc}</p>
+                    <h2 style={{ fontSize: "1.3rem", margin: 0, fontWeight: 500, color: "var(--text-primary)" }}>{menu.title}</h2>
                   </div>
                 </motion.div>
               </Link>

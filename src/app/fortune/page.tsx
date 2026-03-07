@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -47,10 +47,19 @@ function FortuneContent() {
   const [bazi, setBazi] = useState<any>(null);
   const [reading, setReading] = useState<any>("");
   const [activeTab, setActiveTab] = useState(1); // 0: past, 1: present, 2: future
+  const resultRef = useRef<HTMLDivElement>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadingTextIdx, setLoadingTextIdx] = useState(0);
   const [loadingProgress, setLoadingProgress] = useState(0);
+
+  useEffect(() => {
+    if (!isLoading && bazi && reading) {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [isLoading, bazi, reading]);
 
   const loadingTexts = [
     "우주의 기운을 모으는 중...",
@@ -91,6 +100,13 @@ function FortuneContent() {
     setBazi(null);
     setReading("");
     setActiveTab(1); 
+
+    setTimeout(() => {
+      const resultElement = document.getElementById("result-section");
+      if (resultElement) {
+        resultElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
 
     try {
         const [year, month, day] = date.split("-").map(Number);
@@ -198,23 +214,25 @@ function FortuneContent() {
 
         const dayMasterChar = dayKr[0] || '알수없음';
 
-        const systemPrompt = `System: 당신은 통찰력 있고 다정한 명리학 에세이스트이자 심리 상담가입니다. 말투는 '~해요', '~군요', '~했나요?' 등 부드럽고 따뜻한 경어체를 사용하세요. 
-내담자의 상황을 깊이 이해하고 위로하되, 다가올 시간의 길흉을 명확하면서도 다정하게 짚어주는 따뜻한 카리스마를 보여주세요.
+        const systemPrompt = `System: 당신은 20년 경력의 차분하고 통찰력 있는 '하이엔드 명리 상담가'이자 인문학 칼럼니스트입니다.
+말투는 다정하지만 뼈가 있는 조언을 건네는 담백한 산문(에세이) 톤으로 작성하세요 ('~합니다', '~군요', '~할 수 있습니다'). 
+내담자의 상황을 깊이 이해하고 위로하되, 다가올 시간의 길흉을 명확하면서도 다정하게 짚어주는 카리스마를 보여주세요.
 
-단, 미래를 100% 단언하거나 확정 짓는 어투('무조건 ~합니다', '절대 ~하지 마세요', '망합니다', '성공합니다')는 절대 사용하지 마세요. 대신 '~할 가능성이 높아요', '~하는 경향이 있어요', '~하기 쉬운 흐름이 들어와 있어요' 같은 유연하고 확률적인 언어(일기예보식 화법)를 사용하세요.
+단, 미래를 100% 단언하거나 확정 짓는 어투('무조건 ~합니다', '절대 ~하지 마세요', '망합니다', '성공합니다')는 피하세요. 대신 '~할 가능성이 높습니다', '~하는 경향이 있습니다', '~하기 쉬운 흐름이 들어와 있습니다' 같은 유연하고 깊이 있는 언어를 사용하세요.
 
 반드시 포함해야 할 핵심 키워드: ${anchorKeywords.join(", ")}
 ${cuspScript ? `경계 시간 안내: ${cuspScript}` : ""}
 
 절대 금지 사항 (Negative Prompt):
-1. 인사말이나 본인 소개 절대 금지.
-2. 마크다운 소제목(**)이나 기호 노출 절대 금지.
-3. 명리학 전문 용어(관성, 비견, 원진살 등) 그대로 출력 금지. 쉬운 심리적 언어로 번역하세요.
+1. "계일간 님", "사용자님" 같은 기계적인 호칭 불가. 문맥상 자연스럽게 "당신은~" 식으로 주어를 풀어서 작성할 것.
+2. "오늘의 기운석", "우주의 기운", "마법 같은", "놀라운", "특별한", "명심하세요" 등 AI가 버릇처럼 쓰는 뻔하고 오글거리는 형용사나 작위적인 명칭 완벽하게 차단.
+3. 인사말이나 본인 소개 절대 금지.
+4. 명리학 전문 용어(갑목, 을미시, 상관, 편재, 비견, 원진살 등) 및 한자어 절대 금지. 쉬운 심리적 언어나 자연물로 은유하세요.
 
 User: 이 내담자는 일간이 ${dayMasterChar}이며, ${strongStr} ${weakStr}
 ${timeContext}
 
-각 시점(과거, 현재, 미래)에 대해 다음 3단 스토리텔링 구조를 자연스러운 3개의 문단으로 구분하여 각각 400자 이내로 작성하세요 (기호 절대 금지):
+각 시점(과거, 현재, 미래)에 대해 다음 3단 스토리텔링 구조를 자연스러운 3개의 문단으로 구분하여 각각 400자 이내로 작성하세요 (기호 절대 금지). 모바일 가독성을 위해 단락 사이는 항상 두 번의 줄바꿈(\\n\\n)으로 띄우고, 핵심 문장은 **볼드체**를 사용해 1~2회 강조하세요.
 - [3문단 - 구체적 처방]: 뻔한 말 금지. 당장 실천 가능한 다정한 행동 지침 제안.
 
 반드시 순수 JSON 객체만 출력하세요. 앞뒤에 어떠한 설명(Preamble), 마크다운 형태의 기호(\`\`\`json 등)도 붙이지 마세요. 오직 유효한 JSON 문자열만 반환해야 합니다.`;
@@ -315,67 +333,67 @@ ${timeContext}
     <main style={{ width: "100%", minHeight: "100vh", position: "relative", overflow: "hidden", background: "var(--bg-primary)" }}>
       <Disclaimer />
       <TraditionalBackground />
-      <div style={{ position: "relative", zIndex: 1, minHeight: "100vh" }} className="container py-12">
-        <Link href="/" style={{ textDecoration: "none" }}>
-          <button className="btn-secondary" style={{ padding: "8px 16px", marginBottom: "40px" }}>
-            <ArrowLeft className="w-5 h-5" /> 홈으로
+      <div style={{ position: "relative", zIndex: 1, minHeight: "100vh" }} className="container py-8">
+        <Link href="/" style={{ textDecoration: "none", display: "inline-block", marginBottom: "30px" }}>
+          <button style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer", display: "flex", alignItems: "center", padding: "8px" }}>
+            <ArrowLeft className="w-7 h-7" strokeWidth={1.5} />
           </button>
         </Link>
 
       <div className="text-center" style={{ marginBottom: "50px" }}>
-        <h1 className="text-gradient" style={{ fontSize: "2.5rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-          {currentType.icon} {currentType.title}
-        </h1>
-        <p>{currentType.desc}</p>
+        <div>
+          <h1 style={{ fontSize: "2.4rem", marginBottom: "8px", fontWeight: "300" }}>{currentType.title}</h1>
+          <p style={{ color: "var(--text-secondary)", fontWeight: "400", fontSize: "1.05rem" }}>{currentType.desc}</p>
+        </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "30px", maxWidth: "800px", margin: "0 auto" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "30px", maxWidth: "800px", margin: "0 auto", width: "100%" }}>
         {/* 입력 폼 영역 */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel"
+          style={{ width: "100%", padding: "0 16px" }}
         >
-          <h2 style={{ fontSize: "1.2rem", marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px" }}>
-            <CalendarDays className="w-5 h-5" /> 인적 사항 입력
+          <h2 style={{ fontSize: "1.2rem", marginBottom: "30px", display: "flex", alignItems: "center", gap: "8px", fontWeight: "400", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "16px" }}>
+            <CalendarDays className="w-5 h-5" strokeWidth={1.5} /> 기운을 읽을 정보
           </h2>
           
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "24px" }}>
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "0.9rem", color: "var(--text-secondary)" }}>생년월일</label>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "0.95rem", color: "var(--text-secondary)" }}>생년월일</label>
               <input type="date" className="glass-input" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "0.9rem", color: "var(--text-secondary)" }}>양/음력</label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button className={!isLunar ? "btn-primary" : "btn-secondary"} style={{ flex: 1, padding: "10px", borderRadius: "12px" }} onClick={() => setIsLunar(false)}>양력</button>
-                <button className={isLunar ? "btn-primary" : "btn-secondary"} style={{ flex: 1, padding: "10px", borderRadius: "12px" }} onClick={() => setIsLunar(true)}>음력</button>
+              <label style={{ display: "block", marginBottom: "12px", fontSize: "0.95rem", color: "var(--text-secondary)" }}>양/음력</label>
+              <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: "30px", padding: "4px" }}>
+                <button style={{ flex: 1, padding: "12px", borderRadius: "30px", border: "none", background: !isLunar ? "rgba(255,255,255,0.15)" : "transparent", color: !isLunar ? "white" : "var(--text-secondary)", fontWeight: !isLunar ? 600 : 400, transition: "all 0.3s" }} onClick={() => setIsLunar(false)}>양력</button>
+                <button style={{ flex: 1, padding: "12px", borderRadius: "30px", border: "none", background: isLunar ? "rgba(255,255,255,0.15)" : "transparent", color: isLunar ? "white" : "var(--text-secondary)", fontWeight: isLunar ? 600 : 400, transition: "all 0.3s" }} onClick={() => setIsLunar(true)}>음력</button>
               </div>
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "0.9rem", color: "var(--text-secondary)" }}>태어난 시간</label>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "0.95rem", color: "var(--text-secondary)" }}>태어난 시간</label>
               <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} />
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "0.9rem", color: "var(--text-secondary)" }}>성별</label>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button className={gender === "M" ? "btn-primary" : "btn-secondary"} style={{ flex: 1, padding: "10px", borderRadius: "12px" }} onClick={() => setGender("M")}>남성</button>
-                <button className={gender === "F" ? "btn-primary" : "btn-secondary"} style={{ flex: 1, padding: "10px", borderRadius: "12px" }} onClick={() => setGender("F")}>여성</button>
+              <label style={{ display: "block", marginBottom: "12px", fontSize: "0.95rem", color: "var(--text-secondary)" }}>성별</label>
+              <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: "30px", padding: "4px" }}>
+                <button style={{ flex: 1, padding: "12px", borderRadius: "30px", border: "none", background: gender === "M" ? "rgba(255,255,255,0.15)" : "transparent", color: gender === "M" ? "white" : "var(--text-secondary)", fontWeight: gender === "M" ? 600 : 400, transition: "all 0.3s" }} onClick={() => setGender("M")}>남성</button>
+                <button style={{ flex: 1, padding: "12px", borderRadius: "30px", border: "none", background: gender === "F" ? "rgba(255,255,255,0.15)" : "transparent", color: gender === "F" ? "white" : "var(--text-secondary)", fontWeight: gender === "F" ? 600 : 400, transition: "all 0.3s" }} onClick={() => setGender("F")}>여성</button>
               </div>
             </div>
           </div>
           
           <button 
             className="btn-primary" 
-            style={{ width: "100%", marginTop: "24px", padding: "16px" }}
+            style={{ width: "100%", marginTop: "40px", padding: "18px", borderRadius: "30px", fontSize: "1.1rem" }}
             onClick={calculateFortune}
             disabled={isLoading}
           >
             {isLoading && !bazi ? <Clock className="w-5 h-5 animate-spin" /> : <BookOpen className="w-5 h-5" />}
-            {isLoading && !bazi ? "시간의 흐름에 따른 운기를 계산 중..." : `${currentType.title} 확인하기`}
+            {isLoading && !bazi ? "기운의 흐름을 분석 중입니다..." : `${currentType.title} 흐름 분석하기`}
           </button>
         </motion.div>
 
@@ -383,12 +401,12 @@ ${timeContext}
         <AnimatePresence>
           {(bazi || isLoading) && (
             <motion.div 
+              id="result-section"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="glass-panel"
-              style={{ padding: "40px" }}
+              style={{ padding: "16px", width: "100%", maxWidth: "95%", margin: "24px auto 0 auto", wordBreak: "keep-all" }}
             >
-              <h2 style={{ fontSize: "1.5rem", marginBottom: "30px", color: "var(--accent-gold)", textAlign: "center" }}>시운(時運) 흐름 지표</h2>
+              <h2 style={{ fontSize: "1.4rem", marginBottom: "30px", color: "var(--accent-gold)", textAlign: "center", fontWeight: "300" }}>시운(時運) 흐름 지표</h2>
               
               {isLoading && !bazi ? (
                 <div style={{ padding: "80px 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
@@ -474,17 +492,16 @@ ${timeContext}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
                     style={{
-                      background: "rgba(255, 255, 255, 0.3)",
-                      padding: "30px",
-                      borderRadius: "16px",
-                      border: "1px solid var(--glass-border)",
+                      background: "transparent",
+                      padding: "20px 0",
+                      borderTop: "1px solid rgba(255, 255, 255, 0.05)",
                       whiteSpace: "pre-line"
                     }}
                   >
                     <h3 style={{ color: "var(--accent-gold)", marginBottom: "20px", fontSize: "1.2rem", borderBottom: "1px solid rgba(226, 192, 115, 0.2)", paddingBottom: "10px" }}>
                        {currentType.tabs[activeTab]}의 기운석
                     </h3>
-                    <div className="markdown-content" style={{ fontSize: "1.05rem", lineHeight: 1.8, color: "var(--text-primary)", whiteSpace: "pre-line" }}>
+                    <div className="markdown-content" style={{ fontSize: "1.05rem", lineHeight: 2.0, color: "var(--text-primary)", whiteSpace: "pre-line" }}>
                       {renderHighlightedText(activeTab === 0 ? reading.past : activeTab === 1 ? reading.present : reading.future)}
                     </div>
                   </motion.div>

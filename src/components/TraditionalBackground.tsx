@@ -29,7 +29,7 @@ function InkMist() {
 
   return (
     <Points ref={ref} positions={positions} stride={3} frustumCulled={false}>
-      <PointMaterial transparent color="#2C2C2C" size={0.025} sizeAttenuation={true} depthWrite={false} opacity={0.25} blending={2} />
+      <PointMaterial transparent color="#D4A373" size={0.035} sizeAttenuation={true} depthWrite={false} opacity={0.4} blending={1} />
     </Points>
   );
 }
@@ -37,33 +37,34 @@ function InkMist() {
 export default function TraditionalBackground() {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-      {/* 생성된 수묵화 배경 이미지 */}
+      {/* 생성된 수묵화 배경 이미지 (Light Theme) */}
       <div 
         style={{ 
           position: "absolute", 
           inset: "-5%", 
-          backgroundImage: "url('/C:/Users/COM/.gemini/antigravity/brain/92549ef9-626d-47c9-a1e8-93d19eeb9b2c/traditional_korean_ink_wash_bg_1772884043955.png')",
+          backgroundImage: "url('/saju_bg.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          opacity: 0.5,
-          filter: "sepia(0.1) contrast(1.05)",
+          opacity: 0.1,
+          filter: "grayscale(1) contrast(1.1)",
+          mixBlendMode: "multiply",
         }} 
       />
       
       {/* 3D 오버레이 Canvas */}
-      <div style={{ position: "absolute", inset: 0, opacity: 0.8 }}>
+      <div style={{ position: "absolute", inset: 0, opacity: 0.6 }}>
         <Canvas camera={{ position: [0, 0, 5] }}>
-          <ambientLight intensity={0.5} />
+          <ambientLight intensity={0.8} />
           <InkMist />
         </Canvas>
       </div>
       
-      {/* 부드러운 그라데이션 오버레이 (가독성 확보) */}
+      {/* 부드러운 웜 화이트 그라데이션 오버레이 막 */}
       <div 
         style={{ 
           position: "absolute", 
           inset: 0, 
-          background: "radial-gradient(circle at 50% 50%, transparent 30%, rgba(253,248,240,0.5) 100%)", 
+          background: "linear-gradient(to bottom, rgba(250, 250, 248, 0.7), rgba(255, 255, 255, 0.9))", 
           pointerEvents: "none" 
         }} 
       />

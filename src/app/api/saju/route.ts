@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
     const keysStr = expectedKeys && Array.isArray(expectedKeys) && expectedKeys.length > 0
         ? `"${expectedKeys.join('", "')}"`
-        : `"general", "wealth", "love", "business", "health", "daeun", "sinsal"`;
+        : `"general", "early", "youth", "middle", "late", "daeun", "sinsal"`;
 
     const promptText = `
 ${systemPrompt}

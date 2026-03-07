@@ -1,17 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Serif+KR:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
 :root {
-  --bg-primary: #FDF8F0; /* Warm Hanji paper */
-  --bg-secondary: #F5E6D3; /* Slightly darker parchment */
-  --text-primary: #2C2C2C; /* Charcoal black */
-  --text-secondary: #5D5D5D; /* Soft ink grey */
-  --accent-gold: #C5A059; /* Traditional dull gold */
-  --accent-red: #A13333; /* Deep Korean vermilion */
-  --accent-purple: #6B3A52; /* Royal plum */
-  --accent-wood: #8B5E3C; /* Dark wood frame */
-  --glass-bg: rgba(255, 255, 255, 0.4);
-  --glass-border: rgba(139, 94, 60, 0.15);
-  --glass-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  --bg-primary: #FAFAF8; /* Warm ivory/off-white */
+  --bg-secondary: #FFFFFF; /* Pure white for contrast */
+  --text-primary: #2C2C2C; /* Dark charcoal for maximum readability */
+  --text-secondary: #666666; /* Smooth mid-gray */
+  --accent-gold: #C9A050; /* Refined gold */
+  --accent-red: #E07A5F; /* Pastel coral */
+  --accent-purple: #9D8189; /* Muted pastel purple */
+  --accent-wood: #D4A373; /* Earthy wood/mustard */
+  --glass-bg: rgba(255, 255, 255, 0.7); /* Light translucent glass */
+  --glass-border: rgba(0, 0, 0, 0.05); /* Ultra-thin dark border */
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
   
   --transition-slow: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -26,35 +27,35 @@
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Nanum Myeongjo', 'Noto Serif KR', serif;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
-  /* Paper grain texture */
-  background-image: url("https://www.transparenttextures.com/patterns/old-mathematics.png");
+  /* Removed the light paper grain texture for clean dark mode */
 }
 
-/* Glassmorphism - 한옥 창문 느낌 */
+/* Glassmorphism - 모던 앱 스타일 */
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
-  border-radius: 4px; /* Back to traditional rectangular scholarly feel */
-  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); 
+  border-radius: 16px; 
+  padding: 16px; 
   transition: var(--transition-smooth);
 }
 
 .glass-panel:hover {
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid var(--accent-gold);
-  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
 }
 
 /* Typography - 서체 스타일 */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
   font-weight: 700;
   letter-spacing: -0.01em;
   margin-bottom: 0.5em;
@@ -62,35 +63,54 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-red) 100%);
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1)); 
+}
+
+.title-glow {
+  color: var(--text-primary);
+  text-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.hero-glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 16px 24px;
+  display: inline-block;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 p {
-  line-height: 1.7;
+  line-height: 1.8;
   color: var(--text-secondary);
-  font-weight: 300;
+  font-weight: 400;
+  margin-bottom: 24px;
+  word-break: keep-all;
 }
 
-/* Premium Buttons - 단청 색감 */
+/* Premium Buttons - Light Mode */
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-purple), #4B2A3B);
-  color: #FFFFFF; /* High contrast white */
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 14px 32px;
-  border-radius: 4px; /* Back to rectangular feel */
-  font-size: 1rem;
+  background: linear-gradient(135deg, #4A4A4A, #2C2C2C);
+  color: #FFFFFF; 
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 16px 32px;
+  border-radius: 12px; 
+  font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-smooth);
-  box-shadow: 0 4px 15px rgba(107, 58, 82, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-family: 'Noto Serif KR', serif;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
 }
 
 .btn-primary:active {
@@ -99,27 +119,27 @@ p {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(107, 58, 82, 0.4);
-  filter: brightness(1.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #5A5A5A, #3C3C3C);
 }
 
 .btn-secondary {
-  background: rgba(139, 94, 60, 0.05);
-  color: #5D4037; /* Warm dark brown for better readability */
-  border: 1px solid rgba(139, 94, 60, 0.4);
-  padding: 14px 32px;
-  border-radius: 4px; /* Back to rectangular feel */
-  font-size: 1rem;
-  font-weight: 600;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary); 
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 16px 32px;
+  border-radius: 12px; 
+  font-size: 1.05rem;
+  font-weight: 500;
   cursor: pointer;
   transition: var(--transition-smooth);
-  font-family: 'Noto Serif KR', serif;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .btn-secondary:hover {
-  background: rgba(139, 94, 60, 0.1);
-  box-shadow: 0 0 15px rgba(139, 94, 60, 0.1);
-  border-color: var(--accent-gold);
+  background: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.15);
 }
 
 /* Structural Utilities */
@@ -130,7 +150,7 @@ p {
 }
 
 .page-wrapper {
-  padding-top: 100px;
+  padding-top: 40px; /* Reduced top padding */
   padding-bottom: 60px;
   min-height: 100vh;
   display: flex;
@@ -158,24 +178,24 @@ p {
   animation: pulse-glow 2s infinite;
 }
 
-/* Form inputs - 한지 느낌 */
+/* Form inputs - Light Mode */
 .glass-input {
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid var(--glass-border);
-  border-radius: 4px; /* Back to rectangular feel */
-  padding: 14px 20px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0;
+  padding: 12px 0;
   color: var(--text-primary);
-  font-family: 'Noto Serif KR', serif;
-  font-size: 1rem;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  font-size: 1.1rem;
   width: 100%;
   transition: var(--transition-smooth);
 }
 
 .glass-input:focus {
   outline: none;
-  border-color: var(--accent-gold);
-  background: white;
-  box-shadow: 0 0 15px rgba(212, 168, 83, 0.1);
+  border-bottom-color: var(--text-primary);
+  background: transparent;
 }
 
 /* Mobile Optimizations */
@@ -205,8 +225,8 @@ p {
   }
 
   .menu-grid {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
   }
 }
 
@@ -218,13 +238,13 @@ p {
 
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
   width: 100%;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
-::-webkit-scrollbar-thumb { background: rgba(212, 168, 83, 0.3); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent-gold); }
+::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.4); }
