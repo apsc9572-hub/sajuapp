@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
 :root {
-  --bg-primary: #FAFAF8; /* Warm ivory/off-white */
+  --bg-primary: #FAF9F7; /* Approved Warm White */
   --bg-secondary: #FFFFFF; /* Pure white for contrast */
   --text-primary: #2C2C2C; /* Dark charcoal for maximum readability */
   --text-secondary: #666666; /* Smooth mid-gray */
@@ -224,24 +224,7 @@ p {
     padding-top: 60px;
   }
 
-  .menu-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 12px !important;
-  }
-}
 
-@media (min-width: 769px) and (max-width: 1024px) {
-  .menu-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-}
-
-.menu-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  width: 100%;
-}
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar { width: 6px; }

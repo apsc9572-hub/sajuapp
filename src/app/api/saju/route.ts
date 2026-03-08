@@ -21,7 +21,8 @@ export async function POST(req: Request) {
 ${systemPrompt}
 
 You MUST return a JSON object containing EXACTLY these keys: ${keysStr}.
-Each value must be a string formatted in Markdown.
+Ensure each analysis is detailed and natural, avoiding technical Saju terms.
+Do NOT use markdown bolding (**) or hashtags (#) in any text.
 
 For context, here is the raw JSON analysis again:
 ${JSON.stringify(sajuJson)}
@@ -54,8 +55,11 @@ Return ONLY valid JSON. Do not wrap in markdown code blocks (\`\`\`json).
 
   } catch (error: any) {
     console.error('LLM API Error:', error);
+    const errorMessage = error.message || 'Error generating Saju reading';
+    const errorDetails = error.stack || error.toString();
+    
     return NextResponse.json(
-      { error: error.message || 'Error generating Saju reading', details: error.toString() },
+      { error: errorMessage, details: errorDetails },
       { status: 500 }
     );
   }

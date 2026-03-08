@@ -4,10 +4,11 @@ import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Clock, CalendarDays, Sparkles, MoonStar, Scroll } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, CalendarDays, Sparkles, MoonStar, Scroll, Coins, Briefcase, Activity, Heart } from "lucide-react";
 import { calculateSaju } from "ssaju";
 import TraditionalBackground from "@/components/TraditionalBackground";
 import Disclaimer from "@/components/Disclaimer";
+import WheelDatePicker from "@/components/WheelDatePicker";
 
 function FortuneContent() {
   const searchParams = useSearchParams();
@@ -16,24 +17,52 @@ function FortuneContent() {
   const typeConfig: Record<string, any> = {
     daily: {
       title: "오늘의 운세",
-      desc: "어제, 오늘, 내일의 기운 흐름",
+      desc: "당신을 둘러싼 어제, 오늘, 내일의 흐름",
       icon: <Sparkles className="w-6 h-6" />,
       tabs: ["어제", "오늘", "내일"],
-      keys: ["past", "present", "future"]
+      keys: ["yesterday", "today", "tomorrow"]
     },
     monthly: {
       title: "월간 운세",
-      desc: "전월, 이번 달, 다음 달의 방향성",
+      desc: "이달의 방향성과 삶의 변화",
       icon: <MoonStar className="w-6 h-6" />,
-      tabs: ["지난 달", "이번 달", "다음 달"],
-      keys: ["past", "present", "future"]
+      tabs: ["지난달", "이번달", "다음달"],
+      keys: ["last_month", "this_month", "next_month"]
     },
     yearly: {
       title: "년간 운세",
-      desc: "작년, 올해, 내년의 거시적 판도",
+      desc: "올해의 거시적 판도와 운의 흐름",
       icon: <Scroll className="w-6 h-6" />,
-      tabs: ["작년", "올해", "내년"],
-      keys: ["past", "present", "future"]
+      tabs: ["지난해", "올해", "내년"],
+      keys: ["last_year", "this_year", "next_year"]
+    },
+    wealth: {
+      title: "재물운",
+      desc: "인생의 단계별 금전적 기회와 성취",
+      icon: <Coins className="w-6 h-6" />,
+      tabs: ["초년: 10~20대", "청년: 30대", "중년: 40대", "장년: 50대", "말년: 60대 이후"],
+      keys: ["early", "youth", "middle", "mature", "late"]
+    },
+    business: {
+      title: "사업운 흐름",
+      desc: "사회적 성취와 계약, 성장의 방향",
+      icon: <Briefcase className="w-6 h-6" />,
+      tabs: ["전체적인 흐름"],
+      keys: ["overall"]
+    },
+    health: {
+      title: "건강운 흐름",
+      desc: "신체 에너지와 마음의 안녕",
+      icon: <Activity className="w-6 h-6" />,
+      tabs: ["전체적인 흐름"],
+      keys: ["overall"]
+    },
+    love: {
+      title: "애정운 흐름",
+      desc: "인연의 기운과 관계의 양상",
+      icon: <Heart className="w-6 h-6" />,
+      tabs: ["전체적인 흐름"],
+      keys: ["overall"]
     }
   };
 
@@ -43,10 +72,76 @@ function FortuneContent() {
   const [time, setTime] = useState("14:30");
   const [isLunar, setIsLunar] = useState(false);
   const [gender, setGender] = useState("M");
-  
+  const [birthCity, setBirthCity] = useState("서울");
+
+  // 데이터 영속성 유지 (Sync with localStorage)
+  useEffect(() => {
+    const savedInfo = localStorage.getItem("user_birth_profile");
+    if (savedInfo) {
+      try {
+        const parsed = JSON.parse(savedInfo);
+        if (parsed.date) setDate(parsed.date);
+        if (parsed.time) setTime(parsed.time);
+        if (parsed.isLunar !== undefined) setIsLunar(parsed.isLunar);
+        if (parsed.gender) setGender(parsed.gender);
+        if (parsed.birthCity) setBirthCity(parsed.birthCity);
+      } catch (e) { console.error("Error loading profile", e); }
+    }
+  }, []);
+
+  useEffect(() => {
+    const profile = { date, time, isLunar, gender, birthCity };
+    localStorage.setItem("user_birth_profile", JSON.stringify(profile));
+  }, [date, time, isLunar, gender, birthCity]);
+
+  // 도시별 경도/LMT 보정 데이터베이스
+  const cityDataMap: Record<string, { region: string; energy: string; longitude: number; lmtOffset: number }> = {
+    "서울": { region: "산/강", energy: "수도의 중심에 서린 권위와 영민함", longitude: 127.0, lmtOffset: -32 },
+    "인천": { region: "바다", energy: "푸른 바다의 역동성과 개방적인 에너지", longitude: 126.7, lmtOffset: -33 },
+    "수원": { region: "평야", energy: "수원 화성의 정기와 조화로운 기운", longitude: 127.0, lmtOffset: -32 },
+    "성남": { region: "산/평야", energy: "도시의 현대적 흐름과 안정적인 터전", longitude: 127.1, lmtOffset: -32 },
+    "고양": { region: "강/평야", energy: "일산 호수공원의 평온함과 개방적 에너지", longitude: 126.8, lmtOffset: -33 },
+    "용인": { region: "산/평야", energy: "수지/기흥의 조화롭고 부드러운 기운", longitude: 127.2, lmtOffset: -31 },
+    "부천": { region: "평야", energy: "문화의 중심지로서 만인이 모이는 기운", longitude: 126.8, lmtOffset: -33 },
+    "안산": { region: "바다/강", energy: "서해의 기상을 품은 포용과 역동", longitude: 126.8, lmtOffset: -33 },
+    "남양주": { region: "산/강", energy: "다산 정약용의 지혜와 수려한 자연미", longitude: 127.2, lmtOffset: -31 },
+    "안양": { region: "산/평야", energy: "관악산 아래 곧고 바른 선비의 정기", longitude: 126.9, lmtOffset: -32 },
+    "화성": { region: "바다/평야", energy: "서해 바다와 비옥한 대지의 풍요로움", longitude: 126.8, lmtOffset: -33 },
+    "평택": { region: "평야/항구", energy: "세계로 뻗어가는 무역과 개척의 정기", longitude: 127.1, lmtOffset: -32 },
+    "의정부": { region: "산/군사", energy: "수호의 정신과 굳건한 평화의 기운", longitude: 127.0, lmtOffset: -32 },
+    "파주": { region: "강/평야", energy: "임진강의 흐름과 높은 기상의 예술혼", longitude: 126.8, lmtOffset: -33 },
+    "시흥": { region: "바다/평야", energy: "갯골의 생명력과 소금처럼 알찬 기운", longitude: 126.8, lmtOffset: -33 },
+    "김포": { region: "강/바다", energy: "한강 하구의 풍요와 새로운 기회의 터", longitude: 126.7, lmtOffset: -33 },
+    "광명": { region: "산/평야", energy: "빛의 도시답게 밝고 명랑한 지혜의 정기", longitude: 126.9, lmtOffset: -32 },
+    "광주(경기)": { region: "산/강", energy: "남한산성의 호국 정신과 맑은 자연미", longitude: 127.2, lmtOffset: -31 },
+    "군포": { region: "산/평야", energy: "수리산의 기품과 조화로운 삶의 기운", longitude: 126.9, lmtOffset: -32 },
+    "이천": { region: "평야", energy: "도자기의 예술성과 비옥한 쌀의 풍요", longitude: 127.4, lmtOffset: -30 },
+    "오산": { region: "평야/강", energy: "오산천의 여유와 따뜻한 포용력", longitude: 127.1, lmtOffset: -32 },
+    "하남": { region: "산/강", energy: "검단산의 기세와 한강의 평온함", longitude: 127.2, lmtOffset: -31 },
+    "양주": { region: "산/평야", energy: "양주 별산대의 풍류와 전통의 기운", longitude: 127.0, lmtOffset: -32 },
+    "구리": { region: "산/강", energy: "아차산과 한강이 만나는 길목의 행운", longitude: 127.1, lmtOffset: -32 },
+    "안성": { region: "평야/예술", energy: "안성마춤의 장인 정신과 풍류", longitude: 127.2, lmtOffset: -31 },
+    "포천": { region: "산/호수", energy: "백운산과 산정호수의 수려한 기품", longitude: 127.2, lmtOffset: -31 },
+    "의왕": { region: "산/호수", energy: "백운호수의 평온과 인자한 기운", longitude: 127.0, lmtOffset: -32 },
+    "여주": { region: "평야/강", energy: "세종대왕의 덕과 신륵사의 평화", longitude: 127.6, lmtOffset: -30 },
+    "동두천": { region: "산", energy: "소요산의 기백과 강직한 기운", longitude: 127.1, lmtOffset: -32 },
+    "과천": { region: "산", energy: "청계산의 맑음과 지혜로운 선비의 터", longitude: 127.0, lmtOffset: -32 },
+    "가평": { region: "산/강", energy: "자라섬의 싱그러움과 맑은 휴식", longitude: 127.5, lmtOffset: -30 },
+    "양평": { region: "산/강", energy: "용문산과 두물머리의 신성한 기운", longitude: 127.5, lmtOffset: -30 },
+    "연천": { region: "강/산", energy: "한탄강의 역동성과 유구한 대지의 정기", longitude: 127.1, lmtOffset: -32 },
+    "부산": { region: "바다", energy: "거친 파도를 품은 역동적인 해양 기운", longitude: 129.0, lmtOffset: -24 },
+    "대구": { region: "분지/화", energy: "뜨거운 열정과 곧은 선비의 기질", longitude: 128.6, lmtOffset: -26 },
+    "대전": { region: "평야/산", energy: "한반도 중심의 균형 잡힌 기운", longitude: 127.4, lmtOffset: -30 },
+    "광주": { region: "예술/풍류", energy: "풍부한 감수성과 예술적 끼", longitude: 126.9, lmtOffset: -32 },
+    "강릉": { region: "바다/산", energy: "동해의 깊은 푸름과 태백의 굳건함", longitude: 128.9, lmtOffset: -24 },
+    "제주": { region: "섬/바람", energy: "자유로운 영혼과 강인한 생명력", longitude: 126.5, lmtOffset: -34 },
+    "기타": { region: "대지", energy: "한반도의 고유한 생명력", longitude: 127.5, lmtOffset: -30 },
+  };
+
   const [bazi, setBazi] = useState<any>(null);
   const [reading, setReading] = useState<any>("");
-  const [activeTab, setActiveTab] = useState(1); // 0: past, 1: present, 2: future
+  const [activeTab, setActiveTab] = useState(0);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -78,11 +173,14 @@ function FortuneContent() {
 
       textInterval = setInterval(() => {
         setLoadingTextIdx((prev) => (prev + 1) % loadingTexts.length);
-      }, 1800);
+      }, 1500);
 
       progressInterval = setInterval(() => {
         setLoadingProgress((prev) => {
-          if (prev >= 98) return 99;
+          if (prev >= 99) {
+            if (progressInterval) clearInterval(progressInterval);
+            return 99;
+          }
           const increment = Math.floor(Math.random() * 3) + 1;
           return Math.min(prev + increment, 99);
         });
@@ -99,418 +197,413 @@ function FortuneContent() {
     setIsLoading(true);
     setBazi(null);
     setReading("");
-    setActiveTab(1); 
+    setActiveTab(["daily", "monthly", "yearly"].includes(typeParam) ? 1 : 0);
 
+    // 즉시 결과/로딩 영역으로 스크롤
     setTimeout(() => {
-      const resultElement = document.getElementById("result-section");
-      if (resultElement) {
-        resultElement.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 100);
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
 
     try {
-        const [year, month, day] = date.split("-").map(Number);
-        const [hour, min] = time.split(":").map(Number);
+      const [year, month, day] = date.split("-").map(Number);
+      const [hour, min] = time.split(":").map(Number);
 
-        if (!year || !month || !day) throw new Error("유효한 날짜가 아닙니다.");
+      if (!year || !month || !day) throw new Error("유효한 날짜가 아닙니다.");
 
-        const sajuRes = calculateSaju({
-          year,
-          month,
-          day,
-          hour,
-          minute: min,
-          calendar: isLunar ? "lunar" : "solar"
-        });
+      const cityData = cityDataMap[birthCity] || cityDataMap["기타"];
+      const offsetMin = cityData.lmtOffset;
+      const totalMinutes = hour * 60 + min + offsetMin;
 
-        if (!sajuRes) throw new Error("사주 산출에 실패했습니다.");
+      let correctedDay = day;
+      let correctedHour = Math.floor(((totalMinutes % 1440) + 1440) % 1440 / 60);
+      let correctedMin = ((totalMinutes % 60) + 60) % 60;
+      if (totalMinutes < 0) correctedDay = day - 1;
+      if (totalMinutes >= 1440) correctedDay = day + 1;
 
-        // 캐시 키 생성 (날짜, 시간, 음양력, 성별, 운세타입)
-        const cacheKey = `fortune_${date}_${time}_${isLunar}_${gender}_${typeParam}`;
-        const cachedData = localStorage.getItem(cacheKey);
-        
-        if (cachedData) {
-          const parsed = JSON.parse(cachedData);
-          setBazi(sajuRes);
-          setReading(parsed.reading);
-          setIsLoading(false);
-          return;
-        }
+      const sajuRes = calculateSaju({
+        year,
+        month,
+        day: correctedDay,
+        hour: correctedHour,
+        minute: correctedMin,
+        calendar: isLunar ? "lunar" : "solar"
+      });
 
-        const HANJA_TO_KR: Record<string, string> = {
-          '甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계',
-          '子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신2','酉':'유','戌':'술','亥':'해'
-        };
-        const toKr = (s: string) => s.split('').map(c => HANJA_TO_KR[c] ?? c).join('');
+      if (!sajuRes) throw new Error("사주 산출에 실패했습니다.");
 
-        const yearKr  = toKr(sajuRes.pillarDetails.year.stem  + sajuRes.pillarDetails.year.branch);
-        const monthKr = toKr(sajuRes.pillarDetails.month.stem + sajuRes.pillarDetails.month.branch);
-        const dayKr   = toKr(sajuRes.pillarDetails.day.stem   + sajuRes.pillarDetails.day.branch);
-        const timeKr  = toKr(sajuRes.pillarDetails.hour.stem  + sajuRes.pillarDetails.hour.branch);
+      const cacheKey = `fortune_v10_${date}_${time}_${isLunar}_${gender}_${typeParam}`;
+      const cachedData = localStorage.getItem(cacheKey);
 
-        const sajuMap: Record<string, string> = {
-            '갑': '목', '을': '목', '병': '화', '정': '화', '무': '토', '기': '토', '경': '금', '신': '금', '임': '수', '계': '수',
-            '자': '수', '축': '토', '인': '목', '묘': '목', '진': '토', '사': '화', '오': '화', '미': '토', '신2': '금', '유': '금', '술': '토', '해': '수'
-        };
-
-        const allChars = [yearKr, monthKr, dayKr, timeKr].flatMap(gz => gz.split(''));
-        const elementCounts: Record<string, number> = { '목': 0, '화': 0, '토': 0, '금': 0, '수': 0 };
-        allChars.forEach(char => {
-            const elem = sajuMap[char];
-            if (elem) elementCounts[elem]++;
-        });
-
-        const sortedByRatio = Object.entries(elementCounts).sort(([,a],[,b]) => b - a);
-        const strongestElem = sortedByRatio[0]?.[0] || '토'; 
-        const weakestElem = sortedByRatio[sortedByRatio.length-1]?.[0] || '수';
-
-        // 앵커 키워드 추출
-        const anchorKeywords = [
-          `#${dayKr[0]}일간`,
-          `#${strongestElem}기운강함`,
-          `#${timeKr}시`,
-        ];
-
-        // 경계 시간(Cusp) 체크 (시가 바뀌는 23, 01, 03... 의 30분 전후 5분)
-        let cuspScript = "";
-        const sajuHours = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23];
-        if (sajuHours.includes(hour) && min >= 30 && min <= 35) {
-          const currentHourBranch = toKr(sajuRes.pillarDetails.hour.branch);
-          // 이전 시지(Branch) 이름 유추 (단순화: 자축인묘... 순서에서 하나 앞)
-          const branches = ['자','축','인','묘','진','사','오','미','신2','유','술','해'];
-          const idx = branches.indexOf(currentHourBranch);
-          const prevIdx = (idx - 1 + 12) % 12;
-          const prevHourBranch = branches[prevIdx];
-          
-          cuspScript = `당신은 ${prevHourBranch}(${prevHourBranch === '신2' ? '申' : ''})시의 묵직함과 ${currentHourBranch}시의 화려함이 교차하는 ${hour}시 ${min}분에 태어났습니다. 정밀 보정상 '${currentHourBranch}시'의 기운이 중심이지만, 이전 시간의 신중함 또한 내면에 깊이 뿌리박혀 있는 독특한 명식입니다.`;
-        }
-
-        const elemTraits: Record<string, string> = { 
-            "목": "성장 욕구가 강하고 뻗어나가려는 성향이", 
-            "화": "열정적이고 확산되는 에너지가", 
-            "토": "책임감이 무겁고 포용력이", 
-            "금": "결단력과 원칙 중심의 성향이", 
-            "수": "지혜롭지만 때로는 생각에 잠기는 성향이" 
-        };
-        const weakTraits: Record<string, string> = {
-            "목": "시작하는 힘이나 의욕이 부족할 수",
-            "화": "표현력이나 열정이 부족할 수",
-            "토": "안정감이나 끈기가 부족할 수",
-            "금": "결단력이나 맺고 끊음이 약할 수",
-            "수": "유연성이나 융통성이 부족할 수"
-        };
-
-        const strongStr = strongestElem + " 기운이 강해 " + (elemTraits[strongestElem] || "주도적인 성향이") + " 강하고,";
-        const weakStr = weakestElem + " 기운이 상대적으로 약해 " + (weakTraits[weakestElem] || "마무리가 아쉬울 수") + " 있습니다.";
-
-        let timeContext = "";
-        if (typeParam === "daily") {
-            timeContext = "이 내담자의 '어제', '오늘', '내일'의 일일 운세 흐름을 분석해 주세요.";
-        } else if (typeParam === "monthly") {
-            timeContext = "이 내담자의 '지난 달', '이번 달', '다음 달'의 월간 운세 흐름을 분석해 주세요.";
-        } else {
-            timeContext = "이 내담자의 '작년', '올해', '내년'의 연간 운세 판도와 장기적 흐름을 분석해 주세요.";
-        }
-
-        const dayMasterChar = dayKr[0] || '알수없음';
-
-        const systemPrompt = `System: 당신은 20년 경력의 차분하고 통찰력 있는 '하이엔드 명리 상담가'이자 인문학 칼럼니스트입니다.
-말투는 다정하지만 뼈가 있는 조언을 건네는 담백한 산문(에세이) 톤으로 작성하세요 ('~합니다', '~군요', '~할 수 있습니다'). 
-내담자의 상황을 깊이 이해하고 위로하되, 다가올 시간의 길흉을 명확하면서도 다정하게 짚어주는 카리스마를 보여주세요.
-
-단, 미래를 100% 단언하거나 확정 짓는 어투('무조건 ~합니다', '절대 ~하지 마세요', '망합니다', '성공합니다')는 피하세요. 대신 '~할 가능성이 높습니다', '~하는 경향이 있습니다', '~하기 쉬운 흐름이 들어와 있습니다' 같은 유연하고 깊이 있는 언어를 사용하세요.
-
-반드시 포함해야 할 핵심 키워드: ${anchorKeywords.join(", ")}
-${cuspScript ? `경계 시간 안내: ${cuspScript}` : ""}
-
-절대 금지 사항 (Negative Prompt):
-1. "계일간 님", "사용자님" 같은 기계적인 호칭 불가. 문맥상 자연스럽게 "당신은~" 식으로 주어를 풀어서 작성할 것.
-2. "오늘의 기운석", "우주의 기운", "마법 같은", "놀라운", "특별한", "명심하세요" 등 AI가 버릇처럼 쓰는 뻔하고 오글거리는 형용사나 작위적인 명칭 완벽하게 차단.
-3. 인사말이나 본인 소개 절대 금지.
-4. 명리학 전문 용어(갑목, 을미시, 상관, 편재, 비견, 원진살 등) 및 한자어 절대 금지. 쉬운 심리적 언어나 자연물로 은유하세요.
-
-User: 이 내담자는 일간이 ${dayMasterChar}이며, ${strongStr} ${weakStr}
-${timeContext}
-
-각 시점(과거, 현재, 미래)에 대해 다음 3단 스토리텔링 구조를 자연스러운 3개의 문단으로 구분하여 각각 400자 이내로 작성하세요 (기호 절대 금지). 모바일 가독성을 위해 단락 사이는 항상 두 번의 줄바꿈(\\n\\n)으로 띄우고, 핵심 문장은 **볼드체**를 사용해 1~2회 강조하세요.
-- [3문단 - 구체적 처방]: 뻔한 말 금지. 당장 실천 가능한 다정한 행동 지침 제안.
-
-반드시 순수 JSON 객체만 출력하세요. 앞뒤에 어떠한 설명(Preamble), 마크다운 형태의 기호(\`\`\`json 등)도 붙이지 마세요. 오직 유효한 JSON 문자열만 반환해야 합니다.`;
-
-        const sajuAnalysisJson = {
-             user_info: { gender, day_master: dayMasterChar },
-             elements_counts: elementCounts,
-             time_context: typeParam,
-             anchor_keywords: anchorKeywords,
-             cusp_script: cuspScript
-        };
-
-        const payload = { 
-            systemPrompt: systemPrompt, 
-            sajuJson: sajuAnalysisJson,
-            cityName: "서울", // Fortune page currently doesn't have city selection, defaulting to Seoul for safety
-            expectedKeys: ["past", "present", "future"] 
-        };
-        console.log("Payload:", payload);
-
-        const apiRes = await fetch("/api/saju", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-
-        if (!apiRes.ok) {
-            const errorText = await apiRes.text();
-            console.error("❌ [DEBUG] 서버 응답 에러 (Fortune):", apiRes.status, errorText);
-            throw new Error(`API 연동 오류 (${apiRes.status})`);
-        }
-
-        const rawText = await apiRes.text();
-        console.log("🔥 [DEBUG] AI 원본 응답 텍스트 (Fortune):", rawText);
-
-        let cleanJsonString = rawText
-          .replace(/```json/gi, '')
-          .replace(/```/g, '')
-          .trim();
-
-        const jsonMatch = cleanJsonString.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          cleanJsonString = jsonMatch[0];
-        }
-
-        let llmResult: any = null;
-        try {
-          llmResult = JSON.parse(cleanJsonString);
-          console.log("✅ [DEBUG] 파싱 성공 데이터 (Fortune):", llmResult);
-        } catch (parseError) {
-          console.error("❌ [DEBUG] JSON 파싱 실패 (Fortune):", parseError);
-          throw new Error("AI 응답 데이터 형식이 올바르지 않습니다.");
-        }
-
-        if (!llmResult) {
-          throw new Error("JSON 파싱은 성공했으나 데이터가 비어있습니다.");
-        }
-        
-        const finalReading = {
-            past: llmResult?.past || "데이터를 불러오지 못했습니다.",
-            present: llmResult?.present || "데이터를 불러오지 못했습니다.",
-            future: llmResult?.future || "데이터를 불러오지 못했습니다."
-        };
-
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData);
         setBazi(sajuRes);
-        setReading(finalReading);
+        setReading(parsed.reading);
+        setIsLoading(false);
+        return;
+      }
 
-        // 결과 캐시 저장
-        localStorage.setItem(cacheKey, JSON.stringify({
-          reading: finalReading,
-          timestamp: Date.now()
-        }));
+      const HANJA_TO_KR: Record<string, string> = {
+        '甲': '갑', '乙': '을', '丙': '병', '丁': '정', '戊': '무', '己': '기', '庚': '경', '辛': '신', '壬': '임', '癸': '계',
+        '子': '자', '丑': '축', '寅': '인', '卯': '묘', '辰': '진', '巳': '사', '午': '오', '未': '미', '申': '신', '酉': '유', '戌': '술', '亥': '해'
+      };
+      const toKr = (s: string) => s.split('').map(c => HANJA_TO_KR[c] ?? c).join('');
+
+      const yearKr = toKr(sajuRes.pillarDetails.year.stem + sajuRes.pillarDetails.year.branch);
+      const monthKr = toKr(sajuRes.pillarDetails.month.stem + sajuRes.pillarDetails.month.branch);
+      const dayKr = toKr(sajuRes.pillarDetails.day.stem + sajuRes.pillarDetails.day.branch);
+      const timeKr = toKr(sajuRes.pillarDetails.hour.stem + sajuRes.pillarDetails.hour.branch);
+
+      const sajuMap: Record<string, string> = {
+        '갑': '목', '을': '목', '병': '화', '정': '화', '무': '토', '기': '토', '경': '금', '신': '금', '임': '수', '계': '수',
+        '자': '수', '축': '토', '인': '목', '묘': '목', '진': '토', '사': '화', '오': '화', '미': '토', '유': '금', '술': '토', '해': '수'
+      };
+
+      const allChars = [yearKr, monthKr, dayKr, timeKr].flatMap(gz => gz.split(''));
+      const elementCounts: Record<string, number> = { '목': 0, '화': 0, '토': 0, '금': 0, '수': 0 };
+      allChars.forEach(char => {
+        const elem = sajuMap[char];
+        if (elem) elementCounts[elem]++;
+      });
+
+      const sortedByRatio = Object.entries(elementCounts).sort(([, a], [, b]) => b - a);
+      const strongestElem = sortedByRatio[0]?.[0] || '토';
+      const weakestElem = sortedByRatio[sortedByRatio.length - 1]?.[0] || '수';
+
+      const anchorKeywords = [
+        `#${dayKr[0]}일간`,
+        `#${strongestElem}기운강함`,
+        `#${timeKr}시`,
+      ];
+
+      let cuspScript = "";
+      const sajuHours = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23];
+      if (sajuHours.includes(hour) && min >= 30 && min <= 35) {
+        const currentHourBranch = toKr(sajuRes.pillarDetails.hour.branch);
+        const branches = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
+        const idx = branches.indexOf(currentHourBranch);
+        const prevIdx = (idx - 1 + 12) % 12;
+        const prevHourBranch = branches[prevIdx];
+        cuspScript = `당신은 ${prevHourBranch}시의 묵직함과 ${currentHourBranch}시의 화려함이 교차하는 ${hour}시 ${min}분에 태어났습니다.`;
+      }
+
+      const strongestElemTrait = strongestElem + " 기운이 강해 주도적인 성향이 뚜렷하며,";
+      const weakestElemTrait = weakestElem + " 기운이 상대적으로 약해 맺고 끊음이 아쉬울 수 있습니다.";
+
+      let timeContext = "";
+      const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      if (typeParam === "wealth") {
+        timeContext = "이 내담자의 인생 전체 '재물운'을 [초년(10~20대), 청년(30대), 중년(40대), 장년(50대), 말년(60대 이후)] 5단계 생애주기로 나누어 분석해 주세요.";
+      } else if (typeParam === "monthly") {
+        timeContext = `오늘은 ${todayStr}입니다. 지난달, 이번달, 다음달 3개월간의 운세를 각각 상세히 분석해 주세요. 
+            각 기간별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item 4가지 항목)을 반드시 포함한 객체로 응답하세요.`;
+      } else if (typeParam === "yearly") {
+        timeContext = `오늘은 ${todayStr}입니다. 지난해, 올해, 내년 3년간의 운세를 각각 상세히 분석해 주세요. 
+            각 기간별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item 4가지 항목)을 반드시 포함한 객체로 응답하세요.`;
+      } else if (typeParam === "daily") {
+        timeContext = `오늘은 ${todayStr}입니다. 어제, 오늘, 내일 3일간의 운세를 각각 상세히 분석해 주세요. 
+            각 날짜별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item 4가지 항목)을 반드시 포함한 객체로 응답하세요.`;
+      } else {
+        timeContext = `이 ${todayStr} 기준으로 내담자의 '${currentType.title}' 테마에 집중하여 분석해 주세요.`;
+      }
+
+      const systemPrompt = `당신은 통찰력 있는 사주 상담가입니다. 명리 데이터를 기반으로 깊이 있는 분석을 제공하세요.
+반드시 JSON 형식으로 응답하며, 
+- wealth 테마일 경우: 'wealth_stages' 객체 내부에 영어 키(early, youth, middle, mature, late)를 사용.
+- daily 테마일 경우: 'yesterday', 'today', 'tomorrow' 각각의 객체 사용.
+- monthly 테마일 경우: 'last_month', 'this_month', 'next_month' 각각의 객체 사용.
+- yearly 테마일 경우: 'last_year', 'this_year', 'next_year' 각각의 객체 사용.
+- 공통: 모든 시간 기반 객체 내부에 'content', 'score'(숫자), 'gaewun'(객체: color, direction, element, item)를 포함. (단, element는 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 중 하나로 표기)
+- 기타 테마일 경우: ${currentType.keys[0]} 키를 사용하여 분석 내용을 제공.
+- 전문 용어는 지양하고 비유적인 표현으로 다정하게 설명하세요.
+- 마크다운 강조 기호(**)는 사용하지 마세요. 모든 텍스트는 일반 텍스트로 작성하세요.
+
+배경: ${anchorKeywords.join(", ")}
+${cuspScript ? `특이사항: ${cuspScript}` : ""}
+
+내용: ${strongestElemTrait} ${weakestElemTrait}
+${timeContext}`;
+
+      const payload = {
+        systemPrompt: systemPrompt,
+        sajuJson: { gender, elementCounts, type: typeParam, baseDate: date },
+        cityName: birthCity,
+        expectedKeys: typeParam === "wealth" ? ["wealth_stages"] : (["daily", "monthly", "yearly"].includes(typeParam) ? currentType.keys : currentType.keys)
+      };
+
+      const apiRes = await fetch("/api/saju", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!apiRes.ok) throw new Error("API 요청 실패");
+
+      const llmResult = await apiRes.json();
+      const finalReading: Record<string, any> = {};
+
+      if (typeParam === "wealth") {
+        const stages = llmResult.wealth_stages || llmResult;
+        currentType.keys.forEach((key: string) => {
+          const raw = stages[key];
+          if (typeof raw === 'string') {
+            finalReading[key] = { content: raw }; // Wrap in object to match expected structure
+          } else if (typeof raw === 'object' && raw !== null) {
+            // Preserve the entire object (which includes gaewun) 
+            // but ensure content exists for the main text
+            finalReading[key] = {
+              ...raw,
+              content: raw.content || raw.text || raw.analysis || "분석 정보를 가져오지 못했습니다."
+            };
+          } else {
+            finalReading[key] = { content: "분석 정보를 가져오지 못했습니다." };
+          }
+        });
+      } else if (["daily", "monthly", "yearly"].includes(typeParam)) {
+        currentType.keys.forEach((key: string) => {
+          const raw = llmResult[key];
+          if (typeof raw === 'string') {
+            finalReading[key] = { content: raw, score: 80, gaewun: { color: "금색", direction: "동쪽", element: "금(金)", item: "장신구" } };
+          } else if (raw && (raw.content || raw.analysis || raw.text)) {
+            finalReading[key] = {
+              content: raw.content || raw.analysis || raw.text,
+              score: raw.score || 80,
+              gaewun: raw.gaewun || { color: "금색", direction: "동쪽", element: "금(金)", item: "장신구" }
+            };
+          } else {
+            finalReading[key] = { content: "세부 분석 정보를 생성하지 못했습니다.", score: 70, gaewun: { color: "흰색", direction: "서쪽", element: "수(水)", item: "금속 장신구" } };
+          }
+        });
+      } else {
+        currentType.keys.forEach((key: string) => {
+          finalReading[key] = llmResult[key] || "분석 정보를 가져오지 못했습니다.";
+        });
+      }
+
+      setBazi(sajuRes);
+      setReading(finalReading);
+
+      localStorage.setItem(cacheKey, JSON.stringify({
+        reading: finalReading,
+        timestamp: Date.now()
+      }));
 
     } catch (err: any) {
-        console.error(err);
-        if (err.message?.includes("429")) {
-            alert("현재 접속자가 많아 우주의 기운을 읽어오는 데 시간이 걸리고 있습니다. 약 1분 뒤에 다시 시도해 주세요. 🌌");
-        } else {
-            alert("네트워크 연결이 불안정합니다. 잠시 후 다시 시도해 주세요.");
-        }
+      console.error(err);
+      alert("분석에 실패했습니다. 다시 시도해 주세요.");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const renderHighlightedText = (text: string) => {
-    if (!text) return null;
-    const parts = text.split(/(【.*?】)/g);
-    return parts.map((part, i) => {
-      if (part.startsWith('【') && part.endsWith('】')) {
-        return <strong key={part + i} style={{ color: "var(--accent-gold)", fontWeight: "bold" }}>{part}</strong>;
-      }
-      return part;
-    });
+  const renderHighlightedText = (text: any) => {
+    if (!text || typeof text !== 'string') return null;
+    return text.replace(/\*\*/g, '');
+  };
+
+  const RollingNumber = ({ value }: { value: number }) => {
+    return <>{value}</>;
   };
 
   return (
-    <main style={{ width: "100%", minHeight: "100vh", position: "relative", overflow: "hidden", background: "var(--bg-primary)" }}>
+    <main style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
       <Disclaimer />
       <TraditionalBackground />
-      <div style={{ position: "relative", zIndex: 1, minHeight: "100vh" }} className="container py-8">
-        <Link href="/" style={{ textDecoration: "none", display: "inline-block", marginBottom: "30px" }}>
-          <button style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer", display: "flex", alignItems: "center", padding: "8px" }}>
-            <ArrowLeft className="w-7 h-7" strokeWidth={1.5} />
-          </button>
+      <div style={{ position: "relative", zIndex: 1 }} className="container py-8">
+        <Link href="/" style={{ textDecoration: "none", marginBottom: "30px", display: "inline-block" }}>
+          <button style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer" }}><ArrowLeft /></button>
         </Link>
 
-      <div className="text-center" style={{ marginBottom: "50px" }}>
-        <div>
-          <h1 style={{ fontSize: "2.4rem", marginBottom: "8px", fontWeight: "300" }}>{currentType.title}</h1>
-          <p style={{ color: "var(--text-secondary)", fontWeight: "400", fontSize: "1.05rem" }}>{currentType.desc}</p>
+        <div className="text-center" style={{ marginBottom: "50px" }}>
+          <h1 style={{ fontSize: "2.4rem", fontWeight: "300" }}>{currentType.title}</h1>
+          <p style={{ color: "var(--text-secondary)" }}>{currentType.desc}</p>
         </div>
-      </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "30px", maxWidth: "800px", margin: "0 auto", width: "100%" }}>
-        {/* 입력 폼 영역 */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{ width: "100%", padding: "0 16px" }}
-        >
-          <h2 style={{ fontSize: "1.2rem", marginBottom: "30px", display: "flex", alignItems: "center", gap: "8px", fontWeight: "400", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "16px" }}>
-            <CalendarDays className="w-5 h-5" strokeWidth={1.5} /> 기운을 읽을 정보
-          </h2>
-          
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "24px" }}>
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "0.95rem", color: "var(--text-secondary)" }}>생년월일</label>
-              <input type="date" className="glass-input" value={date} onChange={(e) => setDate(e.target.value)} />
-            </div>
-            
-            <div>
-              <label style={{ display: "block", marginBottom: "12px", fontSize: "0.95rem", color: "var(--text-secondary)" }}>양/음력</label>
-              <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: "30px", padding: "4px" }}>
-                <button style={{ flex: 1, padding: "12px", borderRadius: "30px", border: "none", background: !isLunar ? "rgba(255,255,255,0.15)" : "transparent", color: !isLunar ? "white" : "var(--text-secondary)", fontWeight: !isLunar ? 600 : 400, transition: "all 0.3s" }} onClick={() => setIsLunar(false)}>양력</button>
-                <button style={{ flex: 1, padding: "12px", borderRadius: "30px", border: "none", background: isLunar ? "rgba(255,255,255,0.15)" : "transparent", color: isLunar ? "white" : "var(--text-secondary)", fontWeight: isLunar ? 600 : 400, transition: "all 0.3s" }} onClick={() => setIsLunar(true)}>음력</button>
-              </div>
-            </div>
+        <div style={{ maxWidth: "800px", margin: "0 auto", width: "100%" }}>
+          <section style={{ padding: "0 16px" }}>
+            <h2 style={{ fontSize: "1.2rem", marginBottom: "24px", borderBottom: "1px solid rgba(0,0,0,0.05)", paddingBottom: "12px" }}>분석 정보 입력</h2>
+            <div style={{ display: "grid", gap: "24px" }}>
+              <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer" }}>{date}</div>
+              <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={date} onConfirm={(d) => setDate(d)} />
 
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "0.95rem", color: "var(--text-secondary)" }}>태어난 시간</label>
-              <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: "12px", fontSize: "0.95rem", color: "var(--text-secondary)" }}>성별</label>
-              <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: "30px", padding: "4px" }}>
-                <button style={{ flex: 1, padding: "12px", borderRadius: "30px", border: "none", background: gender === "M" ? "rgba(255,255,255,0.15)" : "transparent", color: gender === "M" ? "white" : "var(--text-secondary)", fontWeight: gender === "M" ? 600 : 400, transition: "all 0.3s" }} onClick={() => setGender("M")}>남성</button>
-                <button style={{ flex: 1, padding: "12px", borderRadius: "30px", border: "none", background: gender === "F" ? "rgba(255,255,255,0.15)" : "transparent", color: gender === "F" ? "white" : "var(--text-secondary)", fontWeight: gender === "F" ? 600 : 400, transition: "all 0.3s" }} onClick={() => setGender("F")}>여성</button>
-              </div>
-            </div>
-          </div>
-          
-          <button 
-            className="btn-primary" 
-            style={{ width: "100%", marginTop: "40px", padding: "18px", borderRadius: "30px", fontSize: "1.1rem" }}
-            onClick={calculateFortune}
-            disabled={isLoading}
-          >
-            {isLoading && !bazi ? <Clock className="w-5 h-5 animate-spin" /> : <BookOpen className="w-5 h-5" />}
-            {isLoading && !bazi ? "기운의 흐름을 분석 중입니다..." : `${currentType.title} 흐름 분석하기`}
-          </button>
-        </motion.div>
-
-        {/* 결과 영역 */}
-        <AnimatePresence>
-          {(bazi || isLoading) && (
-            <motion.div 
-              id="result-section"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              style={{ padding: "16px", width: "100%", maxWidth: "95%", margin: "24px auto 0 auto", wordBreak: "keep-all" }}
-            >
-              <h2 style={{ fontSize: "1.4rem", marginBottom: "30px", color: "var(--accent-gold)", textAlign: "center", fontWeight: "300" }}>시운(時運) 흐름 지표</h2>
-              
-              {isLoading && !bazi ? (
-                <div style={{ padding: "80px 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "30px" }}>
-                    <motion.div 
-                      animate={{ rotate: 360 }} 
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                      style={{ 
-                        position: "absolute", inset: 0, 
-                        borderRadius: "50%", 
-                        border: "4px solid rgba(226, 192, 115, 0.1)", 
-                        borderTopColor: "var(--accent-gold)" 
-                      }} 
-                    />
-                    <motion.div 
-                      animate={{ rotate: -360 }} 
-                      transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                      style={{ 
-                        position: "absolute", inset: '10px', 
-                        borderRadius: "50%", 
-                        border: "4px solid rgba(255, 255, 255, 0.1)", 
-                        borderBottomColor: "#fff",
-                        opacity: 0.7
-                      }} 
-                    />
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ color: "var(--accent-gold)", fontSize: "1.8rem", fontWeight: "bold" }}>{loadingProgress}%</span>
-                    </div>
-                  </div>
-
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={loadingTextIdx}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.5 }}
-                      style={{ color: "var(--accent-gold)", fontSize: "1.2rem", fontWeight: 500, textAlign: "center" }}
-                    >
-                      {loadingTexts[loadingTextIdx]}
-                    </motion.div>
-                  </AnimatePresence>
-
-                  <div style={{ width: "200px", height: "4px", background: "rgba(255,255,255,0.1)", borderRadius: "4px", marginTop: "20px", overflow: "hidden" }}>
-                    <motion.div 
-                      animate={{ width: `${loadingProgress}%` }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                      style={{ height: "100%", background: "var(--accent-gold)" }}
-                    />
-                  </div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1 }} />
+                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "30px", padding: "4px" }}>
+                  <button onClick={() => setIsLunar(false)} style={{ padding: "8px 16px", borderRadius: "30px", background: !isLunar ? "white" : "transparent" }}>양력</button>
+                  <button onClick={() => setIsLunar(true)} style={{ padding: "8px 16px", borderRadius: "30px", background: isLunar ? "white" : "transparent" }}>음력</button>
                 </div>
-              ) : bazi && reading && (
-                <>
-                  {/* 동적 탭 UI */}
-                  <div style={{ display: "flex", gap: "8px", marginBottom: "30px", padding: "4px", background: "rgba(139, 94, 60, 0.05)", borderRadius: "12px", border: "1px solid rgba(139, 94, 60, 0.1)" }}>
-                    {currentType.tabs.map((tabStr: string, index: number) => {
-                       const isActive = activeTab === index;
-                       return (
-                           <button 
-                             key={index}
-                             onClick={() => setActiveTab(index)}
-                             style={{
-                                flex: 1,
-                                padding: "12px",
-                                borderRadius: "8px",
-                                fontSize: "1rem",
-                                fontWeight: isActive ? "bold" : "normal",
-                                backgroundColor: isActive ? "rgba(226, 192, 115, 0.15)" : "transparent",
-                                color: isActive ? "var(--accent-gold)" : "var(--text-secondary)",
-                                border: `1px solid ${isActive ? "rgba(226, 192, 115, 0.3)" : "transparent"}`,
-                                transition: "all 0.3s ease"
-                             }}
-                           >
-                              {tabStr}
-                           </button>
-                       )
-                    })}
-                  </div>
+              </div>
 
-                  <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                    style={{
-                      background: "transparent",
-                      padding: "20px 0",
-                      borderTop: "1px solid rgba(255, 255, 255, 0.05)",
-                      whiteSpace: "pre-line"
-                    }}
-                  >
-                    <h3 style={{ color: "var(--accent-gold)", marginBottom: "20px", fontSize: "1.2rem", borderBottom: "1px solid rgba(226, 192, 115, 0.2)", paddingBottom: "10px" }}>
-                       {currentType.tabs[activeTab]}의 기운석
-                    </h3>
-                    <div className="markdown-content" style={{ fontSize: "1.05rem", lineHeight: 2.0, color: "var(--text-primary)", whiteSpace: "pre-line" }}>
-                      {renderHighlightedText(activeTab === 0 ? reading.past : activeTab === 1 ? reading.present : reading.future)}
+              <div style={{ display: "flex", gap: "8px" }}>
+                <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1 }}>
+                  {Object.keys(cityDataMap).map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "30px", padding: "4px" }}>
+                  <button onClick={() => setGender("M")} style={{ padding: "8px 16px", borderRadius: "30px", background: gender === "M" ? "white" : "transparent" }}>남</button>
+                  <button onClick={() => setGender("F")} style={{ padding: "8px 16px", borderRadius: "30px", background: gender === "F" ? "white" : "transparent" }}>여</button>
+                </div>
+              </div>
+            </div>
+
+            <button onClick={calculateFortune} disabled={isLoading} className="btn-primary" style={{ width: "100%", marginTop: "40px", padding: "18px", borderRadius: "30px", fontSize: "1.1rem" }}>
+              {isLoading ? "분석 중..." : `${currentType.title} 흐름 분석하기`}
+            </button>
+          </section>
+
+          <AnimatePresence>
+            {(bazi || isLoading) && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: "16px", marginTop: "40px" }} ref={resultRef} id="result-section">
+                <h2 style={{ fontSize: "1.4rem", marginBottom: "30px", color: "var(--accent-gold)", textAlign: "center" }}>분석 결과</h2>
+
+                {isLoading ? (
+                  <div style={{ textAlign: "center", padding: "64px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: "rotate(-90deg)" }}>
+                        <defs>
+                          <linearGradient id="goldGradientFortune" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#E6C875" />
+                            <stop offset="100%" stopColor="#AA7C11" />
+                          </linearGradient>
+                        </defs>
+                        <circle cx="60" cy="60" r="58" fill="none" stroke="rgba(0,0,0,0.03)" strokeWidth="3" />
+                        <circle 
+                          cx="60" cy="60" r="58" fill="none" stroke="url(#goldGradientFortune)" strokeWidth="3" 
+                          strokeDasharray={364.42} 
+                          strokeDashoffset={364.42 - (loadingProgress / 100) * 364.42} 
+                          strokeLinecap="round"
+                          style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)" }}
+                        />
+                      </svg>
+                      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.8rem", color: "var(--accent-gold)", fontWeight: "300" }}>
+                        {loadingProgress}<span style={{ fontSize: "1rem", marginLeft: "2px", opacity: 0.8 }}>%</span>
+                      </div>
                     </div>
-                  </motion.div>
-                </>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "1rem", letterSpacing: "-0.02em" }}>{loadingTexts[loadingTextIdx]}</p>
+                  </div>
+                ) : (
+                  <>
+                    {typeParam === "wealth" ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "64px" }}>
+                        {currentType.keys.map((key: string, index: number) => {
+                          const stageData = reading[key] || "분석 정보를 가져오지 못했습니다.";
+                          const content = typeof stageData === 'string' ? stageData : (stageData.content || stageData.text || stageData.analysis || "분석 정보를 가져오지 못했습니다.");
+                          const gaewun = typeof stageData === 'object' && stageData !== null ? stageData.gaewun : null;
+                          const sectionColors = ["#81b29a", "#e07a5f", "#D4A373", "#3d5a80", "#6c5b7b"];
+                          const secColor = sectionColors[index] || "var(--accent-gold)";
+                          
+                          return (
+                            <div key={key} style={{ borderBottom: index === currentType.keys.length - 1 ? "none" : "1px solid var(--glass-border)", paddingBottom: "48px" }}>
+                              <h3 style={{ fontSize: "1.4rem", marginBottom: "20px", color: secColor, fontWeight: "300" }}>{currentType.tabs[index]}</h3>
+                              <div style={{ fontSize: "1.05rem", lineHeight: "2", color: "var(--text-primary)", whiteSpace: "pre-line", marginBottom: "32px", opacity: 0.9 }}>
+                                {renderHighlightedText(content)}
+                              </div>
+                              
+                              {gaewun && gaewun.color !== undefined && (
+                                <div style={{ marginTop: "24px", padding: "20px", background: "rgba(255, 255, 255, 0.5)", borderRadius: "16px", border: `1px solid rgba(0,0,0,0.05)`, boxShadow: "0 4px 12px rgba(0,0,0,0.02)" }}>
+                                  <div style={{ fontWeight: "700", color: secColor, marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px", fontSize: "0.95rem" }}>
+                                    <Sparkles size={16} /> 이 시기의 개운법
+                                  </div>
+                                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                                    {[
+                                      { t: "추천 색상", v: gaewun.color || "-" },
+                                      { t: "추천 방향", v: gaewun.direction || "-" },
+                                      { t: "추천 오행", v: gaewun.element || "-" },
+                                      { t: "추천 물건", v: gaewun.item || "-" }
+                                    ].map((item, i) => (
+                                      <div key={i} style={{ background: "white", padding: "12px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
+                                        <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>{item.t}</div>
+                                        <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{item.v}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : ["daily", "monthly", "yearly"].includes(typeParam) ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
+                        <div style={{ display: "flex", gap: "8px", justifyContent: "center", marginBottom: "8px", overflowX: "auto", paddingBottom: "8px" }}>
+                          {currentType.tabs.map((tab: string, idx: number) => (
+                            <button
+                              key={idx}
+                              onClick={() => setActiveTab(idx)}
+                              style={{
+                                padding: "10px 24px",
+                                borderRadius: "20px",
+                                border: "1px solid var(--glass-border)",
+                                background: activeTab === idx ? "var(--accent-gold)" : "white",
+                                color: activeTab === idx ? "white" : "var(--text-primary)",
+                                fontSize: "0.95rem",
+                                fontWeight: activeTab === idx ? "600" : "400",
+                                whiteSpace: "nowrap",
+                                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                                boxShadow: activeTab === idx ? "0 4px 12px rgba(201, 160, 80, 0.2)" : "none"
+                              }}
+                            >
+                              {tab}
+                            </button>
+                          ))}
+                        </div>
+
+                        <motion.div
+                          key={activeTab}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.4 }}
+                        >
+                          <div style={{ textAlign: "center", marginBottom: "48px", padding: "32px", background: "white", borderRadius: "24px", boxShadow: "0 10px 40px rgba(0,0,0,0.02)", border: "1px solid var(--glass-border)" }}>
+                            <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "12px", letterSpacing: "0.05em" }}>행운 기운 점수</div>
+                            <div style={{ fontSize: "3.5rem", fontWeight: "200", color: "var(--accent-gold)", display: "flex", alignItems: "baseline", justifyContent: "center", gap: "6px" }}>
+                              {reading[currentType.keys[activeTab]]?.score || 85}
+                              <span style={{ fontSize: "1.4rem", color: "var(--text-secondary)", fontWeight: "300" }}>점</span>
+                            </div>
+                            <div style={{ maxWidth: "200px", margin: "16px auto 0", height: "6px", background: "rgba(0,0,0,0.05)", borderRadius: "3px", overflow: "hidden" }}>
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${reading[currentType.keys[activeTab]]?.score || 85}%` }}
+                                transition={{ duration: 1, ease: "easeOut" }}
+                                style={{ height: "100%", background: "linear-gradient(90deg, #D4AF37, #C9A050)", borderRadius: "3px" }}
+                              />
+                            </div>
+                          </div>
+
+                          <div style={{ fontSize: "1.05rem", lineHeight: "2.1", color: "var(--text-primary)", marginBottom: "48px", whiteSpace: "pre-line", wordBreak: "keep-all" }}>
+                            {renderHighlightedText(reading[currentType.keys[activeTab]]?.content)}
+                          </div>
+
+                          <div style={{ padding: "32px 24px", background: "rgba(201, 160, 80, 0.03)", borderRadius: "24px", border: "1px solid rgba(201, 160, 80, 0.1)" }}>
+                            <div style={{ fontWeight: "700", color: "var(--accent-gold)", marginBottom: "24px", display: "flex", alignItems: "center", gap: "8px", fontSize: "1rem" }}>
+                              <Sparkles size={20} /> 기운을 여는 열쇠 (개운법)
+                            </div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                              {[
+                                { t: "추천 색상", v: reading[currentType.keys[activeTab]]?.gaewun?.color || "흰색" },
+                                { t: "행운의 물건", v: reading[currentType.keys[activeTab]]?.gaewun?.item || "향초" },
+                                { t: "생활 습관", v: reading[currentType.keys[activeTab]]?.gaewun?.habit || "아침 산책" },
+                                { t: "행운의 방향", v: reading[currentType.keys[activeTab]]?.gaewun?.direction || "동쪽" }
+                              ].map((item, i) => (
+                                <div key={i} style={{ background: "white", padding: "20px 16px", borderRadius: "16px", boxShadow: "0 4px 15px rgba(0,0,0,0.02)", border: "1px solid var(--glass-border)" }}>
+                                  <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "6px" }}>{item.t}</div>
+                                  <div style={{ fontSize: "0.95rem", color: "var(--text-primary)", fontWeight: "600" }}>{item.v}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </motion.div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: "1.1rem", lineHeight: "2.2", color: "var(--text-primary)", whiteSpace: "pre-line" }}>
+                        {renderHighlightedText(reading[currentType.keys[0]])}
+                      </div>
+                    )}
+                  </>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </main>
   );
@@ -518,7 +611,7 @@ ${timeContext}
 
 export default function FortunePage() {
   return (
-    <Suspense fallback={<div className="p-4 text-center">우주의 기운을 불러오는 중입니다...</div>}>
+    <Suspense fallback={<div>Loading...</div>}>
       <FortuneContent />
     </Suspense>
   );
