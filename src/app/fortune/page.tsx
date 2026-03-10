@@ -4,11 +4,49 @@ import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Clock, CalendarDays, Sparkles, MoonStar, Scroll, Coins, Briefcase, Activity, Heart } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, CalendarDays, Sparkles, MoonStar, Scroll, Coins, Briefcase, Activity, Heart, Target, Users, Wallet, ShieldAlert } from "lucide-react";
 import { calculateSaju } from "ssaju";
 import TraditionalBackground from "@/components/TraditionalBackground";
 import Disclaimer from "@/components/Disclaimer";
 import WheelDatePicker from "@/components/WheelDatePicker";
+
+function FiveElementsDonut({ elements }: { elements: any[] }) {
+  const total = elements?.reduce((sum, el) => sum + el.value, 0) || 1;
+  let currentOffset = 0;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "24px", width: "100%", marginBottom: "32px", padding: "0 8px" }}>
+      <div style={{ flex: "0 0 45%", position: "relative", maxWidth: "160px", aspectRatio: "1/1" }}>
+        <svg viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "100%", height: "100%" }}>
+          {elements?.map((el, i) => {
+            if (el.value === 0) return null;
+            const strokeDasharray = `${(el.value / total) * 251.2} 251.2`;
+            const strokeDashoffset = -currentOffset;
+            currentOffset += (el.value / total) * 251.2;
+            return (
+              <motion.circle key={i} cx="50" cy="50" r="40" fill="transparent" stroke={el.color} strokeWidth="12" initial={{ strokeDasharray: "0 251.2", strokeDashoffset: 0 }} animate={{ strokeDasharray, strokeDashoffset }} transition={{ duration: 1.5, ease: "easeOut" }} />
+            );
+          })}
+        </svg>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", width: "100%" }}>
+          <div style={{ fontSize: "0.6rem", color: "var(--text-secondary)" }}>나의 기운</div>
+          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ fontSize: "0.8rem", fontWeight: "bold", color: "var(--accent-gold)" }}>분포도</motion.div>
+        </div>
+      </div>
+      <div style={{ flex: "1" }}>
+        {elements?.map((el, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+              <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: el.color, flexShrink: 0 }} />
+              <span style={{ fontSize: "0.85rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{el.name}</span>
+            </div>
+            <span style={{ fontSize: "0.85rem", fontWeight: "bold", color: "var(--text-primary)", whiteSpace: "nowrap" }}>{Math.round((el.value / total) * 100)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function FortuneContent() {
   const searchParams = useSearchParams();
@@ -54,15 +92,15 @@ function FortuneContent() {
       title: "건강운 흐름",
       desc: "신체 에너지와 마음의 안녕",
       icon: <Activity className="w-6 h-6" />,
-      tabs: ["전체적인 흐름"],
-      keys: ["overall"]
+      tabs: ["초년: 10~20대", "청년: 30대", "중년: 40대", "장년: 50대", "말년: 60대 이후"],
+      keys: ["early", "youth", "middle", "mature", "late"]
     },
     love: {
       title: "애정운 흐름",
       desc: "인연의 기운과 관계의 양상",
       icon: <Heart className="w-6 h-6" />,
-      tabs: ["전체적인 흐름"],
-      keys: ["overall"]
+      tabs: ["초년: 10~20대", "청년: 30대", "중년: 40대", "장년: 50대", "말년: 60대 이후"],
+      keys: ["early", "youth", "middle", "mature", "late"]
     }
   };
 
@@ -231,7 +269,16 @@ function FortuneContent() {
 
       if (!sajuRes) throw new Error("사주 산출에 실패했습니다.");
 
-      const cacheKey = `fortune_v10_${date}_${time}_${isLunar}_${gender}_${typeParam}`;
+      const now = new Date();
+      let timeModifier = "";
+      if (typeParam === "daily") {
+        timeModifier = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
+      } else if (typeParam === "monthly") {
+        timeModifier = `${now.getFullYear()}-${now.getMonth()+1}`;
+      } else if (typeParam === "yearly") {
+        timeModifier = `${now.getFullYear()}`;
+      }
+      const cacheKey = `fortune_v19_${date}_${time}_${isLunar}_${gender}_${typeParam}_${timeModifier}`;
       const cachedData = localStorage.getItem(cacheKey);
 
       if (cachedData) {
@@ -307,9 +354,8 @@ function FortuneContent() {
         timeContext = `이 ${todayStr} 기준으로 내담자의 '${currentType.title}' 테마에 집중하여 분석해 주세요.`;
       }
 
-      const systemPrompt = `당신은 통찰력 있는 사주 상담가입니다. 명리 데이터를 기반으로 깊이 있는 분석을 제공하세요.
+      let systemPrompt = `당신은 통찰력 있는 사주 상담가입니다. 명리 데이터를 기반으로 깊이 있는 분석을 제공하세요.
 반드시 JSON 형식으로 응답하며, 
-- wealth 테마일 경우: 'wealth_stages' 객체 내부에 영어 키(early, youth, middle, mature, late)를 사용.
 - daily 테마일 경우: 'yesterday', 'today', 'tomorrow' 각각의 객체 사용.
 - monthly 테마일 경우: 'last_month', 'this_month', 'next_month' 각각의 객체 사용.
 - yearly 테마일 경우: 'last_year', 'this_year', 'next_year' 각각의 객체 사용.
@@ -324,42 +370,173 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 내용: ${strongestElemTrait} ${weakestElemTrait}
 ${timeContext}`;
 
+      if (typeParam === "wealth") {
+        systemPrompt = `너는 재물운 전문 사주 분석가야. 사용자의 사주 명식을 분석하여 5단계 생애주기별(초년, 청년, 중년, 장년, 말년) 재물운을 심층적으로 분석해.
+반드시 JSON 형식으로 응답하며, 'early', 'youth', 'middle', 'mature', 'late' 5개의 키 내부에 아래의 구조를 완벽하게 지켜서 반환해.
+ai언어 금지! (AI 특유의 말투를 절대 쓰지 마세요)
+
+# Output JSON Structure for EACH stage (early, youth, middle, mature, late)
+{
+  "summary": "(해당 시기의 재물운 핵심 총평 요약, 3문장 내외)",
+  "cards": {
+    "focus": { "title": "핵심 재물원 등 한 줄 요약", "content": "어디서 돈이 들어오는지 구체적 지침" },
+    "expense": { "title": "지출 방어 등 한 줄 요약", "content": "돈이 새어나가는 곳과 대비책" },
+    "partners": { "title": "재물 귀인 등 한 줄 요약", "content": "재물운을 돕는 인연이나 환경" },
+    "risk": { "title": "투자 리스크 등 한 줄 요약", "content": "투자와 관련된 주의사항" }
+  },
+  "action_tips": {
+    "do": "이 시기 가장 중요한 재물 실천 지침 1가지",
+    "dont": "절대 피해야 할 재물 관련 행동 1가지"
+  },
+  "gaewun": {
+    "color": "추천 색상",
+    "direction": "추천 방향",
+    "element": "추천 오행(목,화,토,금,수 중 택1)",
+    "item": "추천 물건"
+  }
+}
+* 주의: 모든 시기(early~late)에 대하여 위 포맷을 빠짐없이 작성.
+
+배경: ${anchorKeywords.join(", ")}
+${cuspScript ? `특이사항: ${cuspScript}` : ""}
+내용: ${strongestElemTrait} ${weakestElemTrait}`;
+      } else if (typeParam === "health") {
+        systemPrompt = `너는 건강 전문 사주 분석가야. 사용자의 사주 명식을 분석하여 5단계 생애주기별(초년, 청년, 중년, 장년, 말년) 건강운과 신체적/정신적 에너지를 심층적으로 분석해.
+반드시 JSON 형식으로 응답하며, 'early', 'youth', 'middle', 'mature', 'late' 5개의 키 내부에 아래의 구조를 완벽하게 지켜서 반환해.
+ai언어 금지! (AI 모델 특유의 딱딱한 말투를 절대 쓰지 마세요)
+
+# Output JSON Structure for EACH stage (early, youth, middle, mature, late)
+{
+  "summary": "(해당 시기의 건강운 핵심 총평 요약, 3문장 내외)",
+  "cards": {
+    "physical": { "title": "핵심 신체 기운 등 한 줄 요약", "content": "주의해야 할 신체 부위나 강화해야 할 체력 요소" },
+    "mental": { "title": "정신 건강 지수 등 한 줄 요약", "content": "스트레스 관리나 마음의 여유를 위한 조언" },
+    "lifestyle": { "title": "생활 습관 제안 등 한 줄 요약", "content": "이 시기 꼭 지켜야 할 식습관이나 활동 지침" },
+    "habits": { "title": "운동 및 휴식 등 한 줄 요약", "content": "권장하는 운동 강도나 휴식의 방식" }
+  },
+  "action_tips": {
+    "do": "건강을 위해 꼭 실천해야 할 습관 1가지",
+    "dont": "건강을 위해 반드시 피해야 할 행동 1가지"
+  },
+  "gaewun": {
+    "color": "추천 색상",
+    "direction": "추천 방향",
+    "element": "추천 오행(목,화,토,금,수 중 택1)",
+    "item": "추천 물건"
+  }
+}
+* 주의: 모든 시기(early~late)에 대하여 위 포맷을 빠짐없이 작성.
+
+배경: ${anchorKeywords.join(", ")}
+${cuspScript ? `특이사항: ${cuspScript}` : ""}
+내용: ${strongestElemTrait} ${weakestElemTrait}`;
+      } else if (typeParam === "business") {
+        systemPrompt = `너는 비즈니스 전문 사주 분석가이자 전략 컨설턴트인 'AI 비즈니스 마스터'야. 사용자의 사주 명식을 분석하여 단순한 운세를 넘어 실제 사업 경영에 도움이 되는 실무적이고 통찰력 있는 조언을 제공해.
+반드시 JSON 형식으로 응답하며, '${currentType.keys[0]}' 단일 키 내부에 아래의 JSON 구조를 완벽하게 지켜서 반환해.
+ai언어 금지! (AI 언어 모델이나 챗봇 특유의 말투를 절대 쓰지 마세요)
+
+# Output JSON Structure (Strictly follow this structure)
+{
+  "${currentType.keys[0]}": {
+    "summary": "(총론: 현재 사업운의 핵심 총평과 방향성 요약, 3문장 내외)",
+    "energy": [
+      { "name": "목(기획)", "value": 0~100사이_점수, "color": "#81b29a" },
+      { "name": "화(확장)", "value": 0~100사이_점수, "color": "#e07a5f" },
+      { "name": "토(중립)", "value": 0~100사이_점수, "color": "#D4A373" },
+      { "name": "금(결실)", "value": 0~100사이_점수, "color": "#C9A050" },
+      { "name": "수(관리)", "value": 0~100사이_점수, "color": "#3d5a80" }
+    ],
+    "cards": {
+      "timing": { "title": "가을 (8~10월) 등 한 줄 요약", "content": "시기별 구체적 행동 지침" },
+      "partners": { "title": "핵심 파트너 등 한 줄 요약", "content": "협력관계를 맺어야 할 상대나 주의해야 할 상대" },
+      "capital": { "title": "보수적 운용 등 한 줄 요약", "content": "사업적 자금 순환 및 지출 관리 전략" },
+      "risk": { "title": "계약 검토 등 한 줄 요약", "content": "발생 가능한 리스크와 대비책" }
+    },
+    "action_tips": {
+      "do": "가장 중요한 실천 지침 1가지",
+      "dont": "절대 피해야 할 행동 1가지"
+    }
+  }
+}
+* 주의: energy 배열의 모든 value 합산이 꼭 100일 필요는 없으며, 사용자의 명식에 따른 각각의 잠재 에너지 점수를 부여할 것.
+
+배경: ${anchorKeywords.join(", ")}
+${cuspScript ? `특이사항: ${cuspScript}` : ""}
+내용: ${strongestElemTrait} ${weakestElemTrait}`;
+      } else if (typeParam === "love") {
+        systemPrompt = `너는 애정운(연애/결혼) 전문 사주 분석가야. 사용자의 사주 명식을 분석하여 5단계 생애주기별(초년, 청년, 중년, 장년, 말년) 애정운과 인연의 흐름을 심층적으로 분석해.
+반드시 JSON 형식으로 응답하며, 'early', 'youth', 'middle', 'mature', 'late' 5개의 키 내부에 아래의 구조를 완벽하게 지켜서 반환해.
+ai언어 금지! (AI 모델 특유의 딱딱한 말투를 절대 쓰지 마세요)
+
+# Output JSON Structure for EACH stage (early, youth, middle, mature, late)
+{
+  "summary": "(해당 시기의 애정운 핵심 총평 요약, 3문장 내외)",
+  "cards": {
+    "romance": { "title": "연애 에너지 성향 등 한 줄 요약", "content": "이 시기의 전반적인 연애 기운과 태도" },
+    "partners": { "title": "이상적인 인연 등 한 줄 요약", "content": "어떤 사람과 합이 좋은지, 인연이 닿는 시기" },
+    "caution": { "title": "관계의 주의점 등 한 줄 요약", "content": "갈등 요소나 경계해야 할 태도" },
+    "timing": { "title": "인연의 타이밍 등 한 줄 요약", "content": "결혼이나 깊은 관계로 발전하기 좋은 시기" }
+  },
+  "action_tips": {
+    "do": "사랑을 맺기 위해 꼭 실천해야 할 행동 1가지",
+    "dont": "관계 유지를 위해 반드시 피해야 할 행동 1가지"
+  },
+  "gaewun": {
+    "color": "행운의 색상",
+    "direction": "행운의 방향",
+    "element": "추천 오행(목,화,토,금,수 중 택1)",
+    "item": "행운의 아이템"
+  }
+}
+* 주의: 모든 시기(early~late)에 대하여 위 포맷을 빠짐없이 작성.
+
+배경: ${anchorKeywords.join(", ")}
+${cuspScript ? `특이사항: ${cuspScript}` : ""}
+내용: ${strongestElemTrait} ${weakestElemTrait}`;
+      }
+
       const payload = {
         systemPrompt: systemPrompt,
         sajuJson: { gender, elementCounts, type: typeParam, baseDate: date },
         cityName: birthCity,
-        expectedKeys: typeParam === "wealth" ? ["wealth_stages"] : (["daily", "monthly", "yearly"].includes(typeParam) ? currentType.keys : currentType.keys)
+        expectedKeys: ["daily", "monthly", "yearly"].includes(typeParam) ? currentType.keys : currentType.keys
       };
 
-      const apiRes = await fetch("/api/saju", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      let apiRes;
+      let retries = 0;
+      const maxRetries = 2;
+      const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-      if (!apiRes.ok) throw new Error("API 요청 실패");
+      while (retries <= maxRetries) {
+        apiRes = await fetch("/api/saju", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
+        if (apiRes.ok) break;
+
+        if (apiRes.status === 503 && retries < maxRetries) {
+          retries++;
+          await delay(1500 * retries); // Exponential backoff: 1.5s, 3s
+          continue;
+        }
+
+        const errorData = await apiRes.json().catch(() => ({}));
+        let userMsg = errorData.details || errorData.error || "API 요청 실패";
+        
+        if (apiRes.status === 503 || userMsg.includes("503") || userMsg.includes("overload")) {
+          userMsg = "현재 운세 분석 서버에 접속자가 많아 기운을 읽는 데 시간이 걸리고 있습니다. 잠시 후 다시 시도해 주세요.";
+        }
+        
+        throw new Error(userMsg);
+      }
+
+      if (!apiRes || !apiRes.ok) throw new Error("API 요청 실패");
       const llmResult = await apiRes.json();
       const finalReading: Record<string, any> = {};
 
-      if (typeParam === "wealth") {
-        const stages = llmResult.wealth_stages || llmResult;
-        currentType.keys.forEach((key: string) => {
-          const raw = stages[key];
-          if (typeof raw === 'string') {
-            finalReading[key] = { content: raw }; // Wrap in object to match expected structure
-          } else if (typeof raw === 'object' && raw !== null) {
-            // Preserve the entire object (which includes gaewun) 
-            // but ensure content exists for the main text
-            finalReading[key] = {
-              ...raw,
-              content: raw.content || raw.text || raw.analysis || "분석 정보를 가져오지 못했습니다."
-            };
-          } else {
-            finalReading[key] = { content: "분석 정보를 가져오지 못했습니다." };
-          }
-        });
-      } else if (["daily", "monthly", "yearly"].includes(typeParam)) {
+      if (["daily", "monthly", "yearly"].includes(typeParam)) {
         currentType.keys.forEach((key: string) => {
           const raw = llmResult[key];
           if (typeof raw === 'string') {
@@ -376,8 +553,21 @@ ${timeContext}`;
         });
       } else {
         currentType.keys.forEach((key: string) => {
-          finalReading[key] = llmResult[key] || "분석 정보를 가져오지 못했습니다.";
+          // Fallback check: if the AI returned it wrapped in 'wealth_stages' (old behavior) or directly
+          const raw = llmResult[key] || (llmResult.wealth_stages && llmResult.wealth_stages[key]);
+          finalReading[key] = raw || "분석 정보를 가져오지 못했습니다.";
         });
+      }
+
+      if (typeParam === "wealth" || typeParam === "health" || typeParam === "love") {
+        const overallEnergy = [
+          { name: "목", value: elementCounts["목"] || 0, color: "#81b29a" },
+          { name: "화", value: elementCounts["화"] || 0, color: "#e07a5f" },
+          { name: "토", value: elementCounts["토"] || 0, color: "#D4A373" },
+          { name: "금", value: elementCounts["금"] || 0, color: "#C9A050" },
+          { name: "수", value: elementCounts["수"] || 0, color: "#3d5a80" }
+        ];
+        finalReading.overallEnergy = overallEnergy;
       }
 
       setBazi(sajuRes);
@@ -390,7 +580,7 @@ ${timeContext}`;
 
     } catch (err: any) {
       console.error(err);
-      alert("분석에 실패했습니다. 다시 시도해 주세요.");
+      alert(err.message || "분석에 실패했습니다. 다시 시도해 주세요.");
     } finally {
       setIsLoading(false);
     }
@@ -445,9 +635,16 @@ ${timeContext}`;
               </div>
             </div>
 
-            <button onClick={calculateFortune} disabled={isLoading} className="btn-primary" style={{ width: "100%", marginTop: "40px", padding: "18px", borderRadius: "30px", fontSize: "1.1rem" }}>
+            <motion.button 
+              whileHover={{ scale: 1.02 }} 
+              whileTap={{ scale: 0.97 }} 
+              onClick={calculateFortune} 
+              disabled={isLoading} 
+              className="btn-primary" 
+              style={{ width: "100%", marginTop: "40px", padding: "18px", borderRadius: "30px", fontSize: "1.1rem", transition: "box-shadow 0.2s" }}
+            >
               {isLoading ? "분석 중..." : `${currentType.title} 흐름 분석하기`}
-            </button>
+            </motion.button>
           </section>
 
           <AnimatePresence>
@@ -482,43 +679,107 @@ ${timeContext}`;
                   </div>
                 ) : (
                   <>
-                    {typeParam === "wealth" ? (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "64px" }}>
+                    {typeParam === "business" || typeParam === "wealth" || typeParam === "health" || typeParam === "love" ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: (typeParam === "wealth" || typeParam === "health" || typeParam === "love") ? "80px" : "40px" }}>
+                        {(typeParam === "wealth" || typeParam === "health" || typeParam === "love") && reading.overallEnergy && (
+                          <div style={{ padding: "32px 20px", background: "white", borderRadius: "24px", border: "1px solid var(--glass-border)", boxShadow: "0 10px 30px rgba(0,0,0,0.03)", marginBottom: "32px" }}>
+                            <h3 style={{ textAlign: "center", marginBottom: "24px", fontSize: "1rem", fontWeight: "500", color: "var(--text-primary)" }}>🎯 나의 타고난 오행 에너지 분포</h3>
+                            <FiveElementsDonut elements={reading.overallEnergy} />
+                          </div>
+                        )}
                         {currentType.keys.map((key: string, index: number) => {
-                          const stageData = reading[key] || "분석 정보를 가져오지 못했습니다.";
-                          const content = typeof stageData === 'string' ? stageData : (stageData.content || stageData.text || stageData.analysis || "분석 정보를 가져오지 못했습니다.");
-                          const gaewun = typeof stageData === 'object' && stageData !== null ? stageData.gaewun : null;
+                          const stageData = reading[key] || {};
+                          const summary = stageData.summary || "분석 정보를 가져오지 못했습니다.";
+                          const energy = stageData.energy || [];
+                          const cards = stageData.cards || {};
+                          const actionTips = stageData.action_tips || {};
+                          const gaewun = stageData.gaewun || null;
                           const sectionColors = ["#81b29a", "#e07a5f", "#D4A373", "#3d5a80", "#6c5b7b"];
-                          const secColor = sectionColors[index] || "var(--accent-gold)";
+                          const secColor = typeParam === "wealth" ? (sectionColors[index] || "var(--accent-gold)") : "var(--accent-gold)";
                           
                           return (
-                            <div key={key} style={{ borderBottom: index === currentType.keys.length - 1 ? "none" : "1px solid var(--glass-border)", paddingBottom: "48px" }}>
-                              <h3 style={{ fontSize: "1.4rem", marginBottom: "20px", color: secColor, fontWeight: "300" }}>{currentType.tabs[index]}</h3>
-                              <div style={{ fontSize: "1.05rem", lineHeight: "2", color: "var(--text-primary)", whiteSpace: "pre-line", marginBottom: "32px", opacity: 0.9 }}>
-                                {renderHighlightedText(content)}
+                            <motion.div 
+                              key={key} 
+                              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                              viewport={{ once: true, margin: "-50px" }}
+                              transition={{ duration: 0.7, delay: index * 0.1, ease: [0.25, 1, 0.5, 1] }}
+                              style={(typeParam === "wealth" || typeParam === "health" || typeParam === "love") ? { borderBottom: index === currentType.keys.length - 1 ? "none" : "1px solid var(--glass-border)", paddingBottom: "64px" } : {}}
+                            >
+                              {(typeParam === "wealth" || typeParam === "health" || typeParam === "love") && (
+                                <h3 style={{ fontSize: "1.6rem", marginBottom: "28px", color: secColor, fontWeight: "300", textAlign: "center" }}>{currentType.tabs[index]}</h3>
+                              )}
+
+                              {typeParam === "business" && energy && energy.length > 0 && (
+                                <div style={{ padding: "32px 20px", background: "white", borderRadius: "24px", border: "1px solid var(--glass-border)", boxShadow: "0 10px 30px rgba(0,0,0,0.03)", marginBottom: "32px" }}>
+                                  <h3 style={{ textAlign: "center", marginBottom: "24px", fontSize: "1rem", fontWeight: "500", color: "var(--text-primary)" }}>🎯 이달의 비즈니스 에너지 분포</h3>
+                                  <FiveElementsDonut elements={energy} />
+                                </div>
+                              )}
+
+                              <div style={{ fontSize: "1.05rem", fontStyle: "italic", marginBottom: "32px", color: "var(--text-primary)", borderLeft: `4px solid ${secColor}`, paddingLeft: "16px", lineHeight: "1.7", wordBreak: "keep-all" }}>
+                                "{summary}"
+                              </div>
+
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "16px", marginBottom: "32px" }}>
+                                {Object.entries(cards).map(([cardKey, cardData]: [string, any], i) => {
+                                  let icon = <Target className="text-[#e07a5f]" size={24} />;
+                                  if (cardKey === "partners" || cardKey === "romance") icon = <Users className="text-[#3d5a80]" size={24} />;
+                                  if (cardKey === "capital" || cardKey === "expense" || cardKey === "physical") icon = <Wallet className="text-[#C9A050]" size={24} />;
+                                  if (cardKey === "risk" || cardKey === "lifestyle" || cardKey === "caution") icon = <ShieldAlert className="text-[#D4A373]" size={24} />;
+                                  if (cardKey === "mental" || cardKey === "habits" || cardKey === "timing") icon = <Heart className="text-[#e07a5f]" size={24} />;
+                                  
+                                  return (
+                                    <div key={i} style={{ background: "rgba(255,255,255,0.7)", padding: "20px", borderRadius: "16px", border: "1px solid var(--glass-border)", boxShadow: "0 4px 15px rgba(0,0,0,0.02)", display: "flex", flexDirection: "column", gap: "12px" }}>
+                                      <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-primary)" }}>
+                                        <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(0,0,0,0.03)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                          {icon}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)", marginBottom: "4px" }}>{cardData?.title || "-"}</div>
+                                        <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: "1.6", wordBreak: "keep-all" }}>{cardData?.content || "-"}</div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div style={{ padding: "24px", background: "rgba(201, 160, 80, 0.05)", borderRadius: "20px", border: "1px solid rgba(201, 160, 80, 0.15)", marginBottom: typeParam === "wealth" ? "32px" : "0" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                                  <div style={{ display: "flex", gap: "12px" }}>
+                                    <div style={{ fontWeight: "700", color: "#81b29a", minWidth: "40px" }}>강조!</div>
+                                    <div style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: "1.6" }}>{actionTips.do}</div>
+                                  </div>
+                                  <div style={{ height: "1px", background: "rgba(0,0,0,0.05)" }} />
+                                  <div style={{ display: "flex", gap: "12px" }}>
+                                    <div style={{ fontWeight: "700", color: "#e07a5f", minWidth: "40px" }}>주의!</div>
+                                    <div style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: "1.6" }}>{actionTips.dont}</div>
+                                  </div>
+                                </div>
                               </div>
                               
-                              {gaewun && gaewun.color !== undefined && (
-                                <div style={{ marginTop: "24px", padding: "20px", background: "rgba(255, 255, 255, 0.5)", borderRadius: "16px", border: `1px solid rgba(0,0,0,0.05)`, boxShadow: "0 4px 12px rgba(0,0,0,0.02)" }}>
-                                  <div style={{ fontWeight: "700", color: secColor, marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px", fontSize: "0.95rem" }}>
-                                    <Sparkles size={16} /> 이 시기의 개운법
+                              {(typeParam === "wealth" || typeParam === "health") && gaewun && gaewun.color && (
+                                <div style={{ padding: "24px", background: "rgba(255, 255, 255, 0.7)", borderRadius: "20px", border: `1px solid rgba(0,0,0,0.05)`, boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
+                                  <div style={{ fontWeight: "700", color: secColor, marginBottom: "20px", display: "flex", alignItems: "center", gap: "8px", fontSize: "1rem" }}>
+                                    <Sparkles size={18} /> 이 시기의 {typeParam === "wealth" ? "재물" : typeParam === "health" ? "건강" : "애정"} 개운법
                                   </div>
-                                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                                     {[
                                       { t: "추천 색상", v: gaewun.color || "-" },
                                       { t: "추천 방향", v: gaewun.direction || "-" },
                                       { t: "추천 오행", v: gaewun.element || "-" },
                                       { t: "추천 물건", v: gaewun.item || "-" }
                                     ].map((item, i) => (
-                                      <div key={i} style={{ background: "white", padding: "12px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
-                                        <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>{item.t}</div>
-                                        <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{item.v}</div>
+                                      <div key={i} style={{ background: "white", padding: "16px", borderRadius: "16px", border: "1px solid var(--glass-border)", display: "flex", flexDirection: "column", gap: "4px" }}>
+                                        <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>{item.t}</div>
+                                        <div style={{ fontSize: "0.95rem", color: "var(--text-primary)", fontWeight: "600" }}>{item.v}</div>
                                       </div>
                                     ))}
                                   </div>
                                 </div>
                               )}
-                            </div>
+                            </motion.div>
                           );
                         })}
                       </div>

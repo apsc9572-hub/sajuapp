@@ -1,16 +1,18 @@
 import { GoogleGenAI } from '@google/genai';
 import { NextResponse } from 'next/server';
 
-// Initialize the SDK. It will automatically pick up GEMINI_API_KEY from environment variables.
-const ai = new GoogleGenAI({});
-
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { systemPrompt, sajuJson, expectedKeys } = body;
 
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: 'API 키가 설정되지 않았습니다.' }, { status: 500 });
+    }
+
     if (!systemPrompt || !sajuJson) {
-      return NextResponse.json({ error: 'Missing prompt or saju json data' }, { status: 400 });
+      return NextResponse.json({ error: '데이터가 부족합니다.' }, { status: 400 });
     }
 
     const keysStr = expectedKeys && Array.isArray(expectedKeys) && expectedKeys.length > 0
@@ -30,37 +32,44 @@ ${JSON.stringify(sajuJson)}
 Return ONLY valid JSON. Do not wrap in markdown code blocks (\`\`\`json).
     `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: promptText,
-      config: {
-        responseMimeType: "application/json",
-      }
+    // Using requested gemini-2.5-flash
+    const modelId = 'gemini-2.5-flash';
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent?key=${apiKey}`;
+
+    const apiResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: {
+          responseMimeType: "application/json",
+        }
+      })
     });
 
-    const text = response.text;
-    if (!text) throw new Error("Empty response from AI");
-
-    // Robust JSON extraction: Find the first '{' and the last '}'
-    let jsonMatch = text.match(/\{[\s\S]*\}/);
-    let jsonStr = jsonMatch ? jsonMatch[0] : text;
-
-    try {
-      const parsed = JSON.parse(jsonStr);
-      return NextResponse.json(parsed);
-    } catch (parseError) {
-      console.error('JSON Parse Error. Raw text:', text);
-      throw new Error("Failed to parse AI response as JSON");
+    if (!apiResponse.ok) {
+      const errorJson = await apiResponse.json().catch(() => ({}));
+      throw new Error(`Gemini API 오류 (${apiResponse.status}): ${errorJson.error?.message || apiResponse.statusText}`);
     }
 
-  } catch (error: any) {
-    console.error('LLM API Error:', error);
-    const errorMessage = error.message || 'Error generating Saju reading';
-    const errorDetails = error.stack || error.toString();
+    const result = await apiResponse.json();
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    return NextResponse.json(
-      { error: errorMessage, details: errorDetails },
-      { status: 500 }
-    );
+    if (!text) throw new Error("AI 응답을 받지 못했습니다.");
+
+    let jsonStr = text.trim();
+    if (jsonStr.startsWith("```json")) jsonStr = jsonStr.replace(/^```json/, "");
+    if (jsonStr.endsWith("```")) jsonStr = jsonStr.replace(/```$/, "");
+    
+    const parsed = JSON.parse(jsonStr.trim());
+    return NextResponse.json(parsed);
+
+  } catch (err: any) {
+    console.error('LLM API Error:', err);
+    return NextResponse.json({ 
+      error: 'API 요청 실패', 
+      details: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    }, { status: 500 });
   }
 }

@@ -260,7 +260,7 @@ export default function SajuPage() {
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
 
-    const cacheKey = `saju_cache_v5_${date}_${time}_${isLunar}_${gender}_${birthCity}`;
+    const cacheKey = `saju_cache_v6_${date}_${time}_${isLunar}_${gender}_${birthCity}`;
     const cachedData = localStorage.getItem(cacheKey);
     
     if (cachedData) {
@@ -397,13 +397,37 @@ export default function SajuPage() {
 
         };
 
-        const apiRes = await fetch("/api/saju", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+        let apiRes;
+        let retries = 0;
+        const maxRetries = 2;
+        const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-        if (!apiRes.ok) throw new Error("API 요청 실패");
+        while (retries <= maxRetries) {
+          apiRes = await fetch("/api/saju", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (apiRes.ok) break;
+
+          if (apiRes.status === 503 && retries < maxRetries) {
+            retries++;
+            await delay(1500 * retries); // Exponential backoff: 1.5s, 3s
+            continue;
+          }
+
+          const errorData = await apiRes.json().catch(() => ({}));
+          const userMsg = errorData.details || errorData.error || "API 요청 실패";
+          
+          if (apiRes.status === 503 || userMsg.includes("503") || userMsg.includes("overload")) {
+            throw new Error("현재 운세 분석 서버에 접속자가 많아 기운을 읽는 데 시간이 걸리고 있습니다. 잠시 후 다시 시도해 주세요.");
+          }
+          
+          throw new Error(userMsg);
+        }
+
+        if (!apiRes || !apiRes.ok) throw new Error("API 요청 실패");
         const llmResult = await apiRes.json();
 
         const ELEM_MAP: Record<string, any> = {
@@ -510,9 +534,16 @@ export default function SajuPage() {
                 </div>
               </div>
 
-              <button onClick={calculateBazi} disabled={isLoading} className="btn-primary" style={{ width: "100%", marginTop: "32px", padding: "16px", borderRadius: "16px", fontSize: "1rem", fontWeight: "600" }}>
+              <motion.button 
+                whileHover={{ scale: 1.02 }} 
+                whileTap={{ scale: 0.97 }} 
+                onClick={calculateBazi} 
+                disabled={isLoading} 
+                className="btn-primary" 
+                style={{ width: "100%", marginTop: "32px", padding: "16px", borderRadius: "16px", fontSize: "1rem", fontWeight: "600", transition: "box-shadow 0.2s" }}
+              >
                 {isLoading ? "기운 분석 중..." : "전통사주 분석하기"}
-              </button>
+              </motion.button>
             </section>
 
             <AnimatePresence>
@@ -568,7 +599,15 @@ export default function SajuPage() {
 
                       <div style={{ display: "flex", flexDirection: "column", gap: "64px" }}>
                         {reading.sections.map((sec: any, i: number) => (
-                          <div key={i} id={sec.id} style={{ borderBottom: i === reading.sections.length - 1 ? "none" : "1px solid var(--glass-border)", paddingBottom: "48px", scrollMarginTop: "80px" }}>
+                            <motion.div 
+                              key={i} 
+                              id={sec.id} 
+                              initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                              viewport={{ once: true, margin: "-50px" }}
+                              transition={{ duration: 0.7, delay: i * 0.1, ease: [0.25, 1, 0.5, 1] }}
+                              style={{ borderBottom: i === reading.sections.length - 1 ? "none" : "1px solid var(--glass-border)", paddingBottom: "48px", scrollMarginTop: "80px" }}
+                            >
                             <h3 style={{ fontSize: "1.4rem", marginBottom: "20px", color: sec.c, fontWeight: "300" }}>{sec.t}</h3>
                             <div style={{ fontSize: "1.05rem", fontStyle: "italic", marginBottom: "24px", color: "var(--text-primary)", borderLeft: `4px solid ${sec.c}`, paddingLeft: "16px", lineHeight: "1.7" }}>
                               "{sec.d.summary.replace(/\*\*/g, '')}"
@@ -601,7 +640,7 @@ export default function SajuPage() {
                                 </div>
                               </div>
                             )}
-                          </div>
+                            </motion.div>
                         ))}
                       </div>
 

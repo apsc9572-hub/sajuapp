@@ -20,6 +20,8 @@ export default function Disclaimer() {
     sessionStorage.setItem("disclaimerSeen", "true");
   };
 
+  return null;
+
   return (
     <AnimatePresence>
       {isVisible && (

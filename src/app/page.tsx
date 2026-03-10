@@ -39,53 +39,76 @@ export default function Home() {
             </div>
           </motion.div>
 
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(3, 1fr)", 
-            gap: "20px 12px", 
-            maxWidth: "500px", 
-            margin: "0 auto",
-            padding: "0 20px" 
-          }}>
-            {menus.map((menu, index) => (
-              <Link href={menu.link} key={menu.title} style={{ textDecoration: "none" }}>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: index * 0.05 }}
-                  style={{ 
-                    cursor: "pointer", 
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "10px",
-                    textAlign: "center"
-                  }}
-                  whileHover={{ y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div 
-                    style={{
-                      width: "clamp(60px, 15vw, 72px)",
-                      height: "clamp(60px, 15vw, 72px)",
-                      borderRadius: "50%",
-                      background: "#FFFFFF",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: menu.color,
-                      boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
-                      border: "1px solid rgba(0,0,0,0.02)",
-                      transition: "all 0.3s ease"
+            <motion.div 
+              style={{ 
+                display: "grid", 
+                gridTemplateColumns: "repeat(3, 1fr)", 
+                gap: "20px 12px", 
+                maxWidth: "500px", 
+                margin: "0 auto",
+                padding: "0 20px",
+                perspective: "1000px" 
+              }}
+              variants={{
+                hidden: { opacity: 0 },
+                show: {
+                  opacity: 1,
+                  transition: { staggerChildren: 0.1 }
+                }
+              }}
+              initial="hidden"
+              animate="show"
+            >
+              {menus.map((menu, index) => (
+                <Link href={menu.link} key={menu.title} style={{ textDecoration: "none" }}>
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0, scale: 0.8, y: 20 },
+                      show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 20 } }
                     }}
+                    style={{ 
+                      cursor: "pointer", 
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: "10px",
+                      textAlign: "center",
+                      transformStyle: "preserve-3d"
+                    }}
+                    whileHover={{ 
+                      scale: 1.05, 
+                      y: -8, 
+                      rotateX: 5, 
+                      rotateY: -5,
+                      filter: "brightness(1.05)"
+                    }}
+                    whileTap={{ scale: 0.95, y: 0, rotateX: 0, rotateY: 0 }}
                   >
-                    {menu.icon}
-                  </div>
-                  <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.2px" }}>{menu.title}</span>
-                </motion.div>
-              </Link>
-            ))}
-          </div>
+                    <motion.div 
+                      style={{
+                        width: "clamp(60px, 15vw, 72px)",
+                        height: "clamp(60px, 15vw, 72px)",
+                        borderRadius: "50%",
+                        background: "#FFFFFF",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: menu.color,
+                        boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
+                        border: "1px solid rgba(0,0,0,0.02)",
+                        transition: "box-shadow 0.3s ease"
+                      }}
+                      whileHover={{
+                        boxShadow: "0 20px 30px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,1), 0 0 15px rgba(255,255,255,0.8)"
+                      }}
+                    >
+                      {menu.icon}
+                    </motion.div>
+                    <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.2px" }}>{menu.title}</span>
+                  </motion.div>
+                </Link>
+              ))}
+            </motion.div>
 
         </div>
       </div>
