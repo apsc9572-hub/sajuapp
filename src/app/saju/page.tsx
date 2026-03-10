@@ -354,15 +354,13 @@ export default function SajuPage() {
 
 [출력 JSON 구조]
 {
-  "general": "인생 총운 본문",
+  "general": "인생 총운 본문 (에세이 형식으로 아주 길고 상세하게)",
   "general_summary": "총운 요약",
   "general_keyword": "총운 키워드",
-  "wealth_stages": {
-    "early": "10~20대(초년) 재물운과 사회적 기반",
-    "youth": "30대(청년) 재물운과 성취의 기운",
-    "middle": "40대(중년) 재물운과 전성기의 흐름",
-    "late": "50대 이후(말년) 재물운과 안정적인 노후"
-  },
+  "early": "10~20대(초년) 인생의 흐름과 사회적 기반 (인생 총운처럼 아주 길고 상세한 에세이 형식으로)",
+  "youth": "30대(청년) 인생의 성장과 성취의 기운 (인생 총운처럼 아주 길고 상세한 에세이 형식으로)",
+  "middle": "40대(중년) 인생의 전성기와 확장의 흐름 (인생 총운처럼 아주 길고 상세한 에세이 형식으로)",
+  "late": "50대 이후(말년) 인생의 완성 내실과 안정적인 흐름 (인생 총운처럼 아주 길고 상세한 에세이 형식으로)",
   "early_summary": "초년 요약",
   "youth_summary": "청년 요약",
   "middle_summary": "중년 요약",
@@ -384,17 +382,16 @@ export default function SajuPage() {
 }
 
 [필수 조건 - 절대 누락하지 마세요!]
-1. 'wealth_stages'와 'gaewun' 키 내부에 반드시 영어 키(general, early, youth, middle, late)를 사용하세요.
+1. 'early', 'youth', 'middle', 'late' 그리고 'gaewun' 키 내부에 반드시 영어 키(general, early, youth, middle, late)를 사용하세요.
 2. 특히 'gaewun' 객체는 **반드시 'general' 키를 포함하여 5개의 연령대 키 모두를 빠짐없이 제공해야 합니다.** 'general'이 없으면 시스템 에러가 발생합니다.
-3. 'gaewun'의 모든 값은 예시처럼 'color', 'direction', 'element', 'item' 4가지 키를 가진 객체여야 합니다. 단, 'element' 값은 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 중 하나로만 정확히 표기해야 합니다. 짧고 명료한 명사형으로 작성하세요. 상담하듯 다정하고 품격 있는 어투를 사용하세요.`;
+3. 'gaewun'의 모든 값은 예시처럼 'color', 'direction', 'element', 'item' 4가지 키를 가진 객체여야 합니다. 단, 'element' 값은 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 중 하나로만 정확히 표기해야 합니다. 가독성을 위해 각 분석 내용은 문단(paragraph)을 나누어 서술하고, 문단 사이에는 반드시 빈 줄(double newline)을 넣어주세요. 상담하듯 다정하고 품격 있는 어투를 사용하세요.`;
 
         };
 
         const payload = {
           systemPrompt: generateSystemPromptString(sajuAnalysisJson),
           sajuJson: sajuAnalysisJson,
-          expectedKeys: ["general", "wealth_stages", "early_summary", "youth_summary", "middle_summary", "late_summary", "life_balance", "daeun", "sinsal", "gaewun"]
-
+          expectedKeys: ["general", "early", "youth", "middle", "late", "early_summary", "youth_summary", "middle_summary", "late_summary", "life_balance", "daeun", "sinsal", "gaewun"]
         };
 
         let apiRes;
@@ -449,10 +446,10 @@ export default function SajuPage() {
           life_balance: llmResult.life_balance || { wealth: 50, love: 50, career: 50, health: 50 },
           sections: [
             { id: "general", t: "인생 총운", d: { content: llmResult.general, summary: llmResult.general_summary, keyword: llmResult.general_keyword, gaewun: llmResult.gaewun?.general || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-gold)" },
-            { id: "early", t: "초년: 10~20대", d: { content: llmResult.wealth_stages?.early, summary: llmResult.early_summary, keyword: llmResult.early_keyword, gaewun: llmResult.gaewun?.early || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#81b29a" },
-            { id: "youth", t: "청년: 30대", d: { content: llmResult.wealth_stages?.youth, summary: llmResult.youth_summary, keyword: llmResult.youth_keyword, gaewun: llmResult.gaewun?.youth || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#e07a5f" },
-            { id: "middle", t: "중년: 40대", d: { content: llmResult.wealth_stages?.middle, summary: llmResult.middle_summary, keyword: llmResult.middle_keyword, gaewun: llmResult.gaewun?.middle || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#D4A373" },
-            { id: "late", t: "말년: 50대 이후", d: { content: llmResult.wealth_stages?.late, summary: llmResult.late_summary, keyword: llmResult.late_keyword, gaewun: llmResult.gaewun?.late || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#3d5a80" }
+            { id: "early", t: "초년: 10~20대", d: { content: llmResult.early, summary: llmResult.early_summary, keyword: llmResult.early_keyword, gaewun: llmResult.gaewun?.early || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#81b29a" },
+            { id: "youth", t: "청년: 30대", d: { content: llmResult.youth, summary: llmResult.youth_summary, keyword: llmResult.youth_keyword, gaewun: llmResult.gaewun?.youth || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#e07a5f" },
+            { id: "middle", t: "중년: 40대", d: { content: llmResult.middle, summary: llmResult.middle_summary, keyword: llmResult.middle_keyword, gaewun: llmResult.gaewun?.middle || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#D4A373" },
+            { id: "late", t: "말년: 50대 이후", d: { content: llmResult.late, summary: llmResult.late_summary, keyword: llmResult.late_keyword, gaewun: llmResult.gaewun?.late || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#3d5a80" }
           ],
           daeun: llmResult.daeun || "대운 분석 결과를 불러오지 못했습니다.",
           sinsal: llmResult.sinsal || "신살 분석 결과를 불러오지 못했습니다.",
@@ -472,7 +469,10 @@ export default function SajuPage() {
 
   const renderHighlightedText = (text: any) => {
     if (!text || typeof text !== 'string') return null;
-    return text.replace(/\*\*/g, '');
+    const cleanText = text.replace(/\*\*/g, '');
+    return cleanText.split('\n').filter(p => p.trim() !== '').map((para, i) => (
+      <div key={i} style={{ marginBottom: "16px" }}>{para}</div>
+    ));
   };
 
   const RollingNumber = ({ value }: { value: number }) => {
@@ -589,8 +589,6 @@ export default function SajuPage() {
                         <h3 style={{ textAlign: "center", marginBottom: "24px", fontSize: "1rem", fontWeight: "500", color: "var(--text-primary)" }}>운의 흐름 지표</h3>
                         <FiveElementsDonut elements={reading.elements} />
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                          <AnimatedGauge label="재물 성취" value={reading.life_balance.wealth} color="#C9A050" icon={<Coins size={20} />} />
-                          <AnimatedGauge label="인연 중심" value={reading.life_balance.love} color="#E07A5F" icon={<Heart size={20} />} />
                           <AnimatedGauge label="사회적 위상" value={reading.life_balance.career} color="#D4A373" icon={<Briefcase size={20} />} />
                           <AnimatedGauge label="생명력 강도" value={reading.life_balance.health} color="#81b29a" icon={<Activity size={20} />} />
                         </div>
@@ -612,8 +610,8 @@ export default function SajuPage() {
                             <div style={{ fontSize: "1.05rem", fontStyle: "italic", marginBottom: "24px", color: "var(--text-primary)", borderLeft: `4px solid ${sec.c}`, paddingLeft: "16px", lineHeight: "1.7" }}>
                               "{sec.d.summary.replace(/\*\*/g, '')}"
                             </div>
-                            <div style={{ lineHeight: "1.85", fontSize: "0.95rem", color: "var(--text-secondary)", whiteSpace: "pre-line", wordBreak: "keep-all" }}>
-                              {renderHighlightedText(sec.d.content)}
+                            <div style={{ lineHeight: "1.85", fontSize: "0.95rem", color: "var(--text-secondary)", wordBreak: "keep-all" }}>
+                               {renderHighlightedText(sec.d.content)}
                             </div>
                             {sec.d.gaewun && sec.d.gaewun.color && (
                               <div style={{ marginTop: "24px", padding: "20px", background: "rgba(255, 255, 255, 0.5)", borderRadius: "16px", border: `1px solid rgba(0,0,0,0.05)`, boxShadow: "0 4px 12px rgba(0,0,0,0.02)" }}>
@@ -653,11 +651,11 @@ export default function SajuPage() {
                           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                             <div style={{ background: "white", padding: "16px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}>
                               <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)", marginBottom: "8px" }}>현재의 대운 흐름</div>
-                              <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: "1.7", whiteSpace: "pre-line" }}>{renderHighlightedText(reading.daeun)}</p>
+                              <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: "1.7" }}>{renderHighlightedText(reading.daeun)}</div>
                             </div>
                             <div style={{ background: "white", padding: "16px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}>
                               <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)", marginBottom: "8px" }}>사주의 특수 신살</div>
-                              <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: "1.7", whiteSpace: "pre-line" }}>{renderHighlightedText(reading.sinsal)}</p>
+                              <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: "1.7" }}>{renderHighlightedText(reading.sinsal)}</div>
                             </div>
                           </div>
                         </div>

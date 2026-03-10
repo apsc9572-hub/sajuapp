@@ -588,7 +588,10 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 
   const renderHighlightedText = (text: any) => {
     if (!text || typeof text !== 'string') return null;
-    return text.replace(/\*\*/g, '');
+    const cleanText = text.replace(/\*\*/g, '');
+    return cleanText.split('\n').filter(p => p.trim() !== '').map((para, i) => (
+      <div key={i} style={{ marginBottom: "16px" }}>{para}</div>
+    ));
   };
 
   const RollingNumber = ({ value }: { value: number }) => {
@@ -830,7 +833,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                             </div>
                           </div>
 
-                          <div style={{ fontSize: "1.05rem", lineHeight: "2.1", color: "var(--text-primary)", marginBottom: "48px", whiteSpace: "pre-line", wordBreak: "keep-all" }}>
+                          <div style={{ fontSize: "1.05rem", lineHeight: "2.1", color: "var(--text-primary)", marginBottom: "48px", wordBreak: "keep-all" }}>
                             {renderHighlightedText(reading[currentType.keys[activeTab]]?.content)}
                           </div>
 
