@@ -29,17 +29,19 @@ export default function RootLayout({
         ></script>
       </head>
       <body className={outfit.className}>
-        <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div style={{ flex: 1, overflowY: "auto", position: "relative" }}>
             {children}
           </div>
           
           <footer style={{ 
-            padding: "48px 20px 32px", 
+            padding: "16px 20px", 
             textAlign: "center", 
-            background: "transparent", 
+            background: "rgba(255, 255, 255, 0.4)", 
+            backdropFilter: "blur(10px)",
             position: "relative",
-            zIndex: 10
+            zIndex: 10,
+            borderTop: "1px solid rgba(42, 54, 95, 0.05)"
           }}>
             <div style={{ 
               display: "flex", 

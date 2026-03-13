@@ -28,12 +28,14 @@ export default function Home() {
       <div style={{ 
         position: "relative", 
         zIndex: 10, 
-        minHeight: "100vh", 
+        height: "100%", 
         display: "flex", 
         flexDirection: "column", 
         justifyContent: "center", 
         alignItems: "center",
-        background: "rgba(255, 255, 255, 0.65)" // 투명도를 적절히 낮춰 필독성 확보
+        background: "rgba(255, 255, 255, 0.75)", // 대비 향상을 위해 불투명도 증가
+        padding: "10px 0",
+        overflow: "hidden" // 스크롤 원천 차단
       }}>
         <div className="container" style={{ width: "100%", padding: "20px 0" }}>
           
@@ -47,24 +49,24 @@ export default function Home() {
               <motion.div
                 animate={{ 
                   y: [0, -5, 0],
-                  rotate: [0, 1, -1, 0]
+                  scale: [1, 1.02, 1]
                 }}
                 transition={{ 
-                  duration: 10, 
+                  duration: 8, 
                   repeat: Infinity, 
                   ease: "easeInOut" 
                 }}
                 style={{
-                  width: "140px",
-                  height: "140px",
+                  width: "clamp(100px, 25vw, 130px)",
+                  height: "clamp(100px, 25vw, 130px)",
                   borderRadius: "50%",
-                  background: "rgba(255, 255, 255, 0.95)", // 은은한 흰색 배경
+                  background: "rgba(255, 255, 255, 0.98)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   zIndex: 2,
-                  boxShadow: "0 10px 30px rgba(42, 54, 95, 0.08)", // 부드러운 그림자만 유지
-                  border: "none", // 사용자 요청대로 테두리 제거
+                  boxShadow: "0 10px 40px rgba(42, 54, 95, 0.12)",
+                  border: "2px solid rgba(248, 215, 218, 0.5)",
                   overflow: "hidden"
                 }}
               >
@@ -74,8 +76,7 @@ export default function Home() {
                   style={{ 
                     width: "100%", 
                     height: "100%", 
-                    objectFit: "contain",
-                    mixBlendMode: "multiply" // 화이트 배경 로고 최적의 합성
+                    objectFit: "contain"
                   }} 
                 />
               </motion.div>
@@ -93,39 +94,59 @@ export default function Home() {
               }}></div>
             </div>
 
-            <h1 className="traditional-title" style={{ 
-              fontSize: "3.2rem", // 크기를 살짝 키움
-              fontWeight: "800", // 더 굵게
-              color: "var(--accent-indigo)", 
-              letterSpacing: "0.25em",
-              margin: "-10px 0 16px 0",
-              textShadow: "0 2px 4px rgba(0,0,0,0.1)", // 화이트 대신 은은한 다크 그림자
-              position: "relative"
-            }}>
-              청아매당
-            </h1>
-            <div style={{ width: "80px", height: "2px", background: "var(--accent-gold)", opacity: 1 }}></div>
-            <p style={{ 
-              fontSize: "1.1rem", // 크기 키움
-              color: "var(--accent-indigo)", // 더 진한 색상으로 통일
-              letterSpacing: "0.1em",
-              margin: "24px 0 0 0",
-              opacity: 1,
-              fontFamily: "'Nanum Myeongjo', serif",
-              fontWeight: "700"
-            }}>
-              전통의 혜안으로 당신의 길을 비추다
-            </p>
+            <div style={{ position: "relative", textAlign: "center", marginBottom: "32px", zIndex: 5 }}>
+              <h1 className="traditional-title" style={{ 
+                fontSize: "clamp(2.4rem, 7vw, 3.2rem)", 
+                fontWeight: "900",
+                color: "var(--accent-indigo)", 
+                letterSpacing: "0.25em",
+                margin: "0 0 12px 0",
+                position: "relative",
+                zIndex: 2,
+                fontFamily: "'Nanum Myeongjo', serif",
+                textShadow: "0 2px 15px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 1)" // 글자 뒤 광운 효과로 가독성 확보
+              }}>
+                청아매당
+              </h1>
+              {/* More Dramatic Ink Wash Style Underline */}
+              <motion.div 
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: "130%", opacity: 0.9 }} // 불투명도 높임
+                transition={{ delay: 0.5, duration: 2, ease: "easeOut" }}
+                style={{ 
+                  position: "absolute",
+                  bottom: "15px",
+                  left: "-15%",
+                  height: "20px",
+                  background: "radial-gradient(ellipse at center, var(--accent-cherry) 0%, transparent 80%)",
+                  filter: "blur(15px)",
+                  zIndex: 1,
+                  transform: "rotate(-1.5deg)"
+                }}
+              />
+              <p style={{ 
+                fontSize: "0.95rem",
+                color: "var(--accent-indigo)",
+                letterSpacing: "0.1em",
+                margin: "12px 0 0 0",
+                opacity: 0.95, // 텍스트 진하게
+                fontFamily: "'Nanum Myeongjo', serif",
+                fontWeight: "700", // 더 굵게
+                textAlign: "center"
+              }}>
+                전통의 지혜로 당신의 길을 비추다
+              </p>
+            </div>
           </motion.div>
 
             <motion.div 
               style={{ 
                 display: "grid", 
-                gridTemplateColumns: "repeat(3, 1fr)", 
-                gap: "20px 12px", 
-                maxWidth: "500px", 
+                gridTemplateColumns: "repeat(4, 1fr)", 
+                gap: "16px 8px", 
+                maxWidth: "480px", 
                 margin: "0 auto",
-                padding: "0 20px",
+                padding: "0 10px",
                 perspective: "1000px" 
               }}
               variants={{
@@ -183,7 +204,14 @@ export default function Home() {
                     >
                       {menu.icon}
                     </motion.div>
-                    <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-primary)", letterSpacing: "-0.2px" }}>{menu.title}</span>
+                    <span style={{ 
+                      fontSize: "0.8rem", 
+                      fontWeight: 900, 
+                      color: "var(--accent-indigo)", 
+                      letterSpacing: "-0.4px",
+                      marginTop: "4px",
+                      textShadow: "0 2px 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 1)" // 가독성을 위한 강한 화이트 쉐도우
+                    }}>{menu.title}</span>
                   </motion.div>
                 </Link>
               ))}

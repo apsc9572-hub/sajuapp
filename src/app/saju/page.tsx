@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, ArrowUp, BookOpen, Clock, CalendarDays, Sparkles, MapPin, Coins, Heart, Briefcase, Activity, User, Star } from "lucide-react";
+import { ArrowLeft, ArrowUp, BookOpen, Clock, CalendarDays, Sparkles, MapPin, Coins, Heart, Briefcase, Activity, User, Star, Scroll } from "lucide-react";
 import { calculateSaju } from "ssaju";
 import TraditionalBackground from "@/components/TraditionalBackground";
 import Disclaimer from "@/components/Disclaimer";
@@ -515,8 +515,7 @@ export default function SajuPage() {
       <div style={{ 
         maxWidth: "480px", 
         margin: "0 auto", 
-        height: (isLoading || (bazi && reading)) ? "auto" : "100vh",
-        minHeight: "100vh", 
+        height: (isLoading || (bazi && reading)) ? "auto" : "100%",
         position: "relative", 
         zIndex: 1, 
         background: "rgba(255, 255, 255, 0.95)", 
@@ -525,50 +524,50 @@ export default function SajuPage() {
         display: "flex",
         flexDirection: "column",
         overflowX: "hidden",
-        overflowY: (isLoading || (bazi && reading)) ? "auto" : "hidden"
+        overflowY: (isLoading || (bazi && reading)) ? "initial" : "hidden"
       }}>
-        <div style={{ padding: "32px 24px" }}>
-          <Link href="/" style={{ textDecoration: "none", marginBottom: "24px", display: "inline-block" }}>
-            <button style={{ background: "rgba(42, 54, 95, 0.05)", border: "none", color: "var(--accent-indigo)", cursor: "pointer", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} /></button>
+        <div style={{ padding: "20px 20px" }}>
+          <Link href="/" style={{ textDecoration: "none", marginBottom: "16px", display: "inline-block" }}>
+            <button style={{ background: "rgba(42, 54, 95, 0.05)", border: "none", color: "var(--accent-indigo)", cursor: "pointer", width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={18} /></button>
           </Link>
 
-          <div style={{ textAlign: "center", marginBottom: (isLoading || (bazi && reading)) ? "40px" : "32px" }}>
+          <div style={{ textAlign: "center", marginBottom: (isLoading || (bazi && reading)) ? "32px" : "20px" }}>
             <motion.div 
                initial={{ opacity: 0, y: -10 }} 
                animate={{ opacity: 1, y: 0 }}
-               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.7rem", fontWeight: "700", marginBottom: "12px", letterSpacing: "0.1em" }}
+               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "2px 10px", borderRadius: "20px", fontSize: "0.65rem", fontWeight: "700", marginBottom: "8px", letterSpacing: "0.1em" }}
             >
               CHEONG-A MAE-DANG
             </motion.div>
-            <h1 style={{ fontSize: "2.1rem", fontWeight: "700", marginBottom: "8px", letterSpacing: "0.15em", color: "var(--accent-indigo)" }}>청아매당 사주</h1>
-            <div style={{ width: "32px", height: "1px", background: "var(--accent-gold)", margin: "12px auto 12px" }}></div>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: "1.5", fontFamily: "'Nanum Myeongjo', serif" }}>전통의 지혜로<br/>당신의 운명을 정갈하게 비춥니다.</p>
+            <h1 style={{ fontSize: "1.8rem", fontWeight: "700", marginBottom: "4px", letterSpacing: "0.1em", color: "var(--accent-indigo)" }}>청아매당 사주</h1>
+            <div style={{ width: "24px", height: "1px", background: "var(--accent-gold)", margin: "8px auto 8px" }}></div>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", fontFamily: "'Nanum Myeongjo', serif" }}>전통의 지혜로 운명을 비춥니다.</p>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
-            <section style={{ padding: "0 16px" }}>
-              <h2 style={{ fontSize: "0.95rem", marginBottom: "20px", borderBottom: "1px solid var(--glass-border)", paddingBottom: "12px", display: "flex", alignItems: "center", gap: "8px", fontWeight: "500" }}>
-                <CalendarDays className="w-5 h-5" /> 분석 정보 입력
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            <section style={{ padding: "0 8px" }}>
+              <h2 style={{ fontSize: "0.9rem", marginBottom: "16px", borderBottom: "1px solid var(--glass-border)", paddingBottom: "10px", display: "flex", alignItems: "center", gap: "8px", fontWeight: "500" }}>
+                <CalendarDays className="w-4 h-4" /> 정보 입력
               </h2>
-              <div style={{ display: "grid", gap: "16px" }}>
-                <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "14px", borderRadius: "12px", background: "rgba(255,255,255,0.8)", fontSize: "0.95rem" }}>{date}</div>
+              <div style={{ display: "grid", gap: "12px" }}>
+                <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>{date}</div>
                 <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={date} onConfirm={(d) => setDate(d)} />
                 
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "14px", borderRadius: "12px", background: "rgba(255,255,255,0.8)", fontSize: "0.95rem" }} />
-                  <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "12px", padding: "4px" }}>
-                    <button onClick={() => setIsLunar(false)} style={{ padding: "6px 12px", borderRadius: "8px", border: "none", background: !isLunar ? "white" : "transparent", fontSize: "0.85rem" }}>양력</button>
-                    <button onClick={() => setIsLunar(true)} style={{ padding: "6px 12px", borderRadius: "8px", border: "none", background: isLunar ? "white" : "transparent", fontSize: "0.85rem" }}>음력</button>
+                  <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }} />
+                  <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
+                    <button onClick={() => setIsLunar(false)} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: !isLunar ? "white" : "transparent", fontSize: "0.8rem" }}>양력</button>
+                    <button onClick={() => setIsLunar(true)} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: isLunar ? "white" : "transparent", fontSize: "0.8rem" }}>음력</button>
                   </div>
                 </div>
 
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "14px", borderRadius: "12px", background: "rgba(255,255,255,0.8)", fontSize: "0.95rem" }}>
+                  <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>
                     {Object.keys(cityDataMap).map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
-                  <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "12px", padding: "4px" }}>
-                    <button onClick={() => setGender("M")} style={{ padding: "6px 12px", borderRadius: "8px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.85rem" }}>남</button>
-                    <button onClick={() => setGender("F")} style={{ padding: "6px 12px", borderRadius: "8px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.85rem" }}>여</button>
+                  <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
+                    <button onClick={() => setGender("M")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.8rem" }}>남</button>
+                    <button onClick={() => setGender("F")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.8rem" }}>여</button>
                   </div>
                 </div>
               </div>
@@ -599,29 +598,48 @@ export default function SajuPage() {
               {(isLoading || (bazi && reading)) && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: "16px" }} ref={resultRef}>
                   {isLoading ? (
-                    <div style={{ textAlign: "center", padding: "64px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: "rotate(-90deg)" }}>
-                          <defs>
-                            <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#E6C875" />
-                              <stop offset="100%" stopColor="#AA7C11" />
-                            </linearGradient>
-                          </defs>
-                          <circle cx="60" cy="60" r="58" fill="none" stroke="rgba(0,0,0,0.03)" strokeWidth="3" />
-                          <circle 
-                            cx="60" cy="60" r="58" fill="none" stroke="url(#goldGradient)" strokeWidth="3" 
-                            strokeDasharray={364.42} 
-                            strokeDashoffset={364.42 - (loadingProgress / 100) * 364.42} 
-                            strokeLinecap="round"
-                            style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)" }}
-                          />
-                        </svg>
-                        <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.8rem", color: "var(--accent-gold)", fontWeight: "300" }}>
-                          {loadingProgress}<span style={{ fontSize: "1rem", marginLeft: "2px", opacity: 0.8 }}>%</span>
+                    <div style={{ textAlign: "center", padding: "80px 0", display: "flex", flexDirection: "column", alignItems: "center", minHeight: "350px", justifyContent: "center" }}>
+                      {/* Ink Bloom Animation */}
+                      <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "40px" }}>
+                        <motion.div
+                          animate={{ 
+                            scale: [1, 1.5, 1.8],
+                            opacity: [0.6, 0.3, 0],
+                          }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
+                          style={{ position: "absolute", inset: 0, background: "var(--accent-indigo)", borderRadius: "50%", filter: "blur(20px)" }}
+                        />
+                        <motion.div
+                          animate={{ 
+                            scale: [0.8, 1.2, 1.5],
+                            opacity: [0.8, 0.4, 0],
+                          }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "easeOut", delay: 1 }}
+                          style={{ position: "absolute", inset: 10, background: "var(--accent-indigo)", borderRadius: "50%", filter: "blur(15px)" }}
+                        />
+                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                          >
+                            <Scroll className="w-12 h-12 text-indigo-900 opacity-80" strokeWidth={1} />
+                          </motion.div>
                         </div>
                       </div>
-                      <p style={{ color: "var(--text-secondary)", fontSize: "1rem", letterSpacing: "-0.02em" }}>{loadingTexts[loadingTextIdx]}</p>
+
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 1 }}
+                        style={{ textAlign: "center" }}
+                      >
+                        <p style={{ color: "var(--accent-indigo)", fontWeight: "700", fontSize: "1.1rem", marginBottom: "16px", letterSpacing: "0.1em" }}>기운의 흐름을 살피는 중입니다</p>
+                        <div style={{ padding: "16px 24px", background: "rgba(42, 54, 95, 0.03)", borderRadius: "12px", borderLeft: "3px solid var(--accent-gold)", maxWidth: "320px", margin: "0 auto" }}>
+                          <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", fontStyle: "italic", lineHeight: "1.6" }}>
+                            "비워내야 채울 수 있고,<br/>멈춰야 비로소 보이기 시작합니다."
+                          </p>
+                        </div>
+                      </motion.div>
                     </div>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>

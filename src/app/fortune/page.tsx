@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense, useRef } from "react";
+import React, { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -761,8 +761,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
       <div style={{ 
         maxWidth: "480px", 
         margin: "0 auto", 
-        height: (isLoading || reading.today || reading.this_month || reading.this_year || bazi) ? "auto" : "100vh",
-        minHeight: "100vh", 
+        height: (isLoading || reading.today || reading.this_month || reading.this_year || bazi) ? "auto" : "100%",
         position: "relative", 
         zIndex: 1, 
         background: "rgba(255, 255, 255, 0.95)", 
@@ -771,73 +770,73 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
         display: "flex",
         flexDirection: "column",
         overflowX: "hidden",
-        overflowY: (isLoading || reading.today || reading.this_month || reading.this_year || bazi) ? "auto" : "hidden"
+        overflowY: (isLoading || reading.today || reading.this_month || reading.this_year || bazi) ? "initial" : "hidden"
       }}>
-        <div style={{ padding: "32px 24px" }}>
-          <Link href="/" style={{ textDecoration: "none", marginBottom: "24px", display: "inline-block" }}>
-            <button style={{ background: "rgba(42, 54, 95, 0.05)", border: "none", color: "var(--accent-indigo)", cursor: "pointer", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} /></button>
+        <div style={{ padding: "20px 20px" }}>
+          <Link href="/" style={{ textDecoration: "none", marginBottom: "16px", display: "inline-block" }}>
+            <button style={{ background: "rgba(42, 54, 95, 0.05)", border: "none", color: "var(--accent-indigo)", cursor: "pointer", width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={18} /></button>
           </Link>
 
-          <div className="text-center" style={{ marginBottom: (isLoading || bazi) ? "40px" : "32px" }}>
+          <div className="text-center" style={{ marginBottom: (isLoading || bazi) ? "32px" : "20px" }}>
             <motion.div 
                initial={{ opacity: 0, y: -10 }} 
                animate={{ opacity: 1, y: 0 }}
-               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.7rem", fontWeight: "700", marginBottom: "12px", letterSpacing: "0.1em" }}
+               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "2px 10px", borderRadius: "20px", fontSize: "0.65rem", fontWeight: "700", marginBottom: "8px", letterSpacing: "0.1em" }}
             >
               CHEONG-A MAE-DANG
             </motion.div>
-            <h1 style={{ fontSize: "2.1rem", fontWeight: "700", color: "var(--accent-indigo)", letterSpacing: "0.15em", textShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+            <h1 style={{ fontSize: "1.8rem", fontWeight: "700", color: "var(--accent-indigo)", letterSpacing: "0.1em", textShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
               청아매당 {currentType.title}
             </h1>
-            <div style={{ width: "32px", height: "1px", background: "var(--accent-gold)", margin: "12px auto 12px" }}></div>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: "1.5", fontFamily: "'Nanum Myeongjo', serif" }}>
-              전통의 혜안으로 풀어내는<br/>{currentType.title}의 정수
+            <div style={{ width: "24px", height: "1px", background: "var(--accent-gold)", margin: "8px auto 8px" }}></div>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", fontFamily: "'Nanum Myeongjo', serif" }}>
+              전통의 혜안으로 {currentType.title} 정수를 풀어냅니다.
             </p>
           </div>
 
           <div style={{ width: "100%" }}>
             <section style={{ padding: "0" }}>
-            <h2 style={{ fontSize: "1rem", marginBottom: "20px", borderBottom: "1px solid var(--glass-border)", paddingBottom: "12px", display: "flex", alignItems: "center", gap: "8px", fontWeight: "500" }}>
-              {currentType.icon} 분석 정보 입력
+            <h2 style={{ fontSize: "0.9rem", marginBottom: "16px", borderBottom: "1px solid var(--glass-border)", paddingBottom: "10px", display: "flex", alignItems: "center", gap: "8px", fontWeight: "500" }}>
+              {React.cloneElement(currentType.icon as any, { size: 18 })} 정보 입력
             </h2>
-            <div style={{ display: "grid", gap: "16px" }}>
-              <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "14px", borderRadius: "12px", background: "rgba(255,255,255,0.8)", fontSize: "0.95rem" }}>{date}</div>
+            <div style={{ display: "grid", gap: "12px" }}>
+              <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>{date}</div>
               <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={date} onConfirm={(d) => setDate(d)} />
 
               <div style={{ display: "flex", gap: "8px" }}>
-                <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "14px", borderRadius: "12px", background: "rgba(255,255,255,0.8)", fontSize: "0.95rem" }} />
-                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "12px", padding: "4px" }}>
-                  <button onClick={() => setIsLunar(false)} style={{ padding: "6px 12px", borderRadius: "8px", border: "none", background: !isLunar ? "white" : "transparent", fontSize: "0.85rem" }}>양력</button>
-                  <button onClick={() => setIsLunar(true)} style={{ padding: "6px 12px", borderRadius: "8px", border: "none", background: isLunar ? "white" : "transparent", fontSize: "0.85rem" }}>음력</button>
+                <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }} />
+                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
+                  <button onClick={() => setIsLunar(false)} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: !isLunar ? "white" : "transparent", fontSize: "0.8rem" }}>양력</button>
+                  <button onClick={() => setIsLunar(true)} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: isLunar ? "white" : "transparent", fontSize: "0.8rem" }}>음력</button>
                 </div>
               </div>
 
               <div style={{ display: "flex", gap: "8px" }}>
-                <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "14px", borderRadius: "12px", background: "rgba(255,255,255,0.8)", fontSize: "0.95rem" }}>
+                <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>
                   {Object.keys(cityDataMap).map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "12px", padding: "4px" }}>
-                  <button onClick={() => setGender("M")} style={{ padding: "6px 16px", borderRadius: "8px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.85rem" }}>남</button>
-                  <button onClick={() => setGender("F")} style={{ padding: "6px 16px", borderRadius: "8px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.85rem" }}>여</button>
+                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
+                  <button onClick={() => setGender("M")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.8rem" }}>남</button>
+                  <button onClick={() => setGender("F")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.8rem" }}>여</button>
                 </div>
               </div>
             </div>
 
             <motion.button 
-              whileHover={{ scale: 1.02 }} 
+              whileHover={{ scale: 1.01 }} 
               whileTap={{ scale: 0.98 }} 
               onClick={calculateFortune} 
               disabled={isLoading} 
               className="btn-primary" 
               style={{ 
                 width: "100%", 
-                marginTop: "24px", 
-                padding: "16px", 
-                borderRadius: "15px", 
-                fontSize: "1.05rem", 
+                marginTop: "16px", 
+                padding: "14px", 
+                borderRadius: "12px", 
+                fontSize: "1rem", 
                 fontWeight: "600",
                 background: "var(--accent-indigo)",
-                boxShadow: "0 10px 25px rgba(42, 54, 95, 0.2)",
+                boxShadow: "0 8px 20px rgba(42, 54, 95, 0.2)",
                 border: "none"
               }}
             >
@@ -854,29 +853,52 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                 </div>
 
                 {isLoading ? (
-                  <div style={{ textAlign: "center", padding: "64px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="120" height="120" viewBox="0 0 120 120" style={{ transform: "rotate(-90deg)" }}>
-                        <defs>
-                          <linearGradient id="goldGradientFortune" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#E6C875" />
-                            <stop offset="100%" stopColor="#AA7C11" />
-                          </linearGradient>
-                        </defs>
-                        <circle cx="60" cy="60" r="58" fill="none" stroke="rgba(0,0,0,0.03)" strokeWidth="3" />
-                        <circle 
-                          cx="60" cy="60" r="58" fill="none" stroke="url(#goldGradientFortune)" strokeWidth="3" 
-                          strokeDasharray={364.42} 
-                          strokeDashoffset={364.42 - (loadingProgress / 100) * 364.42} 
-                          strokeLinecap="round"
-                          style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)" }}
-                        />
-                      </svg>
-                      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.8rem", color: "var(--accent-gold)", fontWeight: "300" }}>
-                        {loadingProgress}<span style={{ fontSize: "1rem", marginLeft: "2px", opacity: 0.8 }}>%</span>
+                  <div style={{ textAlign: "center", padding: "80px 0", display: "flex", flexDirection: "column", alignItems: "center", minHeight: "350px", justifyContent: "center" }}>
+                    {/* Ink Bloom Animation */}
+                    <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "40px" }}>
+                      <motion.div
+                        animate={{ 
+                          scale: [1, 1.5, 1.8],
+                          opacity: [0.6, 0.3, 0],
+                        }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
+                        style={{ position: "absolute", inset: 0, background: "var(--accent-indigo)", borderRadius: "50%", filter: "blur(20px)" }}
+                      />
+                      <motion.div
+                        animate={{ 
+                          scale: [0.8, 1.2, 1.5],
+                          opacity: [0.8, 0.4, 0],
+                        }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeOut", delay: 1 }}
+                        style={{ position: "absolute", inset: 10, background: "var(--accent-indigo)", borderRadius: "50%", filter: "blur(15px)" }}
+                      />
+                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
+                        <motion.div
+                          animate={{ 
+                            rotate: [0, -5, 5, 0],
+                            scale: [1, 1.1, 1]
+                          }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                          style={{ color: "var(--accent-indigo)", opacity: 0.8 }}
+                        >
+                          {React.cloneElement(currentType.icon as any, { size: 48, strokeWidth: 1 })}
+                        </motion.div>
                       </div>
                     </div>
-                    <p style={{ color: "var(--text-secondary)", fontSize: "1rem", letterSpacing: "-0.02em" }}>{loadingTexts[loadingTextIdx]}</p>
+
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 1 }}
+                      style={{ textAlign: "center" }}
+                    >
+                      <p style={{ color: "var(--accent-indigo)", fontWeight: "700", fontSize: "1.1rem", marginBottom: "16px", letterSpacing: "0.1em" }}>{currentType.title} 흐름을 읽고 있습니다</p>
+                      <div style={{ padding: "16px 24px", background: "rgba(42, 54, 95, 0.03)", borderRadius: "12px", borderLeft: "3px solid var(--accent-gold)", maxWidth: "320px", margin: "0 auto" }}>
+                        <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", fontStyle: "italic", lineHeight: "1.6" }}>
+                          "흐르는 물은 앞을 다투지 않으며,<br/>머무는 자리는 스스로 맑아집니다."
+                        </p>
+                      </div>
+                    </motion.div>
                   </div>
                 ) : (
                   <>
