@@ -183,6 +183,14 @@ export default function SajuPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingTextIdx, setLoadingTextIdx] = useState(0);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [wisdomIdx, setWisdomIdx] = useState(0);
+  const wisdomQuotes = [
+    "하늘의 기운을 살피고 있습니다...",
+    "명식의 조화를 분석하는 중입니다...",
+    "과거와 미래의 흐름을 읽어내고 있습니다...",
+    "당신만의 특별한 운명을 정리 중입니다...",
+    "거의 다 되었습니다. 잠시만 기다려주세요..."
+  ];
   const [correctedTimeInfo, setCorrectedTimeInfo] = useState<any>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -248,6 +256,16 @@ export default function SajuPage() {
       if (progressInterval) clearInterval(progressInterval);
     };
   }, [isLoading]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setWisdomIdx((prev) => (prev + 1) % wisdomQuotes.length);
+      }, 3500);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading, wisdomQuotes.length]);
 
   const calculateBazi = async () => {
     setIsLoading(true);
@@ -535,11 +553,11 @@ export default function SajuPage() {
             <motion.div 
                initial={{ opacity: 0, y: -10 }} 
                animate={{ opacity: 1, y: 0 }}
-               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "2px 10px", borderRadius: "20px", fontSize: "0.65rem", fontWeight: "700", marginBottom: "8px", letterSpacing: "0.1em" }}
+               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "1px 6px", borderRadius: "8px", fontSize: "0.45rem", fontWeight: "700", marginBottom: "4px", letterSpacing: "0.1em" }}
             >
               CHEONG-A MAE-DANG
             </motion.div>
-            <h1 style={{ fontSize: "1.8rem", fontWeight: "700", marginBottom: "4px", letterSpacing: "0.1em", color: "var(--accent-indigo)" }}>청아매당 사주</h1>
+            <h1 style={{ fontSize: "1.05rem", fontWeight: "700", marginBottom: "4px", letterSpacing: "0", color: "var(--accent-indigo)" }}>청아매당 사주</h1>
             <div style={{ width: "24px", height: "1px", background: "var(--accent-gold)", margin: "8px auto 8px" }}></div>
             <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", fontFamily: "'Nanum Myeongjo', serif" }}>전통의 지혜로 운명을 비춥니다.</p>
           </div>
@@ -561,14 +579,19 @@ export default function SajuPage() {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>
-                    {Object.keys(cityDataMap).map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                  <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
-                    <button onClick={() => setGender("M")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.8rem" }}>남</button>
-                    <button onClick={() => setGender("F")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.8rem" }}>여</button>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>
+                      {Object.keys(cityDataMap).map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
+                      <button onClick={() => setGender("M")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.8rem" }}>남</button>
+                      <button onClick={() => setGender("F")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.8rem" }}>여</button>
+                    </div>
                   </div>
+                  <p style={{ fontSize: "0.62rem", color: "var(--text-secondary)", opacity: 0.8, paddingLeft: "4px", margin: 0, letterSpacing: "-0.02em" }}>
+                    * 태어난 지역에 따른 미세한 시간 차이를 반영하여 더 정확하게 분석합니다.
+                  </p>
                 </div>
               </div>
 
@@ -599,31 +622,28 @@ export default function SajuPage() {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: "16px" }} ref={resultRef}>
                   {isLoading ? (
                     <div style={{ textAlign: "center", padding: "80px 0", display: "flex", flexDirection: "column", alignItems: "center", minHeight: "350px", justifyContent: "center" }}>
-                      {/* Ink Bloom Animation */}
-                      <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "40px" }}>
-                        <motion.div
-                          animate={{ 
-                            scale: [1, 1.5, 1.8],
-                            opacity: [0.6, 0.3, 0],
-                          }}
-                          transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
-                          style={{ position: "absolute", inset: 0, background: "var(--accent-indigo)", borderRadius: "50%", filter: "blur(20px)" }}
-                        />
-                        <motion.div
-                          animate={{ 
-                            scale: [0.8, 1.2, 1.5],
-                            opacity: [0.8, 0.4, 0],
-                          }}
-                          transition={{ duration: 3, repeat: Infinity, ease: "easeOut", delay: 1 }}
-                          style={{ position: "absolute", inset: 10, background: "var(--accent-indigo)", borderRadius: "50%", filter: "blur(15px)" }}
-                        />
-                        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                      {/* Circular Percentage Gauge */}
+                      <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "100%", height: "100%" }}>
+                          <circle cx="50" cy="50" r="45" fill="transparent" stroke="rgba(42, 54, 95, 0.05)" strokeWidth="8" />
+                          <motion.circle 
+                            cx="50" cy="50" r="45" 
+                            fill="transparent" 
+                            stroke="var(--accent-indigo)" 
+                            strokeWidth="8" 
+                            strokeDasharray="282.7"
+                            animate={{ strokeDashoffset: 282.7 - (282.7 * loadingProgress) / 100 }}
+                            transition={{ duration: 0.5, ease: "easeOut" }}
+                            strokeLinecap="round"
+                          />
+                        </svg>
+                        <div style={{ position: "absolute", textAlign: "center" }}>
+                          <motion.span 
+                            style={{ fontSize: "1.8rem", fontWeight: "700", color: "var(--accent-indigo)", display: "block" }}
                           >
-                            <Scroll className="w-12 h-12 text-indigo-900 opacity-80" strokeWidth={1} />
-                          </motion.div>
+                            {Math.round(loadingProgress)}
+                          </motion.span>
+                          <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontWeight: "500", opacity: 0.8 }}>%</span>
                         </div>
                       </div>
 
@@ -634,10 +654,19 @@ export default function SajuPage() {
                         style={{ textAlign: "center" }}
                       >
                         <p style={{ color: "var(--accent-indigo)", fontWeight: "700", fontSize: "1.1rem", marginBottom: "16px", letterSpacing: "0.1em" }}>기운의 흐름을 살피는 중입니다</p>
-                        <div style={{ padding: "16px 24px", background: "rgba(42, 54, 95, 0.03)", borderRadius: "12px", borderLeft: "3px solid var(--accent-gold)", maxWidth: "320px", margin: "0 auto" }}>
-                          <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", fontStyle: "italic", lineHeight: "1.6" }}>
-                            "비워내야 채울 수 있고,<br/>멈춰야 비로소 보이기 시작합니다."
-                          </p>
+                        <div style={{ padding: "16px 24px", background: "rgba(42, 54, 95, 0.03)", borderRadius: "12px", borderLeft: "3px solid var(--accent-gold)", maxWidth: "320px", margin: "0 auto", height: "80px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <AnimatePresence mode="wait">
+                            <motion.p 
+                              key={wisdomIdx}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.8 }}
+                              style={{ color: "var(--text-secondary)", fontSize: "0.85rem", fontStyle: "italic", lineHeight: "1.6", margin: 0 }}
+                            >
+                              {wisdomQuotes[wisdomIdx]}
+                            </motion.p>
+                          </AnimatePresence>
                         </div>
                       </motion.div>
                     </div>
@@ -670,14 +699,13 @@ export default function SajuPage() {
                               key={i} 
                               id={sec.id} 
                               initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                              viewport={{ once: true, margin: "-50px" }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
                               transition={{ duration: 0.7, delay: i * 0.1, ease: [0.25, 1, 0.5, 1] }}
                               style={{ borderBottom: i === reading.sections.length - 1 ? "none" : "1px solid var(--glass-border)", paddingBottom: "48px", scrollMarginTop: "80px" }}
                             >
                             <h3 style={{ fontSize: "1.4rem", marginBottom: "20px", color: sec.c, fontWeight: "300" }}>{sec.t}</h3>
                             <div style={{ fontSize: "1.05rem", fontStyle: "italic", marginBottom: "24px", color: "var(--text-primary)", borderLeft: `4px solid ${sec.c}`, paddingLeft: "16px", lineHeight: "1.7" }}>
-                              "{sec.d.summary.replace(/\*\*/g, '')}"
+                              "{sec.d.summary?.replace(/\*\*/g, '') || ""}"
                             </div>
                             <div style={{ lineHeight: "1.85", fontSize: "0.95rem", color: "var(--text-secondary)", wordBreak: "keep-all" }}>
                                {renderHighlightedText(sec.d.content)}

@@ -139,21 +139,21 @@ function FortuneContent() {
       keys: ["early", "youth", "middle", "mature", "late"]
     },
     business: {
-      title: "사업운 흐름",
+      title: "사업운",
       desc: "사회적 성취와 계약, 성장의 방향",
       icon: <Briefcase className="w-6 h-6" />,
       tabs: ["전체적인 흐름"],
       keys: ["overall"]
     },
     health: {
-      title: "건강운 흐름",
+      title: "건강운",
       desc: "신체 에너지와 마음의 안녕",
       icon: <Activity className="w-6 h-6" />,
       tabs: ["초년: 10~20대", "청년: 30대", "중년: 40대", "장년: 50대", "말년: 60대 이후"],
       keys: ["early", "youth", "middle", "mature", "late"]
     },
     love: {
-      title: "애정운 흐름",
+      title: "애정운",
       desc: "인연의 기운과 관계의 양상",
       icon: <Heart className="w-6 h-6" />,
       tabs: ["초년: 10~20대", "청년: 30대", "중년: 40대", "장년: 50대", "말년: 60대 이후"],
@@ -242,6 +242,14 @@ function FortuneContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingTextIdx, setLoadingTextIdx] = useState(0);
   const [loadingProgress, setLoadingProgress] = useState(0);
+  const [wisdomIdx, setWisdomIdx] = useState(0);
+  const wisdomQuotes = [
+    "하늘의 기운을 살피고 있습니다...",
+    "당신만의 특별한 운세를 분석하는 중입니다...",
+    "어제와 오늘, 내일의 흐름을 읽고 있습니다...",
+    "분석된 결과를 문장으로 정리 중입니다...",
+    "거의 다 되었습니다. 잠시만 기다려주세요..."
+  ];
 
   useEffect(() => {
     if (!isLoading && bazi && reading) {
@@ -287,6 +295,16 @@ function FortuneContent() {
       clearInterval(progressInterval);
     };
   }, [isLoading]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setWisdomIdx((prev) => (prev + 1) % wisdomQuotes.length);
+      }, 3500);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading, wisdomQuotes.length]);
 
   const calculateFortune = async () => {
     setIsLoading(true);
@@ -781,11 +799,11 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
             <motion.div 
                initial={{ opacity: 0, y: -10 }} 
                animate={{ opacity: 1, y: 0 }}
-               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "2px 10px", borderRadius: "20px", fontSize: "0.65rem", fontWeight: "700", marginBottom: "8px", letterSpacing: "0.1em" }}
+                style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "1px 6px", borderRadius: "8px", fontSize: "0.45rem", fontWeight: "700", marginBottom: "4px", letterSpacing: "0.1em" }}
             >
               CHEONG-A MAE-DANG
             </motion.div>
-            <h1 style={{ fontSize: "1.8rem", fontWeight: "700", color: "var(--accent-indigo)", letterSpacing: "0.1em", textShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+            <h1 style={{ fontSize: "1.05rem", fontWeight: "700", color: "var(--accent-indigo)", letterSpacing: "0", textShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
               청아매당 {currentType.title}
             </h1>
             <div style={{ width: "24px", height: "1px", background: "var(--accent-gold)", margin: "8px auto 8px" }}></div>
@@ -811,15 +829,20 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                 </div>
               </div>
 
-              <div style={{ display: "flex", gap: "8px" }}>
-                <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>
-                  {Object.keys(cityDataMap).map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
-                  <button onClick={() => setGender("M")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.8rem" }}>남</button>
-                  <button onClick={() => setGender("F")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.8rem" }}>여</button>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>
+                      {Object.keys(cityDataMap).map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
+                      <button onClick={() => setGender("M")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.8rem" }}>남</button>
+                      <button onClick={() => setGender("F")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.8rem" }}>여</button>
+                    </div>
+                  </div>
+                  <p style={{ fontSize: "0.62rem", color: "var(--text-secondary)", opacity: 0.8, paddingLeft: "4px", margin: 0, letterSpacing: "-0.02em" }}>
+                    * 태어난 지역에 따른 미세한 시간 차이를 반영하여 더 정확하게 분석합니다.
+                  </p>
                 </div>
-              </div>
             </div>
 
             <motion.button 
@@ -854,35 +877,28 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 
                 {isLoading ? (
                   <div style={{ textAlign: "center", padding: "80px 0", display: "flex", flexDirection: "column", alignItems: "center", minHeight: "350px", justifyContent: "center" }}>
-                    {/* Ink Bloom Animation */}
-                    <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "40px" }}>
-                      <motion.div
-                        animate={{ 
-                          scale: [1, 1.5, 1.8],
-                          opacity: [0.6, 0.3, 0],
-                        }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
-                        style={{ position: "absolute", inset: 0, background: "var(--accent-indigo)", borderRadius: "50%", filter: "blur(20px)" }}
-                      />
-                      <motion.div
-                        animate={{ 
-                          scale: [0.8, 1.2, 1.5],
-                          opacity: [0.8, 0.4, 0],
-                        }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeOut", delay: 1 }}
-                        style={{ position: "absolute", inset: 10, background: "var(--accent-indigo)", borderRadius: "50%", filter: "blur(15px)" }}
-                      />
-                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10 }}>
-                        <motion.div
-                          animate={{ 
-                            rotate: [0, -5, 5, 0],
-                            scale: [1, 1.1, 1]
-                          }}
-                          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                          style={{ color: "var(--accent-indigo)", opacity: 0.8 }}
+                    {/* Circular Percentage Gauge */}
+                    <div style={{ position: "relative", width: "120px", height: "120px", marginBottom: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)", width: "100%", height: "100%" }}>
+                        <circle cx="50" cy="50" r="45" fill="transparent" stroke="rgba(42, 54, 95, 0.05)" strokeWidth="8" />
+                        <motion.circle 
+                          cx="50" cy="50" r="45" 
+                          fill="transparent" 
+                          stroke="var(--accent-indigo)" 
+                          strokeWidth="8" 
+                          strokeDasharray="282.7"
+                          animate={{ strokeDashoffset: 282.7 - (282.7 * loadingProgress) / 100 }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <div style={{ position: "absolute", textAlign: "center" }}>
+                        <motion.span 
+                          style={{ fontSize: "1.8rem", fontWeight: "700", color: "var(--accent-indigo)", display: "block" }}
                         >
-                          {React.cloneElement(currentType.icon as any, { size: 48, strokeWidth: 1 })}
-                        </motion.div>
+                          {Math.round(loadingProgress)}
+                        </motion.span>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-secondary)", fontWeight: "500", opacity: 0.8 }}>%</span>
                       </div>
                     </div>
 
@@ -893,10 +909,19 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                       style={{ textAlign: "center" }}
                     >
                       <p style={{ color: "var(--accent-indigo)", fontWeight: "700", fontSize: "1.1rem", marginBottom: "16px", letterSpacing: "0.1em" }}>{currentType.title} 흐름을 읽고 있습니다</p>
-                      <div style={{ padding: "16px 24px", background: "rgba(42, 54, 95, 0.03)", borderRadius: "12px", borderLeft: "3px solid var(--accent-gold)", maxWidth: "320px", margin: "0 auto" }}>
-                        <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", fontStyle: "italic", lineHeight: "1.6" }}>
-                          "흐르는 물은 앞을 다투지 않으며,<br/>머무는 자리는 스스로 맑아집니다."
-                        </p>
+                      <div style={{ padding: "16px 24px", background: "rgba(42, 54, 95, 0.03)", borderRadius: "12px", borderLeft: "3px solid var(--accent-gold)", maxWidth: "320px", margin: "0 auto", height: "80px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <AnimatePresence mode="wait">
+                          <motion.p 
+                            key={wisdomIdx}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.8 }}
+                            style={{ color: "var(--text-secondary)", fontSize: "0.85rem", fontStyle: "italic", lineHeight: "1.6", margin: 0 }}
+                          >
+                            {wisdomQuotes[wisdomIdx]}
+                          </motion.p>
+                        </AnimatePresence>
                       </div>
                     </motion.div>
                   </div>
@@ -924,8 +949,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                             <motion.div 
                               key={key} 
                               initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                              viewport={{ once: true, margin: "-50px" }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
                               transition={{ duration: 0.7, delay: index * 0.1, ease: [0.25, 1, 0.5, 1] }}
                               style={(typeParam === "wealth" || typeParam === "health" || typeParam === "love") ? { borderBottom: index === currentType.keys.length - 1 ? "none" : "1px solid var(--glass-border)", paddingBottom: "64px" } : {}}
                             >

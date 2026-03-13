@@ -96,11 +96,11 @@ export default function Home() {
 
             <div style={{ position: "relative", textAlign: "center", marginBottom: "32px", zIndex: 5 }}>
               <h1 className="traditional-title" style={{ 
-                fontSize: "clamp(2.4rem, 7vw, 3.2rem)", 
+                fontSize: "clamp(1.5rem, 5vw, 2.1rem)", 
                 fontWeight: "900",
                 color: "var(--accent-indigo)", 
-                letterSpacing: "0.25em",
-                margin: "0 0 12px 0",
+                letterSpacing: "0.15em",
+                margin: "0 0 8px 0",
                 position: "relative",
                 zIndex: 2,
                 fontFamily: "'Nanum Myeongjo', serif",
@@ -125,10 +125,10 @@ export default function Home() {
                 }}
               />
               <p style={{ 
-                fontSize: "0.95rem",
+                fontSize: "0.75rem",
                 color: "var(--accent-indigo)",
-                letterSpacing: "0.1em",
-                margin: "12px 0 0 0",
+                letterSpacing: "0.02em",
+                margin: "6px 0 0 0",
                 opacity: 0.95, // 텍스트 진하게
                 fontFamily: "'Nanum Myeongjo', serif",
                 fontWeight: "700", // 더 굵게
@@ -186,8 +186,8 @@ export default function Home() {
                   >
                     <motion.div 
                       style={{
-                        width: "clamp(64px, 16vw, 76px)",
-                        height: "clamp(64px, 16vw, 76px)",
+                        width: "clamp(50px, 13vw, 62px)",
+                        height: "clamp(50px, 13vw, 62px)",
                         borderRadius: "50%",
                         background: "#FFFFFF",
                         display: "flex",
@@ -205,11 +205,11 @@ export default function Home() {
                       {menu.icon}
                     </motion.div>
                     <span style={{ 
-                      fontSize: "0.8rem", 
+                      fontSize: "0.6rem", 
                       fontWeight: 900, 
                       color: "var(--accent-indigo)", 
-                      letterSpacing: "-0.4px",
-                      marginTop: "4px",
+                      letterSpacing: "-0.5px",
+                      marginTop: "1px",
                       textShadow: "0 2px 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 1)" // 가독성을 위한 강한 화이트 쉐도우
                     }}>{menu.title}</span>
                   </motion.div>
