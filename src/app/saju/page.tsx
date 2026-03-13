@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Clock, CalendarDays, Sparkles, MapPin, Coins, Heart, Briefcase, Activity, User, Star } from "lucide-react";
+import { ArrowLeft, ArrowUp, BookOpen, Clock, CalendarDays, Sparkles, MapPin, Coins, Heart, Briefcase, Activity, User, Star } from "lucide-react";
 import { calculateSaju } from "ssaju";
 import TraditionalBackground from "@/components/TraditionalBackground";
 import Disclaimer from "@/components/Disclaimer";
@@ -518,9 +518,9 @@ export default function SajuPage() {
         minHeight: "100vh", 
         position: "relative", 
         zIndex: 1, 
-        background: "rgba(255, 255, 255, 0.9)", 
+        background: "rgba(255, 255, 255, 0.95)", 
         backdropFilter: "blur(20px)",
-        boxShadow: "0 0 60px rgba(26, 28, 44, 0.08)",
+        boxShadow: "0 0 60px rgba(26, 28, 44, 0.12)",
         display: "flex",
         flexDirection: "column",
         overflowX: "hidden"
@@ -710,7 +710,28 @@ export default function SajuPage() {
                         </div>
                       </div>
                     {/* 하단 뒤로가기 버튼 추가 */}
-                    <div style={{ marginTop: "64px", display: "flex", justifyContent: "center" }}>
+                    <div style={{ marginTop: "64px", display: "flex", justifyContent: "center", gap: "16px" }}>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "16px 24px",
+                          borderRadius: "30px",
+                          background: "rgba(42, 54, 95, 0.05)",
+                          color: "var(--accent-indigo)",
+                          border: "1px solid var(--glass-border)",
+                          fontSize: "1rem",
+                          fontWeight: "600",
+                          cursor: "pointer"
+                        }}
+                      >
+                        <ArrowUp size={20} /> 맨 위로
+                      </motion.button>
+                      
                       <Link href="/">
                         <motion.button
                           whileHover={{ scale: 1.05 }}
@@ -719,7 +740,7 @@ export default function SajuPage() {
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
-                            padding: "16px 32px",
+                            padding: "16px 24px",
                             borderRadius: "30px",
                             background: "white",
                             color: "var(--accent-indigo)",
@@ -730,7 +751,7 @@ export default function SajuPage() {
                             cursor: "pointer"
                           }}
                         >
-                          <ArrowLeft size={20} /> 홈으로 돌아가기
+                          <ArrowLeft size={20} /> 홈으로
                         </motion.button>
                       </Link>
                     </div>

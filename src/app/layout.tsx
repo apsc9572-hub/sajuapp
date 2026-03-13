@@ -10,8 +10,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "AI 운세 & 사주 (AI Fortune)",
-  description: "타로, 사주팔자, 꿈해몽, 점성술을 한 곳에서 만나는 프리미엄 AI 운세 서비스",
+  title: "청아매당 운세 & 사주",
+  description: "전통의 혜안으로 풀어내는 프리미엄 사주 및 운세 서비스, 청아매당",
 };
 
 export default function RootLayout({

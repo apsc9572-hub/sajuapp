@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Clock, CalendarDays, Sparkles, MoonStar, Scroll, Coins, Briefcase, Activity, Heart, Target, Users, Wallet, ShieldAlert, Download, Share2, Calculator, Calendar, Copy, Check } from "lucide-react";
+import { ArrowLeft, ArrowUp, BookOpen, Clock, CalendarDays, Sparkles, MoonStar, Scroll, Coins, Briefcase, Activity, Heart, Target, Users, Wallet, ShieldAlert, Download, Share2, Calculator, Calendar, Copy, Check } from "lucide-react";
 import { calculateSaju } from "ssaju";
 import TraditionalBackground from "@/components/TraditionalBackground";
 import Disclaimer from "@/components/Disclaimer";
@@ -757,67 +757,83 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
     <main style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
       <Disclaimer />
       <TraditionalBackground />
-      <div style={{ position: "relative", zIndex: 1 }} className="container py-8">
-        <Link href="/" style={{ textDecoration: "none", marginBottom: "40px", display: "inline-block" }}>
-          <button style={{ background: "rgba(42, 54, 95, 0.05)", border: "none", color: "var(--accent-indigo)", cursor: "pointer", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} /></button>
-        </Link>
+      
+      <div style={{ 
+        maxWidth: "480px", 
+        margin: "0 auto", 
+        minHeight: "100vh", 
+        position: "relative", 
+        zIndex: 1, 
+        background: "rgba(255, 255, 255, 0.95)", 
+        backdropFilter: "blur(20px)",
+        boxShadow: "0 0 60px rgba(26, 28, 44, 0.12)",
+        display: "flex",
+        flexDirection: "column",
+        overflowX: "hidden"
+      }}>
+        <div style={{ padding: "32px 24px" }}>
+          <Link href="/" style={{ textDecoration: "none", marginBottom: "40px", display: "inline-block" }}>
+            <button style={{ background: "rgba(42, 54, 95, 0.05)", border: "none", color: "var(--accent-indigo)", cursor: "pointer", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} /></button>
+          </Link>
 
-        <div className="text-center" style={{ marginBottom: "52px" }}>
-          <motion.div 
-             initial={{ opacity: 0, y: -10 }} 
-             animate={{ opacity: 1, y: 0 }}
-             style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "700", marginBottom: "16px", letterSpacing: "0.1em" }}
-          >
-            CHEONG-A MAE-DANG
-          </motion.div>
-          <h1 style={{ fontSize: "2.6rem", fontWeight: "700", color: "var(--accent-indigo)", letterSpacing: "0.15em", textShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
-            청아매당 {currentType.title}
-          </h1>
-          <div style={{ width: "40px", height: "1px", background: "var(--accent-gold)", margin: "20px auto" }}></div>
-          <p style={{ color: "var(--text-secondary)", fontSize: "1.05rem", fontFamily: "'Nanum Myeongjo', serif", letterSpacing: "0.05em" }}>
-            전통의 혜안으로 풀어내는 {currentType.title}의 정수
-          </p>
-        </div>
+          <div className="text-center" style={{ marginBottom: "52px" }}>
+            <motion.div 
+               initial={{ opacity: 0, y: -10 }} 
+               animate={{ opacity: 1, y: 0 }}
+               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "700", marginBottom: "16px", letterSpacing: "0.1em" }}
+            >
+              CHEONG-A MAE-DANG
+            </motion.div>
+            <h1 style={{ fontSize: "2.4rem", fontWeight: "700", color: "var(--accent-indigo)", letterSpacing: "0.15em", textShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+              청아매당 {currentType.title}
+            </h1>
+            <div style={{ width: "32px", height: "1px", background: "var(--accent-gold)", margin: "16px auto 16px" }}></div>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.6", fontFamily: "'Nanum Myeongjo', serif" }}>
+              전통의 혜안으로 풀어내는<br/>{currentType.title}의 정수
+            </p>
+          </div>
 
-        <div style={{ maxWidth: "800px", margin: "0 auto", width: "100%" }}>
-          <section style={{ padding: "0 16px" }}>
-            <h2 style={{ fontSize: "1.2rem", marginBottom: "24px", borderBottom: "1px solid rgba(0,0,0,0.05)", paddingBottom: "12px" }}>분석 정보 입력</h2>
-            <div style={{ display: "grid", gap: "24px" }}>
-              <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer" }}>{date}</div>
+          <div style={{ width: "100%" }}>
+            <section style={{ padding: "0" }}>
+            <h2 style={{ fontSize: "1rem", marginBottom: "20px", borderBottom: "1px solid var(--glass-border)", paddingBottom: "12px", display: "flex", alignItems: "center", gap: "8px", fontWeight: "500" }}>
+              {currentType.icon} 분석 정보 입력
+            </h2>
+            <div style={{ display: "grid", gap: "16px" }}>
+              <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "14px", borderRadius: "12px", background: "rgba(255,255,255,0.8)", fontSize: "0.95rem" }}>{date}</div>
               <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={date} onConfirm={(d) => setDate(d)} />
 
               <div style={{ display: "flex", gap: "8px" }}>
-                <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1 }} />
-                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "30px", padding: "4px" }}>
-                  <button onClick={() => setIsLunar(false)} style={{ padding: "8px 16px", borderRadius: "30px", background: !isLunar ? "white" : "transparent" }}>양력</button>
-                  <button onClick={() => setIsLunar(true)} style={{ padding: "8px 16px", borderRadius: "30px", background: isLunar ? "white" : "transparent" }}>음력</button>
+                <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "14px", borderRadius: "12px", background: "rgba(255,255,255,0.8)", fontSize: "0.95rem" }} />
+                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "12px", padding: "4px" }}>
+                  <button onClick={() => setIsLunar(false)} style={{ padding: "6px 12px", borderRadius: "8px", border: "none", background: !isLunar ? "white" : "transparent", fontSize: "0.85rem" }}>양력</button>
+                  <button onClick={() => setIsLunar(true)} style={{ padding: "6px 12px", borderRadius: "8px", border: "none", background: isLunar ? "white" : "transparent", fontSize: "0.85rem" }}>음력</button>
                 </div>
               </div>
 
               <div style={{ display: "flex", gap: "8px" }}>
-                <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1 }}>
+                <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "14px", borderRadius: "12px", background: "rgba(255,255,255,0.8)", fontSize: "0.95rem" }}>
                   {Object.keys(cityDataMap).map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "30px", padding: "4px" }}>
-                  <button onClick={() => setGender("M")} style={{ padding: "8px 16px", borderRadius: "30px", background: gender === "M" ? "white" : "transparent" }}>남</button>
-                  <button onClick={() => setGender("F")} style={{ padding: "8px 16px", borderRadius: "30px", background: gender === "F" ? "white" : "transparent" }}>여</button>
+                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "12px", padding: "4px" }}>
+                  <button onClick={() => setGender("M")} style={{ padding: "6px 16px", borderRadius: "8px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.85rem" }}>남</button>
+                  <button onClick={() => setGender("F")} style={{ padding: "6px 16px", borderRadius: "8px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.85rem" }}>여</button>
                 </div>
               </div>
             </div>
 
             <motion.button 
-              whileHover={{ scale: 1.01 }} 
+              whileHover={{ scale: 1.02 }} 
               whileTap={{ scale: 0.98 }} 
               onClick={calculateFortune} 
               disabled={isLoading} 
               className="btn-primary" 
               style={{ 
                 width: "100%", 
-                marginTop: "40px", 
-                padding: "20px", 
-                borderRadius: "30px", 
-                fontSize: "1.1rem", 
-                fontWeight: "500",
+                marginTop: "32px", 
+                padding: "18px", 
+                borderRadius: "15px", 
+                fontSize: "1.05rem", 
+                fontWeight: "600",
                 background: "var(--accent-indigo)",
                 boxShadow: "0 10px 25px rgba(42, 54, 95, 0.2)",
                 border: "none"
@@ -829,10 +845,10 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 
           <AnimatePresence>
             {(bazi || isLoading) && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: "16px", marginTop: "40px" }} ref={resultRef} id="result-section">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: "0", marginTop: "40px" }} ref={resultRef} id="result-section">
                 <div style={{ textAlign: "center", marginBottom: "40px" }}>
                    <div style={{ width: "40px", height: "2px", background: "var(--accent-gold)", margin: "0 auto 16px" }}></div>
-                   <h2 style={{ fontSize: "1.6rem", fontWeight: "300", color: "var(--accent-indigo)", letterSpacing: "-0.02em" }}>분석 결과</h2>
+                   <h2 style={{ fontSize: "1.6rem", fontWeight: "700", color: "var(--accent-indigo)", letterSpacing: "-0.02em" }}>분석 결과</h2>
                 </div>
 
                 {isLoading ? (
@@ -1064,7 +1080,28 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                     )}
 
                     {/* 하단 뒤로가기 버튼 추가 */}
-                    <div style={{ marginTop: "64px", display: "flex", justifyContent: "center" }}>
+                    <div style={{ marginTop: "64px", display: "flex", justifyContent: "center", gap: "16px" }}>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "16px 24px",
+                          borderRadius: "30px",
+                          background: "rgba(42, 54, 95, 0.05)",
+                          color: "var(--accent-indigo)",
+                          border: "1px solid var(--glass-border)",
+                          fontSize: "1rem",
+                          fontWeight: "600",
+                          cursor: "pointer"
+                        }}
+                      >
+                        <ArrowUp size={20} /> 맨 위로
+                      </motion.button>
+
                       <Link href="/">
                         <motion.button
                           whileHover={{ scale: 1.05 }}
@@ -1073,7 +1110,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                             display: "flex",
                             alignItems: "center",
                             gap: "8px",
-                            padding: "16px 32px",
+                            padding: "16px 24px",
                             borderRadius: "30px",
                             background: "white",
                             color: "var(--accent-indigo)",
@@ -1084,7 +1121,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                             cursor: "pointer"
                           }}
                         >
-                          <ArrowLeft size={20} /> 홈으로 돌아가기
+                          <ArrowLeft size={20} /> 홈으로
                         </motion.button>
                       </Link>
                     </div>
@@ -1093,6 +1130,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         </div>
       </div>
     </main>
