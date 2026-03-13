@@ -428,12 +428,13 @@ function FortuneContent() {
 4. 💡 이달의 비책 및 핵심 날짜 (약 150자): 반드시 지켜야 할 한 줄 조언, 행운의 날, 주의할 날 리스트.
 
 가공 및 가독성 지침 (매우 중요):
-- **강조하고 싶은 키워드나 중요한 문구는 반드시 **굵은 글씨**로 표시하세요.**
+- **강조하고 싶은 키워드나 중요한 문구는 반드시 마크다운인 **굵은 글씨**로 표시하세요. <b>와 같은 HTML 태그는 절대 사용하지 마세요.**
 - 각 섹션 제목(요약, 주차별, 분야별, 비책) 앞에는 위 예시처럼 이모지를 붙이세요.
 - 문단 사이에는 반드시 빈 줄을 두 번(double newline) 넣어 여백을 충분히 두세요.
 - 카카오톡 공유 시 깔끔하도록 ###, --- 등 마크다운 특수 기호는 절대 사용하지 마세요. (굵은 글씨용 **는 사용 가능)
 - 각 기간(지난달, 이번달, 다음달)별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item)을 포함한 객체로 응답하세요.
-- 각 분석 내용에는 해당 운세가 도출된 명리학적 근거(오행의 흐름, 일간의 영향 등) 즉 "왜" 이런 결과가 나왔는지를 반드시 포함하세요.`;
+- 각 분석 내용에는 해당 운세가 도출된 명리학적 근거(오행의 흐름, 일간의 영향 등) 즉 "왜" 이런 결과가 나왔는지를 반드시 포함하세요.
+- **절대 주의**: Metal(금), Wood(목)과 같은 영어 표현은 절대로 사용하지 마세요. 오직 금(金), 목(木), 화(火), 토(土), 수(수) 형식만 사용하세요.`;
       } else if (typeParam === "yearly") {
         timeContext = `오늘은 ${todayStr}입니다. 내담자의 올해(1년) 전체 운세를 다음 5단계의 '프리미엄 컨설팅 리포트' 형식으로 약 2,500자 분량으로 상세히 분석해 주세요.
 반드시 각 단계마다 "왜" 이런 흐름이 나타나는지에 대한 명리학적 근거를 상세히 설명해 주세요.
@@ -449,7 +450,7 @@ function FortuneContent() {
 5. ✨ 명리적 분석 근거 (200~300자): 내담자의 타고난 기질과 세운(올해의 운)이 어떻게 상호작용하는지 논리적으로 설명.
 
 가이드 및 가독성 (매우 중요):
-- **강조하고 싶은 키워드나 중요한 문구는 반드시 **굵은 글씨**로 표시하세요.**
+- **강조하고 싶은 키워드나 중요한 문구는 반드시 마크다운인 **굵은 글씨**로 표시하세요. <b>와 같은 HTML 태그는 절대 사용하지 마세요.**
 - 각 항목 설명에는 ● 기호를 적절히 섞어 사용하세요.
 - 각 섹션 제목 앞에는 위 예시처럼 이모지를 붙이세요.
 - 문단 사이에는 반드시 빈 줄을 두 번(double newline) 넣어 여백을 충분히 두세요.
@@ -473,8 +474,8 @@ function FortuneContent() {
 - 공통: 모든 시간 기반 객체 내부에 'content', 'score'(숫자), 'gaewun'(객체: color, direction, element, item)를 포함. (단, element는 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 중 하나로 표기)
 - 기타 테마일 경우: ${currentType.keys[0]} 키를 사용하여 분석 내용을 제공.
 - 명리학적 근거를 포함하되, 비유적인 표현으로 다정하게 설명하세요.
-- **매우 중요**: 전문적인 명리학 용어나 오행(목, 화, 토, 금, 수)을 언급할 때는 반드시 '한글(漢字)' 형식을 사용하세요. 예: 목(木), 화(火), 토(土), 금(金), 수(水), 일간(日干), 재성(財星) 등
-- **매우 중요**: 강조하고 싶은 핵심 문구는 반드시 **진하게** (**bold**) 표시하세요.
+- **매우 중요**: 전문적인 명리학 용어나 오행(목, 화, 토, 금, 수)을 언급할 때는 반드시 '한글(漢字)' 형식을 사용하세요. 예: 목(木), 화(火), 토(土), 금(金), 수(水). **절대 Metal, Wood 등 영어를 섞지 마세요.**
+- **매우 중요**: 강조하고 싶은 핵심 문구는 반드시 마크다운인 **진하게** (**bold**) 표시하세요. <b>와 같은 HTML 태그는 절대 사용하지 마세요.
 
 배경: ${anchorKeywords.join(", ")}
 ${cuspScript ? `특이사항: ${cuspScript}` : ""}
@@ -489,7 +490,7 @@ ${timeContext}`;
 ai언어 금지! (AI 특유의 말투를 절대 쓰지 마세요)
 
 # Output JSON Structure for EACH stage (early, youth, middle, mature, late)
-# Important: Use 'Korean(Kanji)' format for all astrological terms and BOLD important content using **text**.
+# Important: Use 'Korean(Kanji)' format for all astrological terms. STRICTLY FORBID English terms like Metal, Wood. BOLD important content using Markdown format (**text**). Do NOT use HTML tags like <b>.
 {
   "summary": "(해당 시기의 재물운 핵심 총평 요약 및 '왜' 그런지에 대한 명리적 이유 포함, 4~5문장 내외)",
   "cards": {
@@ -521,7 +522,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 ai언어 금지! (AI 모델 특유의 딱딱한 말투를 절대 쓰지 마세요)
 
 # Output JSON Structure for EACH stage (early, youth, middle, mature, late)
-# Important: Use 'Korean(Kanji)' format for all astrological terms and BOLD important content using **text**.
+# Important: Use 'Korean(Kanji)' format for all astrological terms. STRICTLY FORBID English terms like Metal, Wood. BOLD important content using Markdown format (**text**). Do NOT use HTML tags like <b>.
 {
   "summary": "(해당 시기의 건강운 핵심 총평 요약 및 명리적 근거 포함, 4~5문장 내외)",
   "cards": {
@@ -553,7 +554,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 ai언어 금지! (AI 언어 모델이나 챗봇 특유의 말투를 절대 쓰지 마세요)
 
 # Output JSON Structure (Strictly follow this structure)
-# Important: Use 'Korean(Kanji)' format for all astrological terms and BOLD important content using **text**.
+# Important: Use 'Korean(Kanji)' format for all astrological terms. STRICTLY FORBID English terms like Metal, Wood. BOLD important content using Markdown format (**text**). Do NOT use HTML tags like <b>.
 {
   "${currentType.keys[0]}": {
     "summary": "(총론: 현재 사업운의 핵심 총평과 방향성 및 명리적 이유 요약, 4~5문장 내외)",
@@ -588,7 +589,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 ai언어 금지! (AI 모델 특유의 딱딱한 말투를 절대 쓰지 마세요)
 
 # Output JSON Structure for EACH stage (early, youth, middle, mature, late)
-# Important: Use 'Korean(Kanji)' format for all astrological terms and BOLD important content using **text**.
+# Important: Use 'Korean(Kanji)' format for all astrological terms. STRICTLY FORBID English terms like Metal, Wood. BOLD important content using Markdown format (**text**). Do NOT use HTML tags like <b>.
 {
   "summary": "(해당 시기의 애정운 핵심 총평 요약 및 명리적 이유 포함, 4~5문장 내외)",
   "cards": {
@@ -653,7 +654,8 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
       }
 
       if (!apiRes || !apiRes.ok) throw new Error("API 요청 실패");
-      const llmResult = await apiRes.json();
+      let llmResultRaw = await apiRes.json();
+      const llmResult = cleanAstrologyTerms(llmResultRaw);
       const finalReading: Record<string, any> = {};
 
       if (["daily", "monthly", "yearly"].includes(typeParam)) {
@@ -757,7 +759,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 
     return text.split('\n').filter(p => p.trim() !== '').map((para, i) => {
       // Handle bold text **bold** and Elements
-      const parts = para.split(/(\*\*.*?\*\*|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+      const parts = para.split(/(\*\*.*?\*\*|<b>.*?<\/b>|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
       
       const isHeader = /^[\d\s]*[📍📅🔍🛡️✨🎯]/.test(para.trim());
       
@@ -780,6 +782,9 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
             if (part.startsWith('**') && part.endsWith('**')) {
               return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(2, -2)}</strong>;
             }
+            if (part.startsWith('<b>') && part.endsWith('</b>')) {
+              return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(3, -4)}</strong>;
+            }
             if (ELEMENT_COLORS[part]) {
               return <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong>;
             }
@@ -796,16 +801,50 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
     const ELEMENT_COLORS: Record<string, string> = {
       '목(木)': '#81b29a', '화(火)': '#e07a5f', '토(土)': '#f2cc8f', '금(金)': '#C9A050', '수(水)': '#3d5a80'
     };
-    const parts = text.split(/(\*\*.*?\*\*|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+    const parts = text.split(/(\*\*.*?\*\*|<b>.*?<\/b>|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
     return parts.map((part, j) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith('<b>') && part.endsWith('</b>')) {
+        return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(3, -4)}</strong>;
       }
       if (ELEMENT_COLORS[part]) {
         return <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong>;
       }
       return part;
     });
+  };
+
+  const cleanAstrologyTerms = (text: any): any => {
+    if (!text) return text;
+    if (typeof text !== 'string') {
+      if (Array.isArray(text)) return text.map(cleanAstrologyTerms);
+      if (typeof text === 'object') {
+        const cleaned: any = {};
+        for (const key in text) cleaned[key] = cleanAstrologyTerms(text[key]);
+        return cleaned;
+      }
+      return text;
+    }
+    return text
+      .replace(/Metal\(금\)/g, '금(金)')
+      .replace(/Wood\(목\)/g, '목(木)')
+      .replace(/Water\(수\)/g, '수(水)')
+      .replace(/Fire\(화\)/g, '화(火)')
+      .replace(/Earth\(토\)/g, '토(土)')
+      .replace(/금\(Metal\)/g, '금(金)')
+      .replace(/목\(Wood\)/g, '목(木)')
+      .replace(/수\(Water\)/g, '수(水)')
+      .replace(/화\(Fire\)/g, '화(火)')
+      .replace(/토\(Earth\)/g, '토(土)')
+      .replace(/([甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥])\(.*?\)/g, (match, hanja) => {
+        const map: Record<string, string> = {
+          '甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계',
+          '子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'
+        };
+        return `${map[hanja] || hanja}(${hanja})`;
+      });
   };
 
   const RollingNumber = ({ value }: { value: number }) => {

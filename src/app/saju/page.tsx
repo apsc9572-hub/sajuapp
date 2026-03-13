@@ -404,9 +404,9 @@ export default function SajuPage() {
 1. 'early', 'youth', 'middle', 'late' 그리고 'gaewun' 키 내부에 반드시 영어 키(general, early, youth, middle, late)를 사용하세요.
 2. 특히 'gaewun' 객체는 **반드시 'general' 키를 포함하여 5개의 연령대 키 모두를 빠짐없이 제공해야 합니다.** 'general'이 없으면 시스템 에러가 발생합니다.
 3. 'gaewun'의 모든 값은 예시처럼 'color', 'direction', 'element', 'item' 4가지 키를 가진 객체여야 합니다. 단, 'element' 값은 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 중 하나로만 정확히 표기해야 합니다.
-4. **매우 중요**: 본문 분석 내용에서 전문적인 명리학 용어나 오행을 언급할 때는 반드시 '한글(漢字)' 형식을 사용하세요. 예: 토(土), 목(木), 용신(用神), 격국(格局) 등.
-5. **매우 중요**: 강조하고 싶은 핵심 구절은 반드시 **진하게** (**bold**) 표시하세요.
-가독성을 위해 각 분석 내용은 문단(paragraph)을 나누어 서술하고, 문단 사이에는 반드시 빈 줄(double newline)을 넣어주세요. 상담하듯 다정하고 품격 있는 어투를 사용하세요.`;
+4. **매우 중요**: 본문 분석 내용에서 전문적인 명리학 용어나 오행을 언급할 때는 반드시 '한글(漢字)' 형식을 사용하세요. 예: 토(土), 목(목), 용신(用神), 격국(格局) 등. **절대 Metal, Wood 등 영어를 섞지 마세요.**
+5. **매우 중요**: 강조하고 싶은 핵심 구절은 반드시 마크다운 마커를 사용하여 **진하게** 표시하세요. <b>와 같은 HTML 태그는 절대 사용하지 마세요.
+가독성을 위해 각 분석 내용은 문단(paragraph)을 나누어 서술하고, 문단 사이에는 반드시 빈 줄(double newline) 넣어주세요. 상담하듯 다정하고 품격 있는 어투를 사용하세요.`;
 
         };
 
@@ -447,7 +447,8 @@ export default function SajuPage() {
         }
 
         if (!apiRes || !apiRes.ok) throw new Error("API 요청 실패");
-        const llmResult = await apiRes.json();
+        let llmResultRaw = await apiRes.json();
+        const llmResult = cleanAstrologyTerms(llmResultRaw);
 
         const ELEM_MAP: Record<string, any> = {
           목: { c: "#81b29a", a: "나무가 많은 숲 산책" },
@@ -502,7 +503,7 @@ export default function SajuPage() {
 
     return text.split('\n').filter(p => p.trim() !== '').map((para, i) => {
       // Handle bold text **bold** and Elements
-      const parts = para.split(/(\*\*.*?\*\*|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+      const parts = para.split(/(\*\*.*?\*\*|<b>.*?<\/b>|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
       
       // If the paragraph looks like a title
       const isHeader = /^[\d\s]*[📍📅🔍💡🎯🏆💎✨]/.test(para.trim());
@@ -526,6 +527,9 @@ export default function SajuPage() {
             if (part.startsWith('**') && part.endsWith('**')) {
               return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(2, -2)}</strong>;
             }
+            if (part.startsWith('<b>') && part.endsWith('</b>')) {
+              return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(3, -4)}</strong>;
+            }
             if (ELEMENT_COLORS[part]) {
               return <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong>;
             }
@@ -542,16 +546,50 @@ export default function SajuPage() {
     const ELEMENT_COLORS: Record<string, string> = {
       '목(木)': '#81b29a', '화(火)': '#e07a5f', '토(土)': '#f2cc8f', '금(金)': '#C9A050', '수(水)': '#3d5a80'
     };
-    const parts = text.split(/(\*\*.*?\*\*|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+    const parts = text.split(/(\*\*.*?\*\*|<b>.*?<\/b>|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
     return parts.map((part, j) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith('<b>') && part.endsWith('</b>')) {
+        return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(3, -4)}</strong>;
       }
       if (ELEMENT_COLORS[part]) {
         return <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong>;
       }
       return part;
     });
+  };
+
+  const cleanAstrologyTerms = (text: any): any => {
+    if (!text) return text;
+    if (typeof text !== 'string') {
+      if (Array.isArray(text)) return text.map(cleanAstrologyTerms);
+      if (typeof text === 'object') {
+        const cleaned: any = {};
+        for (const key in text) cleaned[key] = cleanAstrologyTerms(text[key]);
+        return cleaned;
+      }
+      return text;
+    }
+    return text
+      .replace(/Metal\(금\)/g, '금(金)')
+      .replace(/Wood\(목\)/g, '목(木)')
+      .replace(/Water\(수\)/g, '수(水)')
+      .replace(/Fire\(화\)/g, '화(火)')
+      .replace(/Earth\(토\)/g, '토(土)')
+      .replace(/금\(Metal\)/g, '금(金)')
+      .replace(/목\(Wood\)/g, '목(木)')
+      .replace(/수\(Water\)/g, '수(水)')
+      .replace(/화\(Fire\)/g, '화(火)')
+      .replace(/토\(Earth\)/g, '토(土)')
+      .replace(/([甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥])\(.*?\)/g, (match, hanja) => {
+        const map: Record<string, string> = {
+          '甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계',
+          '子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'
+        };
+        return `${map[hanja] || hanja}(${hanja})`;
+      });
   };
 
   const RollingNumber = ({ value }: { value: number }) => {
