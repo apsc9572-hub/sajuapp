@@ -193,6 +193,7 @@ export default function SajuPage() {
   ];
   const [correctedTimeInfo, setCorrectedTimeInfo] = useState<any>(null);
   const resultRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
 
   // 데이터 영속성 유지 (Sync with localStorage)
   useEffect(() => {
@@ -278,7 +279,7 @@ export default function SajuPage() {
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
 
-    const cacheKey = `saju_cache_v6_${date}_${time}_${isLunar}_${gender}_${birthCity}`;
+    const cacheKey = `saju_cache_v8_${date}_${time}_${isLunar}_${gender}_${birthCity}`;
     const cachedData = localStorage.getItem(cacheKey);
     
     if (cachedData) {
@@ -413,7 +414,7 @@ export default function SajuPage() {
         const payload = {
           systemPrompt: generateSystemPromptString(sajuAnalysisJson),
           sajuJson: sajuAnalysisJson,
-          expectedKeys: ["general", "early", "youth", "middle", "late", "early_summary", "youth_summary", "middle_summary", "late_summary", "life_balance", "daeun", "sinsal", "gaewun"]
+          expectedKeys: ["general", "early", "youth", "middle", "late", "general_summary", "early_summary", "youth_summary", "middle_summary", "late_summary", "general_keyword", "early_keyword", "youth_keyword", "middle_keyword", "late_keyword", "life_balance", "daeun", "sinsal", "gaewun"]
         };
 
         let apiRes;
@@ -597,9 +598,10 @@ export default function SajuPage() {
   };
 
   return (
-    <main style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
+    <main ref={topRef} style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
       <Disclaimer />
       <TraditionalBackground />
+      <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={date} onConfirm={(d) => setDate(d)} />
       
       <div style={{ 
         maxWidth: "480px", 
@@ -640,7 +642,6 @@ export default function SajuPage() {
               </h2>
               <div style={{ display: "grid", gap: "12px" }}>
                 <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>{date}</div>
-                <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={date} onConfirm={(d) => setDate(d)} />
                 
                 <div style={{ display: "flex", gap: "8px" }}>
                   <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }} />
@@ -833,7 +834,7 @@ export default function SajuPage() {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        onClick={() => topRef.current?.scrollIntoView({ behavior: 'smooth' })}
                         style={{
                           display: "flex",
                           alignItems: "center",

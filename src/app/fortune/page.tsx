@@ -238,6 +238,7 @@ function FortuneContent() {
   const [activeTab, setActiveTab] = useState(0);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLDivElement>(null);
 
   const [isLoading, setIsLoading] = useState(false);
   const [loadingTextIdx, setLoadingTextIdx] = useState(0);
@@ -353,7 +354,7 @@ function FortuneContent() {
       } else if (typeParam === "yearly") {
         timeModifier = `${now.getFullYear()}`;
       }
-      const cacheKey = `fortune_v19_${date}_${time}_${isLunar}_${gender}_${typeParam}_${timeModifier}`;
+      const cacheKey = `fortune_v21_${date}_${time}_${isLunar}_${gender}_${typeParam}_${timeModifier}`;
       const cachedData = localStorage.getItem(cacheKey);
 
       if (cachedData) {
@@ -460,6 +461,7 @@ function FortuneContent() {
       } else if (typeParam === "daily") {
         timeContext = `오늘은 ${todayStr}입니다. 어제, 오늘, 내일 3일간의 운세를 각각 상세히 분석해 주세요. 
             각 날짜별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item 4가지 항목)을 반드시 포함한 객체로 응답하세요.
+            특히 'today' 객체에는 'scores'라는 하위 객체를 추가하여 재물(wealth), 애정(love), 사업/직업(career), 건강(health) 4가지 항목의 점수(0-100점)를 각각 포함해 주세요.
             각 분석 내용 마지막에는 왜 이런 운세가 나왔는지 명리적 이유를 한 문장으로 덧붙여 주세요.`;
       } else {
         timeContext = `이 ${todayStr} 기준으로 내담자의 '${currentType.title}' 테마에 집중하여 분석해 주세요. 결과가 도출된 근거(이유)를 반드시 포함해 주세요.`;
@@ -667,7 +669,8 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
             finalReading[key] = {
               content: raw.content || raw.analysis || raw.text,
               score: raw.score || 80,
-              gaewun: raw.gaewun || { color: "금색", direction: "동쪽", element: "금(金)", item: "장신구" }
+              gaewun: raw.gaewun || { color: "금색", direction: "동쪽", element: "금(金)", item: "장신구" },
+              scores: raw.scores || null
             };
           } else {
             finalReading[key] = { content: "세부 분석 정보를 생성하지 못했습니다.", score: 70, gaewun: { color: "흰색", direction: "서쪽", element: "수(水)", item: "금속 장신구" } };
@@ -851,10 +854,42 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
     return <>{value}</>;
   };
 
+  const SubScoreGraph = ({ scores }: { scores: any }) => {
+    if (!scores) return null;
+    const items = [
+      { label: '재물운', value: scores.wealth || 0, color: '#C9A050' },
+      { label: '애정운', value: scores.love || 0, color: '#e07a5f' },
+      { label: '사업/학업', value: scores.career || 0, color: '#3d5a80' },
+      { label: '건강운', value: scores.health || 0, color: '#81b29a' },
+    ];
+
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "32px" }}>
+        {items.map((item, i) => (
+          <div key={i} style={{ background: "white", padding: "14px", borderRadius: "18px", border: "1px solid var(--glass-border)", boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+              <span style={{ fontSize: "0.75rem", fontWeight: "600", color: "var(--text-secondary)" }}>{item.label}</span>
+              <span style={{ fontSize: "0.85rem", fontWeight: "700", color: item.color }}>{item.value}</span>
+            </div>
+            <div style={{ height: "4px", background: "rgba(0,0,0,0.03)", borderRadius: "2px", overflow: "hidden" }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${item.value}%` }}
+                transition={{ duration: 1, delay: 0.2 + i * 0.1 }}
+                style={{ height: "100%", background: item.color, borderRadius: "2px" }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <main style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
+    <main ref={topRef} style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
       <Disclaimer />
       <TraditionalBackground />
+      <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={date} onConfirm={(d) => setDate(d)} />
       
       <div style={{ 
         maxWidth: "480px", 
@@ -899,7 +934,6 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
             </h2>
             <div style={{ display: "grid", gap: "12px" }}>
               <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>{date}</div>
-              <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={date} onConfirm={(d) => setDate(d)} />
 
               <div style={{ display: "flex", gap: "8px" }}>
                 <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }} />
@@ -1165,6 +1199,11 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                             </div>
                           </div>
 
+                          {/* 오늘의 운세인 경우 세부 점수 그래프 표시 (오늘 탭만) */}
+                          {typeParam === "daily" && activeTab === 1 && reading.today?.scores && (
+                            <SubScoreGraph scores={reading.today.scores} />
+                          )}
+
                           {/* 연간 운세인 경우 12개월 에너지 차트 표시 */}
                           {typeParam === "yearly" && activeTab === 1 && reading.this_year?.monthlyEnergies && (
                             <div style={{ background: "white", padding: "24px", borderRadius: "24px", marginBottom: "40px", border: "1px solid rgba(42, 54, 95, 0.08)" }}>
@@ -1212,7 +1251,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        onClick={() => topRef.current?.scrollIntoView({ behavior: 'smooth' })}
                         style={{
                           display: "flex",
                           alignItems: "center",

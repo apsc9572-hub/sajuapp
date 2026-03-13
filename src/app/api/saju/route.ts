@@ -24,7 +24,6 @@ ${systemPrompt}
 
 You MUST return a JSON object containing EXACTLY these keys: ${keysStr}.
 Ensure each analysis is detailed and natural. While you should explain the astrological reasoning (the "why"), do so in a way that is easy for laypeople to understand.
-Do NOT use markdown bolding (**) or hashtags (#) in any text.
 
 For context, here is the raw JSON analysis again:
 ${JSON.stringify(sajuJson)}
