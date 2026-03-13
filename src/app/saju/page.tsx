@@ -368,17 +368,18 @@ export default function SajuPage() {
 
         const generateSystemPromptString = (json: any) => {
           return `당신은 통찰력 있는 사주 상담가입니다. 다음 사주 데이터를 기반으로 인생 총운, 재물운, 그리고 인생의 4단계를 에세이 형식으로 길게 풀이해 주세요.
+특히 각 분석 결과가 "왜" 그렇게 도출되었는지에 대한 명리학적 근거(오행의 조화, 일간의 특성, 신살의 영향 등)를 반드시 포함하여 설명해 주세요.
 반드시 아래 정의된 JSON 형식으로만 응답해야 합니다.
 
 [출력 JSON 구조]
 {
-  "general": "인생 총운 본문 (에세이 형식으로 아주 길고 상세하게)",
+  "general": "인생 총운 본문 (에세이 형식으로 아주 길고 상세하게, 명리학적 근거 포함)",
   "general_summary": "총운 요약",
   "general_keyword": "총운 키워드",
-  "early": "10~20대(초년) 인생의 흐름과 사회적 기반 (인생 총운처럼 아주 길고 상세한 에세이 형식으로)",
-  "youth": "30대(청년) 인생의 성장과 성취의 기운 (인생 총운처럼 아주 길고 상세한 에세이 형식으로)",
-  "middle": "40대(중년) 인생의 전성기와 확장의 흐름 (인생 총운처럼 아주 길고 상세한 에세이 형식으로)",
-  "late": "50대 이후(말년) 인생의 완성 내실과 안정적인 흐름 (인생 총운처럼 아주 길고 상세한 에세이 형식으로)",
+  "early": "10~20대(초년) 인생의 흐름과 사회적 기반 (인생 총운처럼 아주 길고 상세한 에세이 형식으로, 해당 시기의 운 기운이 왜 그렇게 작용하는지 근거 포함)",
+  "youth": "30대(청년) 인생의 성장과 성취의 기운 (인생 총운처럼 아주 길고 상세한 에세이 형식으로, 해당 시기의 운 기운이 왜 그렇게 작용하는지 근거 포함)",
+  "middle": "40대(중년) 인생의 전성기와 확장의 흐름 (인생 총운처럼 아주 길고 상세한 에세이 형식으로, 해당 시기의 운 기운이 왜 그렇게 작용하는지 근거 포함)",
+  "late": "50대 이후(말년) 인생의 완성 내실과 안정적인 흐름 (인생 총운처럼 아주 길고 상세한 에세이 형식으로, 해당 시기의 운 기운이 왜 그렇게 작용하는지 근거 포함)",
   "early_summary": "초년 요약",
   "youth_summary": "청년 요약",
   "middle_summary": "중년 요약",
@@ -402,7 +403,10 @@ export default function SajuPage() {
 [필수 조건 - 절대 누락하지 마세요!]
 1. 'early', 'youth', 'middle', 'late' 그리고 'gaewun' 키 내부에 반드시 영어 키(general, early, youth, middle, late)를 사용하세요.
 2. 특히 'gaewun' 객체는 **반드시 'general' 키를 포함하여 5개의 연령대 키 모두를 빠짐없이 제공해야 합니다.** 'general'이 없으면 시스템 에러가 발생합니다.
-3. 'gaewun'의 모든 값은 예시처럼 'color', 'direction', 'element', 'item' 4가지 키를 가진 객체여야 합니다. 단, 'element' 값은 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 중 하나로만 정확히 표기해야 합니다. 가독성을 위해 각 분석 내용은 문단(paragraph)을 나누어 서술하고, 문단 사이에는 반드시 빈 줄(double newline)을 넣어주세요. 상담하듯 다정하고 품격 있는 어투를 사용하세요.`;
+3. 'gaewun'의 모든 값은 예시처럼 'color', 'direction', 'element', 'item' 4가지 키를 가진 객체여야 합니다. 단, 'element' 값은 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 중 하나로만 정확히 표기해야 합니다.
+4. **매우 중요**: 본문 분석 내용에서 전문적인 명리학 용어나 오행을 언급할 때는 반드시 '한글(漢字)' 형식을 사용하세요. 예: 토(土), 목(木), 용신(用神), 격국(格局) 등.
+5. **매우 중요**: 강조하고 싶은 핵심 구절은 반드시 **진하게** (**bold**) 표시하세요.
+가독성을 위해 각 분석 내용은 문단(paragraph)을 나누어 서술하고, 문단 사이에는 반드시 빈 줄(double newline)을 넣어주세요. 상담하듯 다정하고 품격 있는 어투를 사용하세요.`;
 
         };
 
@@ -488,9 +492,17 @@ export default function SajuPage() {
   const renderHighlightedText = (text: any) => {
     if (!text || typeof text !== 'string') return null;
     
+    const ELEMENT_COLORS: Record<string, string> = {
+      '목(木)': '#81b29a',
+      '화(火)': '#e07a5f',
+      '토(土)': '#f2cc8f',
+      '금(金)': '#C9A050',
+      '수(水)': '#3d5a80'
+    };
+
     return text.split('\n').filter(p => p.trim() !== '').map((para, i) => {
-      // Handle bold text **bold**
-      const parts = para.split(/(\*\*.*?\*\*)/g);
+      // Handle bold text **bold** and Elements
+      const parts = para.split(/(\*\*.*?\*\*|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
       
       // If the paragraph looks like a title
       const isHeader = /^[\d\s]*[📍📅🔍💡🎯🏆💎✨]/.test(para.trim());
@@ -514,10 +526,31 @@ export default function SajuPage() {
             if (part.startsWith('**') && part.endsWith('**')) {
               return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(2, -2)}</strong>;
             }
+            if (ELEMENT_COLORS[part]) {
+              return <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong>;
+            }
             return part;
           })}
         </div>
       );
+    });
+  };
+
+  // Helper for inline highlights (no block margins)
+  const renderInlineHighlights = (text: string) => {
+    if (!text || typeof text !== 'string') return text;
+    const ELEMENT_COLORS: Record<string, string> = {
+      '목(木)': '#81b29a', '화(火)': '#e07a5f', '토(土)': '#f2cc8f', '금(金)': '#C9A050', '수(水)': '#3d5a80'
+    };
+    const parts = text.split(/(\*\*.*?\*\*|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+    return parts.map((part, j) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(2, -2)}</strong>;
+      }
+      if (ELEMENT_COLORS[part]) {
+        return <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong>;
+      }
+      return part;
     });
   };
 
@@ -662,7 +695,7 @@ export default function SajuPage() {
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -10 }}
                               transition={{ duration: 0.8 }}
-                              style={{ color: "var(--text-secondary)", fontSize: "0.85rem", fontStyle: "italic", lineHeight: "1.6", margin: 0 }}
+                              style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.6", margin: 0 }}
                             >
                               {wisdomQuotes[wisdomIdx]}
                             </motion.p>
@@ -704,8 +737,8 @@ export default function SajuPage() {
                               style={{ borderBottom: i === reading.sections.length - 1 ? "none" : "1px solid var(--glass-border)", paddingBottom: "48px", scrollMarginTop: "80px" }}
                             >
                             <h3 style={{ fontSize: "1.4rem", marginBottom: "20px", color: sec.c, fontWeight: "300" }}>{sec.t}</h3>
-                            <div style={{ fontSize: "1.05rem", fontStyle: "italic", marginBottom: "24px", color: "var(--text-primary)", borderLeft: `4px solid ${sec.c}`, paddingLeft: "16px", lineHeight: "1.7" }}>
-                              "{sec.d.summary?.replace(/\*\*/g, '') || ""}"
+                            <div style={{ fontSize: "1.05rem", marginBottom: "24px", color: "var(--text-primary)", borderLeft: `4px solid ${sec.c}`, paddingLeft: "16px", lineHeight: "1.7" }}>
+                              "{renderInlineHighlights(sec.d.summary || "")}"
                             </div>
                             <div style={{ lineHeight: "1.85", fontSize: "0.95rem", color: "var(--text-secondary)", wordBreak: "keep-all" }}>
                                {renderHighlightedText(sec.d.content)}
@@ -718,19 +751,19 @@ export default function SajuPage() {
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                                   <div style={{ background: "white", padding: "12px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
                                     <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>추천 색상</div>
-                                    <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{sec.d.gaewun.color}</div>
+                                    <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{renderInlineHighlights(sec.d.gaewun.color)}</div>
                                   </div>
                                   <div style={{ background: "white", padding: "12px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
                                     <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>추천 방향</div>
-                                    <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{sec.d.gaewun.direction}</div>
+                                    <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{renderInlineHighlights(sec.d.gaewun.direction)}</div>
                                   </div>
                                   <div style={{ background: "white", padding: "12px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
                                     <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>추천 오행</div>
-                                    <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{sec.d.gaewun.element}</div>
+                                    <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{renderInlineHighlights(sec.d.gaewun.element)}</div>
                                   </div>
                                   <div style={{ background: "white", padding: "12px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
                                     <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>추천 물건</div>
-                                    <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{sec.d.gaewun.item}</div>
+                                    <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{renderInlineHighlights(sec.d.gaewun.item)}</div>
                                   </div>
                                 </div>
                               </div>

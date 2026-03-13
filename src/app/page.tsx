@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Sparkles, MoonStar, BookOpen, Scroll, Navigation, Coins, Briefcase, Activity, Heart } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import Disclaimer from "@/components/Disclaimer";
 import TraditionalBackground from "@/components/TraditionalBackground";
 
@@ -42,7 +43,7 @@ export default function Home() {
           <motion.div 
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "50px" }}
           >
             <div style={{ position: "relative", marginBottom: "20px" }}>
@@ -70,14 +71,17 @@ export default function Home() {
                   overflow: "hidden"
                 }}
               >
-                <img 
+                <Image 
                   src="/cheong_a_mae_dang_final_logo.png" 
                   alt="청아매당 로고" 
+                  width={130}
+                  height={130}
                   style={{ 
                     width: "100%", 
                     height: "100%", 
                     objectFit: "contain"
                   }} 
+                  priority
                 />
               </motion.div>
               {/* Soft Ambient Glow */}
@@ -112,7 +116,7 @@ export default function Home() {
               <motion.div 
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: "130%", opacity: 0.9 }} // 불투명도 높임
-                transition={{ delay: 0.5, duration: 2, ease: "easeOut" }}
+                transition={{ delay: 0.2, duration: 1, ease: "easeOut" }}
                 style={{ 
                   position: "absolute",
                   bottom: "15px",

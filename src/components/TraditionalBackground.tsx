@@ -7,7 +7,7 @@ import { PointMaterial, Points, Sparkles } from "@react-three/drei";
 // 3D 매화 꽃잎 컴포넌트
 function PetalParticles() {
   const ref = useRef<any>(null);
-  const petalCount = 60; // 꽃잎 수 증가
+  const petalCount = 30; // 60 -> 30 for performance
   
   const [positions, rotations, speeds] = useMemo(() => {
     const pos = new Float32Array(petalCount * 3);
@@ -57,7 +57,7 @@ function PetalParticles() {
 // 3D 먹물 안개/입자 컴포넌트
 function InkMist() {
   const ref = useRef<any>(null);
-  const particleCount = 800;
+  const particleCount = 300; // 800 -> 300 for performance
   
   const positions = useMemo(() => {
     const pos = new Float32Array(particleCount * 3);
@@ -114,11 +114,11 @@ export default function TraditionalBackground() {
       
       {/* 3D 오버레이 Canvas - 꽃잎 및 안개 효과 */}
       <div style={{ position: "absolute", inset: 0, opacity: 0.6 }}>
-        <Canvas camera={{ position: [0, 0, 5] }}>
+        <Canvas camera={{ position: [0, 0, 5] }} dpr={[1, 1.5]} gl={{ antialias: false }}>
           <ambientLight intensity={1.5} />
           <InkMist />
           <PetalParticles />
-          <Sparkles count={20} scale={15} size={0.8} speed={0.1} opacity={0.2} color="#F8D7DA" />
+          <Sparkles count={10} scale={15} size={0.8} speed={0.1} opacity={0.2} color="#F8D7DA" />
         </Canvas>
       </div>
       

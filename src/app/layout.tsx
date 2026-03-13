@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   description: "전통의 혜안으로 풀어내는 프리미엄 사주 및 운세 서비스, 청아매당",
 };
 
+import Script from "next/script";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -22,11 +24,12 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        <script
+        <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1046890617917852"
           crossOrigin="anonymous"
-        ></script>
+          strategy="afterInteractive"
+        />
       </head>
       <body className={outfit.className}>
         <div style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>

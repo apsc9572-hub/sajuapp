@@ -432,11 +432,13 @@ function FortuneContent() {
 - 각 섹션 제목(요약, 주차별, 분야별, 비책) 앞에는 위 예시처럼 이모지를 붙이세요.
 - 문단 사이에는 반드시 빈 줄을 두 번(double newline) 넣어 여백을 충분히 두세요.
 - 카카오톡 공유 시 깔끔하도록 ###, --- 등 마크다운 특수 기호는 절대 사용하지 마세요. (굵은 글씨용 **는 사용 가능)
-- 각 기간(지난달, 이번달, 다음달)별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item)을 포함한 객체로 응답하세요.`;
+- 각 기간(지난달, 이번달, 다음달)별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item)을 포함한 객체로 응답하세요.
+- 각 분석 내용에는 해당 운세가 도출된 명리학적 근거(오행의 흐름, 일간의 영향 등) 즉 "왜" 이런 결과가 나왔는지를 반드시 포함하세요.`;
       } else if (typeParam === "yearly") {
         timeContext = `오늘은 ${todayStr}입니다. 내담자의 올해(1년) 전체 운세를 다음 5단계의 '프리미엄 컨설팅 리포트' 형식으로 약 2,500자 분량으로 상세히 분석해 주세요.
+반드시 각 단계마다 "왜" 이런 흐름이 나타나는지에 대한 명리학적 근거를 상세히 설명해 주세요.
 
-1. 🎯 연간 총론 및 키워드 (200~300자): 올해를 관통하는 핵심 기운, 반드시 잡아야 할 기회, 주의해야 할 태도 요약.
+1. 🎯 연간 총론 및 키워드 (200~300자): 올해를 관통하는 핵심 기운, 반드시 잡아야 할 기회, 주의해야 할 태도 요약. 명리학적 근거 포함.
 
 2. 📅 분기별 로드맵 (Q1~Q4, 약 800자): 1~3월, 4~6월, 7~9월, 10~12월로 나누어 각 분기별 비즈니스, 재물, 대인관계의 흐름과 구체적 지침.
 
@@ -456,20 +458,23 @@ function FortuneContent() {
 - 특히 'this_year' 객체 내에는 1월부터 12월까지의 운기 점수(0-100)를 담은 'monthlyEnergies' 배열(숫자 12개)을 반드시 포함하세요.`;
       } else if (typeParam === "daily") {
         timeContext = `오늘은 ${todayStr}입니다. 어제, 오늘, 내일 3일간의 운세를 각각 상세히 분석해 주세요. 
-            각 날짜별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item 4가지 항목)을 반드시 포함한 객체로 응답하세요.`;
+            각 날짜별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item 4가지 항목)을 반드시 포함한 객체로 응답하세요.
+            각 분석 내용 마지막에는 왜 이런 운세가 나왔는지 명리적 이유를 한 문장으로 덧붙여 주세요.`;
       } else {
-        timeContext = `이 ${todayStr} 기준으로 내담자의 '${currentType.title}' 테마에 집중하여 분석해 주세요.`;
+        timeContext = `이 ${todayStr} 기준으로 내담자의 '${currentType.title}' 테마에 집중하여 분석해 주세요. 결과가 도출된 근거(이유)를 반드시 포함해 주세요.`;
       }
 
       let systemPrompt = `당신은 통찰력 있는 사주 상담가입니다. 명리 데이터를 기반으로 깊이 있는 분석을 제공하세요.
+특히 내담자가 자신의 운세를 납득할 수 있도록, 왜 이런 분석 결과가 나왔는지 명리학적 근거(오행의 조화, 일간의 특성, 신살 등)를 섞어서 "이유"를 명확히 설명해 주세요.
 반드시 JSON 형식으로 응답하며, 
 - daily 테마일 경우: 'yesterday', 'today', 'tomorrow' 각각의 객체 사용.
 - monthly 테마일 경우: 'last_month', 'this_month', 'next_month' 각각의 객체 사용.
 - yearly 테마일 경우: 'last_year', 'this_year', 'next_year' 각각의 객체 사용.
 - 공통: 모든 시간 기반 객체 내부에 'content', 'score'(숫자), 'gaewun'(객체: color, direction, element, item)를 포함. (단, element는 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 중 하나로 표기)
 - 기타 테마일 경우: ${currentType.keys[0]} 키를 사용하여 분석 내용을 제공.
-- 전문 용어는 지양하고 비유적인 표현으로 다정하게 설명하세요.
-- 마크다운 강조 기호(**)는 사용하지 마세요. 모든 텍스트는 일반 텍스트로 작성하세요.
+- 명리학적 근거를 포함하되, 비유적인 표현으로 다정하게 설명하세요.
+- **매우 중요**: 전문적인 명리학 용어나 오행(목, 화, 토, 금, 수)을 언급할 때는 반드시 '한글(漢字)' 형식을 사용하세요. 예: 목(木), 화(火), 토(土), 금(金), 수(水), 일간(日干), 재성(財星) 등
+- **매우 중요**: 강조하고 싶은 핵심 문구는 반드시 **진하게** (**bold**) 표시하세요.
 
 배경: ${anchorKeywords.join(", ")}
 ${cuspScript ? `특이사항: ${cuspScript}` : ""}
@@ -479,12 +484,14 @@ ${timeContext}`;
 
       if (typeParam === "wealth") {
         systemPrompt = `너는 재물운 전문 사주 분석가야. 사용자의 사주 명식을 분석하여 5단계 생애주기별(초년, 청년, 중년, 장년, 말년) 재물운을 심층적으로 분석해.
+특히 각 시기의 재물운이 "왜" 그런 흐름을 보이는지에 대해 사용자의 오행 구성이나 일간의 관계 등 명리학적 근거를 반드시 포함하여 설명해.
 반드시 JSON 형식으로 응답하며, 'early', 'youth', 'middle', 'mature', 'late' 5개의 키 내부에 아래의 구조를 완벽하게 지켜서 반환해.
 ai언어 금지! (AI 특유의 말투를 절대 쓰지 마세요)
 
 # Output JSON Structure for EACH stage (early, youth, middle, mature, late)
+# Important: Use 'Korean(Kanji)' format for all astrological terms and BOLD important content using **text**.
 {
-  "summary": "(해당 시기의 재물운 핵심 총평 요약, 3문장 내외)",
+  "summary": "(해당 시기의 재물운 핵심 총평 요약 및 '왜' 그런지에 대한 명리적 이유 포함, 4~5문장 내외)",
   "cards": {
     "focus": { "title": "핵심 재물원 등 한 줄 요약", "content": "어디서 돈이 들어오는지 구체적 지침" },
     "expense": { "title": "지출 방어 등 한 줄 요약", "content": "돈이 새어나가는 곳과 대비책" },
@@ -509,12 +516,14 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 내용: ${strongestElemTrait} ${weakestElemTrait}`;
       } else if (typeParam === "health") {
         systemPrompt = `너는 건강 전문 사주 분석가야. 사용자의 사주 명식을 분석하여 5단계 생애주기별(초년, 청년, 중년, 장년, 말년) 건강운과 신체적/정신적 에너지를 심층적으로 분석해.
+특히 각 시기의 건강 상태가 "왜" 그렇게 나타나는지(예: 특정 오행의 과다/부족 등) 명리적 근거를 반드시 포함해.
 반드시 JSON 형식으로 응답하며, 'early', 'youth', 'middle', 'mature', 'late' 5개의 키 내부에 아래의 구조를 완벽하게 지켜서 반환해.
 ai언어 금지! (AI 모델 특유의 딱딱한 말투를 절대 쓰지 마세요)
 
 # Output JSON Structure for EACH stage (early, youth, middle, mature, late)
+# Important: Use 'Korean(Kanji)' format for all astrological terms and BOLD important content using **text**.
 {
-  "summary": "(해당 시기의 건강운 핵심 총평 요약, 3문장 내외)",
+  "summary": "(해당 시기의 건강운 핵심 총평 요약 및 명리적 근거 포함, 4~5문장 내외)",
   "cards": {
     "physical": { "title": "핵심 신체 기운 등 한 줄 요약", "content": "주의해야 할 신체 부위나 강화해야 할 체력 요소" },
     "mental": { "title": "정신 건강 지수 등 한 줄 요약", "content": "스트레스 관리나 마음의 여유를 위한 조언" },
@@ -539,13 +548,15 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 내용: ${strongestElemTrait} ${weakestElemTrait}`;
       } else if (typeParam === "business") {
         systemPrompt = `너는 비즈니스 전문 사주 분석가이자 전략 컨설턴트인 'AI 비즈니스 마스터'야. 사용자의 사주 명식을 분석하여 단순한 운세를 넘어 실제 사업 경영에 도움이 되는 실무적이고 통찰력 있는 조언을 제공해.
+사업적 조언뿐만 아니라, 사용자의 사주 기운이 현재 비즈니스 상황과 "왜" 그렇게 상호작용하는지 명리적 근거를 설명해.
 반드시 JSON 형식으로 응답하며, '${currentType.keys[0]}' 단일 키 내부에 아래의 JSON 구조를 완벽하게 지켜서 반환해.
 ai언어 금지! (AI 언어 모델이나 챗봇 특유의 말투를 절대 쓰지 마세요)
 
 # Output JSON Structure (Strictly follow this structure)
+# Important: Use 'Korean(Kanji)' format for all astrological terms and BOLD important content using **text**.
 {
   "${currentType.keys[0]}": {
-    "summary": "(총론: 현재 사업운의 핵심 총평과 방향성 요약, 3문장 내외)",
+    "summary": "(총론: 현재 사업운의 핵심 총평과 방향성 및 명리적 이유 요약, 4~5문장 내외)",
     "energy": [
       { "name": "목(기획)", "value": 0~100사이_점수, "color": "#81b29a" },
       { "name": "화(확장)", "value": 0~100사이_점수, "color": "#e07a5f" },
@@ -572,12 +583,14 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
 내용: ${strongestElemTrait} ${weakestElemTrait}`;
       } else if (typeParam === "love") {
         systemPrompt = `너는 애정운(연애/결혼) 전문 사주 분석가야. 사용자의 사주 명식을 분석하여 5단계 생애주기별(초년, 청년, 중년, 장년, 말년) 애정운과 인연의 흐름을 심층적으로 분석해.
+인연의 흐름이 "왜" 그렇게 나타나는지 사용자의 사주상 배우자 기운이나 합(合), 충(沖) 등의 명리적 근거를 섞어 설명해.
 반드시 JSON 형식으로 응답하며, 'early', 'youth', 'middle', 'mature', 'late' 5개의 키 내부에 아래의 구조를 완벽하게 지켜서 반환해.
 ai언어 금지! (AI 모델 특유의 딱딱한 말투를 절대 쓰지 마세요)
 
 # Output JSON Structure for EACH stage (early, youth, middle, mature, late)
+# Important: Use 'Korean(Kanji)' format for all astrological terms and BOLD important content using **text**.
 {
-  "summary": "(해당 시기의 애정운 핵심 총평 요약, 3문장 내외)",
+  "summary": "(해당 시기의 애정운 핵심 총평 요약 및 명리적 이유 포함, 4~5문장 내외)",
   "cards": {
     "romance": { "title": "연애 에너지 성향 등 한 줄 요약", "content": "이 시기의 전반적인 연애 기운과 태도" },
     "partners": { "title": "이상적인 인연 등 한 줄 요약", "content": "어떤 사람과 합이 좋은지, 인연이 닿는 시기" },
@@ -734,11 +747,18 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
   const renderHighlightedText = (text: any) => {
     if (!text || typeof text !== 'string') return null;
     
+    const ELEMENT_COLORS: Record<string, string> = {
+      '목(木)': '#81b29a',
+      '화(火)': '#e07a5f',
+      '토(土)': '#f2cc8f',
+      '금(金)': '#C9A050',
+      '수(水)': '#3d5a80'
+    };
+
     return text.split('\n').filter(p => p.trim() !== '').map((para, i) => {
-      // Handle bold text **bold**
-      const parts = para.split(/(\*\*.*?\*\*)/g);
+      // Handle bold text **bold** and Elements
+      const parts = para.split(/(\*\*.*?\*\*|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
       
-      // If the paragraph looks like a title (starts with emoji or number/emoji combo)
       const isHeader = /^[\d\s]*[📍📅🔍🛡️✨🎯]/.test(para.trim());
       
       return (
@@ -760,10 +780,31 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
             if (part.startsWith('**') && part.endsWith('**')) {
               return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(2, -2)}</strong>;
             }
+            if (ELEMENT_COLORS[part]) {
+              return <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong>;
+            }
             return part;
           })}
         </div>
       );
+    });
+  };
+
+  // Helper for inline highlights (no block margins)
+  const renderInlineHighlights = (text: string) => {
+    if (!text || typeof text !== 'string') return text;
+    const ELEMENT_COLORS: Record<string, string> = {
+      '목(木)': '#81b29a', '화(火)': '#e07a5f', '토(土)': '#f2cc8f', '금(金)': '#C9A050', '수(水)': '#3d5a80'
+    };
+    const parts = text.split(/(\*\*.*?\*\*|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+    return parts.map((part, j) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(2, -2)}</strong>;
+      }
+      if (ELEMENT_COLORS[part]) {
+        return <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong>;
+      }
+      return part;
     });
   };
 
@@ -917,7 +958,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
                             transition={{ duration: 0.8 }}
-                            style={{ color: "var(--text-secondary)", fontSize: "0.85rem", fontStyle: "italic", lineHeight: "1.6", margin: 0 }}
+                            style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.6", margin: 0 }}
                           >
                             {wisdomQuotes[wisdomIdx]}
                           </motion.p>
@@ -964,8 +1005,8 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                                 </div>
                               )}
 
-                              <div style={{ fontSize: "1.05rem", fontStyle: "italic", marginBottom: "32px", color: "var(--text-primary)", borderLeft: `4px solid ${secColor}`, paddingLeft: "16px", lineHeight: "1.7", wordBreak: "keep-all" }}>
-                                "{summary}"
+                              <div style={{ fontSize: "1.05rem", marginBottom: "32px", color: "var(--text-primary)", borderLeft: `4px solid ${secColor}`, paddingLeft: "16px", lineHeight: "1.7", wordBreak: "keep-all" }}>
+                                "{renderInlineHighlights(summary)}"
                               </div>
 
                               <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "16px", marginBottom: "32px" }}>
@@ -1020,7 +1061,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                                     ].map((item, i) => (
                                       <div key={i} style={{ background: "white", padding: "16px", borderRadius: "16px", border: "1px solid var(--glass-border)", display: "flex", flexDirection: "column", gap: "4px" }}>
                                         <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>{item.t}</div>
-                                        <div style={{ fontSize: "0.95rem", color: "var(--text-primary)", fontWeight: "600" }}>{item.v}</div>
+                                        <div style={{ fontSize: "0.95rem", color: "var(--text-primary)", fontWeight: "600" }}>{renderInlineHighlights(item.v)}</div>
                                       </div>
                                     ))}
                                   </div>
@@ -1114,7 +1155,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                               ].map((item, i) => (
                                 <div key={i} style={{ background: "white", padding: "20px 16px", borderRadius: "16px", boxShadow: "0 4px 15px rgba(0,0,0,0.02)", border: "1px solid var(--glass-border)" }}>
                                   <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "6px" }}>{item.t}</div>
-                                  <div style={{ fontSize: "0.95rem", color: "var(--text-primary)", fontWeight: "600" }}>{item.v}</div>
+                                  <div style={{ fontSize: "0.95rem", color: "var(--text-primary)", fontWeight: "600" }}>{renderInlineHighlights(item.v)}</div>
                                 </div>
                               ))}
                             </div>
