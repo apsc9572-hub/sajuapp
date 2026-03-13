@@ -515,6 +515,7 @@ export default function SajuPage() {
       <div style={{ 
         maxWidth: "480px", 
         margin: "0 auto", 
+        height: (isLoading || (bazi && reading)) ? "auto" : "100vh",
         minHeight: "100vh", 
         position: "relative", 
         zIndex: 1, 
@@ -523,24 +524,25 @@ export default function SajuPage() {
         boxShadow: "0 0 60px rgba(26, 28, 44, 0.12)",
         display: "flex",
         flexDirection: "column",
-        overflowX: "hidden"
+        overflowX: "hidden",
+        overflowY: (isLoading || (bazi && reading)) ? "auto" : "hidden"
       }}>
         <div style={{ padding: "32px 24px" }}>
-          <Link href="/" style={{ textDecoration: "none", marginBottom: "40px", display: "inline-block" }}>
+          <Link href="/" style={{ textDecoration: "none", marginBottom: "24px", display: "inline-block" }}>
             <button style={{ background: "rgba(42, 54, 95, 0.05)", border: "none", color: "var(--accent-indigo)", cursor: "pointer", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} /></button>
           </Link>
 
-          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+          <div style={{ textAlign: "center", marginBottom: (isLoading || (bazi && reading)) ? "40px" : "32px" }}>
             <motion.div 
                initial={{ opacity: 0, y: -10 }} 
                animate={{ opacity: 1, y: 0 }}
-               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "700", marginBottom: "16px", letterSpacing: "0.1em" }}
+               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.7rem", fontWeight: "700", marginBottom: "12px", letterSpacing: "0.1em" }}
             >
               CHEONG-A MAE-DANG
             </motion.div>
-            <h1 style={{ fontSize: "2.4rem", fontWeight: "700", marginBottom: "12px", letterSpacing: "0.15em", color: "var(--accent-indigo)" }}>청아매당 사주</h1>
-            <div style={{ width: "32px", height: "1px", background: "var(--accent-gold)", margin: "16px auto 16px" }}></div>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.6", fontFamily: "'Nanum Myeongjo', serif" }}>전통의 지혜로<br/>당신의 운명을 정갈하게 비춥니다.</p>
+            <h1 style={{ fontSize: "2.1rem", fontWeight: "700", marginBottom: "8px", letterSpacing: "0.15em", color: "var(--accent-indigo)" }}>청아매당 사주</h1>
+            <div style={{ width: "32px", height: "1px", background: "var(--accent-gold)", margin: "12px auto 12px" }}></div>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem", lineHeight: "1.5", fontFamily: "'Nanum Myeongjo', serif" }}>전통의 지혜로<br/>당신의 운명을 정갈하게 비춥니다.</p>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
@@ -579,8 +581,8 @@ export default function SajuPage() {
                 className="btn-primary" 
                 style={{ 
                   width: "100%", 
-                  marginTop: "32px", 
-                  padding: "18px", 
+                  marginTop: "24px", 
+                  padding: "16px", 
                   borderRadius: "16px", 
                   fontSize: "1.05rem", 
                   fontWeight: "500", 

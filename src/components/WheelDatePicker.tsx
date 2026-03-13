@@ -32,6 +32,17 @@ export default function WheelDatePicker({ isOpen, onClose, initialDate, onConfir
     }
   }, [isOpen, initialDate]);
 
+  // Lock body scroll when open
+  useEffect(() => {
+    if (isOpen) {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }
+  }, [isOpen]);
+
   // Scroll to initial values when opened
   useEffect(() => {
     if (isOpen) {
@@ -81,7 +92,8 @@ export default function WheelDatePicker({ isOpen, onClose, initialDate, onConfir
               inset: 0,
               background: "rgba(0,0,0,0.3)",
               backdropFilter: "blur(2px)",
-              zIndex: 1000
+              zIndex: 1000,
+              touchAction: "none"
             }}
           />
           
@@ -171,6 +183,7 @@ const WheelColumn = React.forwardRef<HTMLDivElement, { items: number[], selected
             height: "100%",
             overflowY: "scroll",
             scrollSnapType: "y mandatory",
+            overscrollBehavior: "contain",
             padding: "88px 0", // Padding to align center
             scrollbarWidth: "none",
             msOverflowStyle: "none",
