@@ -4,11 +4,68 @@ import { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, Clock, CalendarDays, Sparkles, MoonStar, Scroll, Coins, Briefcase, Activity, Heart, Target, Users, Wallet, ShieldAlert } from "lucide-react";
+import { ArrowLeft, BookOpen, Clock, CalendarDays, Sparkles, MoonStar, Scroll, Coins, Briefcase, Activity, Heart, Target, Users, Wallet, ShieldAlert, Download, Share2, Calculator, Calendar, Copy, Check } from "lucide-react";
 import { calculateSaju } from "ssaju";
 import TraditionalBackground from "@/components/TraditionalBackground";
 import Disclaimer from "@/components/Disclaimer";
 import WheelDatePicker from "@/components/WheelDatePicker";
+
+// 12개월 운기 분석 차트 컴포넌트
+const LineChart = ({ data }: { data: number[] }) => {
+  const max = Math.max(...data, 100);
+  const min = Math.min(...data, 0);
+  const range = max - min;
+  const height = 120;
+  const width = 300;
+  const points = data.map((v, i) => ({
+    x: (i / (data.length - 1)) * width,
+    y: height - ((v - min) / range) * height
+  }));
+
+  const d = `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`;
+
+  return (
+    <div style={{ width: "100%", height: "180px", position: "relative", marginTop: "20px" }}>
+      <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "16px", fontWeight: "600", textAlign: "center" }}>12개월 운기 변화 추이</div>
+      <svg viewBox={`-10 -10 ${width + 20} ${height + 20}`} style={{ width: "100%", height: "120px", overflow: "visible" }}>
+        {/* Grids */}
+        {[0, 25, 50, 75, 100].map(v => {
+          const y = height - ((v - min) / range) * height;
+          return <line key={v} x1="0" y1={y} x2={width} y2={y} stroke="rgba(0,0,0,0.05)" strokeWidth="1" />;
+        })}
+        {/* Line */}
+        <motion.path
+          d={d}
+          fill="none"
+          stroke="var(--accent-indigo)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 2, ease: "easeInOut" }}
+        />
+        {/* Points */}
+        {points.map((p, i) => (
+          <g key={i}>
+            <motion.circle
+              cx={p.x}
+              cy={p.y}
+              r="4"
+              fill="white"
+              stroke="var(--accent-indigo)"
+              strokeWidth="2"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: i * 0.1 }}
+            />
+            <text x={p.x} y={height + 15} fontSize="8" textAnchor="middle" fill="var(--text-secondary)">{i + 1}월</text>
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+};
 
 function FiveElementsDonut({ elements }: { elements: any[] }) {
   const total = elements?.reduce((sum, el) => sum + el.value, 0) || 1;
@@ -68,7 +125,7 @@ function FortuneContent() {
       keys: ["last_month", "this_month", "next_month"]
     },
     yearly: {
-      title: "년간 운세",
+      title: "연간 운세", // fixed typo
       desc: "올해의 거시적 판도와 운의 흐름",
       icon: <Scroll className="w-6 h-6" />,
       tabs: ["지난해", "올해", "내년"],
@@ -342,11 +399,43 @@ function FortuneContent() {
       if (typeParam === "wealth") {
         timeContext = "이 내담자의 인생 전체 '재물운'을 [초년(10~20대), 청년(30대), 중년(40대), 장년(50대), 말년(60대 이후)] 5단계 생애주기로 나누어 분석해 주세요.";
       } else if (typeParam === "monthly") {
-        timeContext = `오늘은 ${todayStr}입니다. 지난달, 이번달, 다음달 3개월간의 운세를 각각 상세히 분석해 주세요. 
-            각 기간별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item 4가지 항목)을 반드시 포함한 객체로 응답하세요.`;
+        timeContext = `오늘은 ${todayStr}입니다. 이번 달의 운세를 다음 4단계 구조에 맞춰 상세히 분석해 주세요.
+
+1. 📍 이달의 요약 (약 200자): 핵심 키워드 3개와 전체적인 기운 설명 (5초 안에 파악 가능하도록).
+
+2. 📅 주차별 상세 흐름 (약 600자, 주당 150자): 1주~4주별 비즈니스, 재물, 대인관계 중 도드라지는 변화와 실질적 행동 지침.
+
+3. 🔍 핵심 분야별 분석 (약 450자, 분야당 150자): 재물, 애정, 건강 분야별 논리적 근거를 포함한 상세 조언.
+
+4. 💡 이달의 비책 및 핵심 날짜 (약 150자): 반드시 지켜야 할 한 줄 조언, 행운의 날, 주의할 날 리스트.
+
+가공 및 가독성 지침 (매우 중요):
+- **강조하고 싶은 키워드나 중요한 문구는 반드시 **굵은 글씨**로 표시하세요.**
+- 각 섹션 제목(요약, 주차별, 분야별, 비책) 앞에는 위 예시처럼 이모지를 붙이세요.
+- 문단 사이에는 반드시 빈 줄을 두 번(double newline) 넣어 여백을 충분히 두세요.
+- 카카오톡 공유 시 깔끔하도록 ###, --- 등 마크다운 특수 기호는 절대 사용하지 마세요. (굵은 글씨용 **는 사용 가능)
+- 각 기간(지난달, 이번달, 다음달)별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item)을 포함한 객체로 응답하세요.`;
       } else if (typeParam === "yearly") {
-        timeContext = `오늘은 ${todayStr}입니다. 지난해, 올해, 내년 3년간의 운세를 각각 상세히 분석해 주세요. 
-            각 기간별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item 4가지 항목)을 반드시 포함한 객체로 응답하세요.`;
+        timeContext = `오늘은 ${todayStr}입니다. 내담자의 올해(1년) 전체 운세를 다음 5단계의 '프리미엄 컨설팅 리포트' 형식으로 약 2,500자 분량으로 상세히 분석해 주세요.
+
+1. 🎯 연간 총론 및 키워드 (200~300자): 올해를 관통하는 핵심 기운, 반드시 잡아야 할 기회, 주의해야 할 태도 요약.
+
+2. 📅 분기별 로드맵 (Q1~Q4, 약 800자): 1~3월, 4~6월, 7~9월, 10~12월로 나누어 각 분기별 비즈니스, 재물, 대인관계의 흐름과 구체적 지침.
+
+3. 🔍 4대 핵심 분야 심층 분석 (약 800자): 재물, 사업/직업, 애정, 건강 분야별로 명리적 근거를 포함한 본질적 풀이.
+
+4. 🛡️ 연간 위기관리 및 조언 (200~300자): 가장 주의해야 할 달(Month)과 사건, 이를 예방하기 위한 핵심 지침.
+
+5. ✨ 명리적 분석 근거 (200~300자): 내담자의 타고난 기질과 세운(올해의 운)이 어떻게 상호작용하는지 논리적으로 설명.
+
+가이드 및 가독성 (매우 중요):
+- **강조하고 싶은 키워드나 중요한 문구는 반드시 **굵은 글씨**로 표시하세요.**
+- 각 항목 설명에는 ● 기호를 적절히 섞어 사용하세요.
+- 각 섹션 제목 앞에는 위 예시처럼 이모지를 붙이세요.
+- 문단 사이에는 반드시 빈 줄을 두 번(double newline) 넣어 여백을 충분히 두세요.
+- 카카오톡 공유 시 깔끔하도록 ###, --- 등 마크다운 기호는 절대 사용하지 마세요. (굵은 글씨용 **는 사용 가능)
+- 각 기간(지난해, 올해, 내년)별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item)을 포함한 객체로 응답하세요.
+- 특히 'this_year' 객체 내에는 1월부터 12월까지의 운기 점수(0-100)를 담은 'monthlyEnergies' 배열(숫자 12개)을 반드시 포함하세요.`;
       } else if (typeParam === "daily") {
         timeContext = `오늘은 ${todayStr}입니다. 어제, 오늘, 내일 3일간의 운세를 각각 상세히 분석해 주세요. 
             각 날짜별로 'content', 'score'(0-100점), 'gaewun'(color, direction, element, item 4가지 항목)을 반드시 포함한 객체로 응답하세요.`;
@@ -586,12 +675,78 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
     }
   };
 
+  const CopyButton = ({ content }: { content: string }) => {
+    const [copied, setCopied] = useState(false);
+    const handleCopy = () => {
+      navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    };
+    return (
+      <motion.button 
+        whileHover={{ scale: 1.02 }} 
+        whileTap={{ scale: 0.98 }} 
+        onClick={handleCopy}
+        style={{ 
+          width: "100%", 
+          marginTop: "24px", 
+          padding: "16px", 
+          borderRadius: "16px", 
+          background: copied ? "#4ade80" : "var(--accent-indigo)", 
+          color: "white", 
+          border: "none", 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          gap: "10px",
+          fontWeight: "600",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+          transition: "background 0.3s ease"
+        }}
+      >
+        {copied ? (
+          <> <Check size={18} /> 전체 리포트 복사 완료! </>
+        ) : (
+          <> <Copy size={18} /> 전체 프리미엄 리포트 복사하기 </>
+        )}
+      </motion.button>
+    );
+  };
+
   const renderHighlightedText = (text: any) => {
     if (!text || typeof text !== 'string') return null;
-    const cleanText = text.replace(/\*\*/g, '');
-    return cleanText.split('\n').filter(p => p.trim() !== '').map((para, i) => (
-      <div key={i} style={{ marginBottom: "16px" }}>{para}</div>
-    ));
+    
+    return text.split('\n').filter(p => p.trim() !== '').map((para, i) => {
+      // Handle bold text **bold**
+      const parts = para.split(/(\*\*.*?\*\*)/g);
+      
+      // If the paragraph looks like a title (starts with emoji or number/emoji combo)
+      const isHeader = /^[\d\s]*[📍📅🔍🛡️✨🎯]/.test(para.trim());
+      
+      return (
+        <div key={i} style={{ 
+          marginBottom: isHeader ? "24px" : "16px", 
+          marginTop: isHeader && i > 0 ? "32px" : "0",
+          lineHeight: "1.9", 
+          fontSize: isHeader ? "1.2rem" : "1.05rem",
+          fontWeight: isHeader ? "600" : "400",
+          color: isHeader ? "var(--accent-indigo)" : "var(--text-secondary)",
+          background: isHeader ? "transparent" : "rgba(255, 255, 255, 0.4)",
+          padding: isHeader ? "0" : "16px 20px",
+          borderRadius: "16px",
+          border: isHeader ? "none" : "1px solid rgba(42, 54, 95, 0.05)",
+          wordBreak: "keep-all",
+          fontFamily: "'Pretendard', sans-serif"
+        }}>
+          {parts.map((part, j) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+              return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(2, -2)}</strong>;
+            }
+            return part;
+          })}
+        </div>
+      );
+    });
   };
 
   const RollingNumber = ({ value }: { value: number }) => {
@@ -603,13 +758,25 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
       <Disclaimer />
       <TraditionalBackground />
       <div style={{ position: "relative", zIndex: 1 }} className="container py-8">
-        <Link href="/" style={{ textDecoration: "none", marginBottom: "30px", display: "inline-block" }}>
-          <button style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer" }}><ArrowLeft /></button>
+        <Link href="/" style={{ textDecoration: "none", marginBottom: "40px", display: "inline-block" }}>
+          <button style={{ background: "rgba(42, 54, 95, 0.05)", border: "none", color: "var(--accent-indigo)", cursor: "pointer", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} /></button>
         </Link>
 
-        <div className="text-center" style={{ marginBottom: "50px" }}>
-          <h1 style={{ fontSize: "2.4rem", fontWeight: "300" }}>{currentType.title}</h1>
-          <p style={{ color: "var(--text-secondary)" }}>{currentType.desc}</p>
+        <div className="text-center" style={{ marginBottom: "52px" }}>
+          <motion.div 
+             initial={{ opacity: 0, y: -10 }} 
+             animate={{ opacity: 1, y: 0 }}
+             style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "700", marginBottom: "16px", letterSpacing: "0.1em" }}
+          >
+            CHEONG-A MAE-DANG
+          </motion.div>
+          <h1 style={{ fontSize: "2.6rem", fontWeight: "700", color: "var(--accent-indigo)", letterSpacing: "0.15em", textShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+            청아매당 {currentType.title}
+          </h1>
+          <div style={{ width: "40px", height: "1px", background: "var(--accent-gold)", margin: "20px auto" }}></div>
+          <p style={{ color: "var(--text-secondary)", fontSize: "1.05rem", fontFamily: "'Nanum Myeongjo', serif", letterSpacing: "0.05em" }}>
+            전통의 혜안으로 풀어내는 {currentType.title}의 정수
+          </p>
         </div>
 
         <div style={{ maxWidth: "800px", margin: "0 auto", width: "100%" }}>
@@ -639,21 +806,34 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
             </div>
 
             <motion.button 
-              whileHover={{ scale: 1.02 }} 
-              whileTap={{ scale: 0.97 }} 
+              whileHover={{ scale: 1.01 }} 
+              whileTap={{ scale: 0.98 }} 
               onClick={calculateFortune} 
               disabled={isLoading} 
               className="btn-primary" 
-              style={{ width: "100%", marginTop: "40px", padding: "18px", borderRadius: "30px", fontSize: "1.1rem", transition: "box-shadow 0.2s" }}
+              style={{ 
+                width: "100%", 
+                marginTop: "40px", 
+                padding: "20px", 
+                borderRadius: "30px", 
+                fontSize: "1.1rem", 
+                fontWeight: "500",
+                background: "var(--accent-indigo)",
+                boxShadow: "0 10px 25px rgba(42, 54, 95, 0.2)",
+                border: "none"
+              }}
             >
-              {isLoading ? "분석 중..." : `${currentType.title} 흐름 분석하기`}
+              {isLoading ? "운의 흐름을 읽는 중..." : `${currentType.title} 흐름 분석하기`}
             </motion.button>
           </section>
 
           <AnimatePresence>
             {(bazi || isLoading) && (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: "16px", marginTop: "40px" }} ref={resultRef} id="result-section">
-                <h2 style={{ fontSize: "1.4rem", marginBottom: "30px", color: "var(--accent-gold)", textAlign: "center" }}>분석 결과</h2>
+                <div style={{ textAlign: "center", marginBottom: "40px" }}>
+                   <div style={{ width: "40px", height: "2px", background: "var(--accent-gold)", margin: "0 auto 16px" }}></div>
+                   <h2 style={{ fontSize: "1.6rem", fontWeight: "300", color: "var(--accent-indigo)", letterSpacing: "-0.02em" }}>분석 결과</h2>
+                </div>
 
                 {isLoading ? (
                   <div style={{ textAlign: "center", padding: "64px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -685,8 +865,8 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                     {typeParam === "business" || typeParam === "wealth" || typeParam === "health" || typeParam === "love" ? (
                       <div style={{ display: "flex", flexDirection: "column", gap: (typeParam === "wealth" || typeParam === "health" || typeParam === "love") ? "80px" : "40px" }}>
                         {(typeParam === "wealth" || typeParam === "health" || typeParam === "love") && reading.overallEnergy && (
-                          <div style={{ padding: "32px 20px", background: "white", borderRadius: "24px", border: "1px solid var(--glass-border)", boxShadow: "0 10px 30px rgba(0,0,0,0.03)", marginBottom: "32px" }}>
-                            <h3 style={{ textAlign: "center", marginBottom: "24px", fontSize: "1rem", fontWeight: "500", color: "var(--text-primary)" }}>🎯 나의 타고난 오행 에너지 분포</h3>
+                          <div style={{ padding: "40px 24px", background: "white", borderRadius: "28px", border: "1px solid var(--glass-border)", boxShadow: "0 15px 45px rgba(26, 28, 44, 0.05)", marginBottom: "48px" }}>
+                            <h3 style={{ textAlign: "center", marginBottom: "32px", fontSize: "1.1rem", fontWeight: "600", color: "var(--accent-indigo)" }}>🎨 타고난 오행 에너지</h3>
                             <FiveElementsDonut elements={reading.overallEnergy} />
                           </div>
                         )}
@@ -816,6 +996,14 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.4 }}
+                          style={{
+                            background: "rgba(255, 255, 255, 0.7)",
+                            backdropFilter: "blur(10px)",
+                            padding: "40px 24px",
+                            borderRadius: "32px",
+                            border: "1px solid var(--glass-border)",
+                            boxShadow: "0 25px 60px rgba(42, 54, 95, 0.06)"
+                          }}
                         >
                           <div style={{ textAlign: "center", marginBottom: "48px", padding: "32px", background: "white", borderRadius: "24px", boxShadow: "0 10px 40px rgba(0,0,0,0.02)", border: "1px solid var(--glass-border)" }}>
                             <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "12px", letterSpacing: "0.05em" }}>행운 기운 점수</div>
@@ -833,11 +1021,23 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                             </div>
                           </div>
 
+                          {/* 연간 운세인 경우 12개월 에너지 차트 표시 */}
+                          {typeParam === "yearly" && activeTab === 1 && reading.this_year?.monthlyEnergies && (
+                            <div style={{ background: "white", padding: "24px", borderRadius: "24px", marginBottom: "40px", border: "1px solid rgba(42, 54, 95, 0.08)" }}>
+                              <LineChart data={reading.this_year.monthlyEnergies} />
+                            </div>
+                          )}
+
                           <div style={{ fontSize: "1.05rem", lineHeight: "2.1", color: "var(--text-primary)", marginBottom: "48px", wordBreak: "keep-all" }}>
                             {renderHighlightedText(reading[currentType.keys[activeTab]]?.content)}
                           </div>
 
-                          <div style={{ padding: "32px 24px", background: "rgba(201, 160, 80, 0.03)", borderRadius: "24px", border: "1px solid rgba(201, 160, 80, 0.1)" }}>
+                          {/* 리포트 복사 버튼 (연간/월간 등 요약 리포트 용) */}
+                          {["monthly", "yearly"].includes(typeParam) && reading[currentType.keys[activeTab]]?.content && (
+                            <CopyButton content={reading[currentType.keys[activeTab]].content} />
+                          )}
+
+                          <div style={{ padding: "32px 24px", background: "rgba(201, 160, 80, 0.03)", borderRadius: "24px", border: "1px solid rgba(201, 160, 80, 0.1)", marginTop: "40px" }}>
                             <div style={{ fontWeight: "700", color: "var(--accent-gold)", marginBottom: "24px", display: "flex", alignItems: "center", gap: "8px", fontSize: "1rem" }}>
                               <Sparkles size={20} /> 기운을 여는 열쇠 (개운법)
                             </div>
@@ -859,9 +1059,35 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                       </div>
                     ) : (
                       <div style={{ fontSize: "1.1rem", lineHeight: "2.2", color: "var(--text-primary)", whiteSpace: "pre-line" }}>
-                        {renderHighlightedText(reading[currentType.keys[0]])}
+                        {renderHighlightedText(reading[currentType.keys[0]]?.content || reading[currentType.keys[0]])}
                       </div>
                     )}
+
+                    {/* 하단 뒤로가기 버튼 추가 */}
+                    <div style={{ marginTop: "64px", display: "flex", justifyContent: "center" }}>
+                      <Link href="/">
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            padding: "16px 32px",
+                            borderRadius: "30px",
+                            background: "white",
+                            color: "var(--accent-indigo)",
+                            border: "1px solid var(--glass-border)",
+                            boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
+                            fontSize: "1rem",
+                            fontWeight: "600",
+                            cursor: "pointer"
+                          }}
+                        >
+                          <ArrowLeft size={20} /> 홈으로 돌아가기
+                        </motion.button>
+                      </Link>
+                    </div>
                   </>
                 )}
               </motion.div>

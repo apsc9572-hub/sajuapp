@@ -469,10 +469,38 @@ export default function SajuPage() {
 
   const renderHighlightedText = (text: any) => {
     if (!text || typeof text !== 'string') return null;
-    const cleanText = text.replace(/\*\*/g, '');
-    return cleanText.split('\n').filter(p => p.trim() !== '').map((para, i) => (
-      <div key={i} style={{ marginBottom: "16px" }}>{para}</div>
-    ));
+    
+    return text.split('\n').filter(p => p.trim() !== '').map((para, i) => {
+      // Handle bold text **bold**
+      const parts = para.split(/(\*\*.*?\*\*)/g);
+      
+      // If the paragraph looks like a title
+      const isHeader = /^[\d\s]*[📍📅🔍💡🎯🏆💎✨]/.test(para.trim());
+
+      return (
+        <div key={i} style={{ 
+          marginBottom: isHeader ? "24px" : "16px", 
+          marginTop: isHeader && i > 0 ? "32px" : "0",
+          lineHeight: "1.9", 
+          fontSize: isHeader ? "1.2rem" : "1.05rem",
+          fontWeight: isHeader ? "600" : "400",
+          color: isHeader ? "var(--accent-indigo)" : "var(--text-secondary)",
+          background: isHeader ? "transparent" : "rgba(255, 255, 255, 0.4)",
+          padding: isHeader ? "0" : "16px 20px",
+          borderRadius: "16px",
+          border: isHeader ? "none" : "1px solid rgba(42, 54, 95, 0.05)",
+          wordBreak: "keep-all",
+          fontFamily: "'Pretendard', sans-serif"
+        }}>
+          {parts.map((part, j) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+              return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(2, -2)}</strong>;
+            }
+            return part;
+          })}
+        </div>
+      );
+    });
   };
 
   const RollingNumber = ({ value }: { value: number }) => {
@@ -490,20 +518,29 @@ export default function SajuPage() {
         minHeight: "100vh", 
         position: "relative", 
         zIndex: 1, 
-        background: "rgba(255, 255, 255, 0.95)", 
-        boxShadow: "0 0 40px rgba(0,0,0,0.08)",
+        background: "rgba(255, 255, 255, 0.9)", 
+        backdropFilter: "blur(20px)",
+        boxShadow: "0 0 60px rgba(26, 28, 44, 0.08)",
         display: "flex",
         flexDirection: "column",
         overflowX: "hidden"
       }}>
-        <div style={{ padding: "32px 20px" }}>
-          <Link href="/" style={{ textDecoration: "none", marginBottom: "32px", display: "inline-block" }}>
-            <button style={{ background: "transparent", border: "none", color: "var(--text-primary)", cursor: "pointer" }}><ArrowLeft /></button>
+        <div style={{ padding: "32px 24px" }}>
+          <Link href="/" style={{ textDecoration: "none", marginBottom: "40px", display: "inline-block" }}>
+            <button style={{ background: "rgba(42, 54, 95, 0.05)", border: "none", color: "var(--accent-indigo)", cursor: "pointer", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} /></button>
           </Link>
 
-          <div style={{ textAlign: "center", marginBottom: "40px" }}>
-            <h1 style={{ fontSize: "1.75rem", fontWeight: "300", marginBottom: "8px", letterSpacing: "-0.02em" }}>나를 비추는 시간</h1>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>타고난 기운의 흐름을 읽어봅니다.</p>
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <motion.div 
+               initial={{ opacity: 0, y: -10 }} 
+               animate={{ opacity: 1, y: 0 }}
+               style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "4px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "700", marginBottom: "16px", letterSpacing: "0.1em" }}
+            >
+              CHEONG-A MAE-DANG
+            </motion.div>
+            <h1 style={{ fontSize: "2.4rem", fontWeight: "700", marginBottom: "12px", letterSpacing: "0.15em", color: "var(--accent-indigo)" }}>청아매당 사주</h1>
+            <div style={{ width: "32px", height: "1px", background: "var(--accent-gold)", margin: "16px auto 16px" }}></div>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.6", fontFamily: "'Nanum Myeongjo', serif" }}>전통의 지혜로<br/>당신의 운명을 정갈하게 비춥니다.</p>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "32px" }}>
@@ -535,14 +572,24 @@ export default function SajuPage() {
               </div>
 
               <motion.button 
-                whileHover={{ scale: 1.02 }} 
-                whileTap={{ scale: 0.97 }} 
+                whileHover={{ scale: 1.01 }} 
+                whileTap={{ scale: 0.98 }} 
                 onClick={calculateBazi} 
                 disabled={isLoading} 
                 className="btn-primary" 
-                style={{ width: "100%", marginTop: "32px", padding: "16px", borderRadius: "16px", fontSize: "1rem", fontWeight: "600", transition: "box-shadow 0.2s" }}
+                style={{ 
+                  width: "100%", 
+                  marginTop: "32px", 
+                  padding: "18px", 
+                  borderRadius: "16px", 
+                  fontSize: "1.05rem", 
+                  fontWeight: "500", 
+                  background: "var(--accent-indigo)",
+                  boxShadow: "0 10px 25px rgba(42, 54, 95, 0.2)",
+                  border: "none"
+                }}
               >
-                {isLoading ? "기운 분석 중..." : "전통사주 분석하기"}
+                {isLoading ? "기운을 살피는 중..." : "운세 분석 시작하기"}
               </motion.button>
             </section>
 
@@ -576,21 +623,23 @@ export default function SajuPage() {
                     </div>
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
                         {[ {l:"시주", v:bazi.time}, {l:"일주", v:bazi.day}, {l:"월주", v:bazi.month}, {l:"년주", v:bazi.year} ].map((p, i) => (
-                          <div key={i} style={{ background: "rgba(255,255,255,0.9)", padding: "12px 4px", borderRadius: "12px", textAlign: "center", border: "1px solid var(--glass-border)", boxShadow: "0 4px 10px rgba(0,0,0,0.03)" }}>
-                            <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>{p.l}</div>
-                            <div style={{ fontSize: "1.2rem", fontWeight: "bold", color: "var(--text-primary)" }}>{p.v}</div>
+                          <div key={i} style={{ background: "rgba(255,255,255,0.8)", padding: "16px 4px", borderRadius: "16px", textAlign: "center", border: "1px solid var(--glass-border)", boxShadow: "0 8px 20px rgba(26, 28, 44, 0.04)" }}>
+                            <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "6px", fontWeight: "500" }}>{p.l}</div>
+                            <div style={{ fontSize: "1.3rem", fontWeight: "700", color: "var(--accent-indigo)" }}>{p.v}</div>
                           </div>
                         ))}
                       </div>
 
-                      <div style={{ padding: "32px 20px", background: "white", borderRadius: "24px", border: "1px solid var(--glass-border)", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}>
-                        <h3 style={{ textAlign: "center", marginBottom: "24px", fontSize: "1rem", fontWeight: "500", color: "var(--text-primary)" }}>운의 흐름 지표</h3>
+                      <div style={{ padding: "32px 24px", background: "white", borderRadius: "24px", border: "1px solid var(--glass-border)", boxShadow: "0 15px 40px rgba(26, 28, 44, 0.05)" }}>
+                        <h3 style={{ textAlign: "center", marginBottom: "32px", fontSize: "1.1rem", fontWeight: "600", color: "var(--accent-indigo)" }}>기운의 조화</h3>
                         <FiveElementsDonut elements={reading.elements} />
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                          <AnimatedGauge label="사회적 위상" value={reading.life_balance.career} color="#D4A373" icon={<Briefcase size={20} />} />
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                          <AnimatedGauge label="사회적 위상" value={reading.life_balance.career} color="var(--accent-gold)" icon={<Briefcase size={20} />} />
                           <AnimatedGauge label="생명력 강도" value={reading.life_balance.health} color="#81b29a" icon={<Activity size={20} />} />
+                          <AnimatedGauge label="재물복 수준" value={reading.life_balance.wealth} color="#C9A050" icon={<Coins size={20} />} />
+                          <AnimatedGauge label="애정운 지수" value={reading.life_balance.love} color="#e07a5f" icon={<Heart size={20} />} />
                         </div>
                       </div>
 
@@ -660,10 +709,35 @@ export default function SajuPage() {
                           </div>
                         </div>
                       </div>
+                    {/* 하단 뒤로가기 버튼 추가 */}
+                    <div style={{ marginTop: "64px", display: "flex", justifyContent: "center" }}>
+                      <Link href="/">
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            padding: "16px 32px",
+                            borderRadius: "30px",
+                            background: "white",
+                            color: "var(--accent-indigo)",
+                            border: "1px solid var(--glass-border)",
+                            boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
+                            fontSize: "1rem",
+                            fontWeight: "600",
+                            cursor: "pointer"
+                          }}
+                        >
+                          <ArrowLeft size={20} /> 홈으로 돌아가기
+                        </motion.button>
+                      </Link>
                     </div>
-                  )}
-                </motion.div>
-              )}
+                  </div>
+                )}
+              </motion.div>
+            )}
             </AnimatePresence>
           </div>
         </div>

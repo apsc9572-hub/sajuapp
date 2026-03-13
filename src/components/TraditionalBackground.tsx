@@ -29,7 +29,7 @@ function InkMist() {
 
   return (
     <Points ref={ref} positions={positions} stride={3} frustumCulled={false}>
-      <PointMaterial transparent color="#D4A373" size={0.04} sizeAttenuation={true} depthWrite={false} opacity={0.6} blending={1} />
+      <PointMaterial transparent color="#2A365F" size={0.03} sizeAttenuation={true} depthWrite={false} opacity={0.4} blending={1} />
     </Points>
   );
 }
@@ -37,35 +37,34 @@ function InkMist() {
 export default function TraditionalBackground() {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
-      {/* 생성된 수묵화 배경 이미지 (Light Theme) */}
-      <div 
-        style={{ 
-          position: "absolute", 
-          inset: "-5%", 
-          backgroundImage: "url('/saju_bg.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          opacity: 0.15,
-          filter: "grayscale(0.8) contrast(1.1)",
-          mixBlendMode: "multiply",
-        }} 
-      />
-      
-      {/* 3D 오버레이 Canvas */}
-      <div style={{ position: "absolute", inset: 0, opacity: 0.8 }}>
-        <Canvas camera={{ position: [0, 0, 5] }}>
-          <ambientLight intensity={0.8} />
-          <InkMist />
-          <Sparkles count={50} scale={12} size={2} speed={0.4} opacity={0.3} color="#D4A373" />
-        </Canvas>
-      </div>
-      
-      {/* 부드러운 웜 화이트 그라데이션 오버레이 막 */}
+      {/* 생성된 한복 수묵화 배경 이미지 - 선명하게 보이도록 수정 */}
       <div 
         style={{ 
           position: "absolute", 
           inset: 0, 
-          background: "linear-gradient(to bottom, rgba(250, 250, 248, 0.7), rgba(255, 255, 255, 0.9))", 
+          backgroundImage: "url('/hanbok_bg.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: 0.9, // 투명도를 대폭 높임 (0.12 -> 0.9)
+          filter: "saturate(1.2) contrast(1.1)", // 색감과 대비를 살짝 보정
+        }} 
+      />
+      
+      {/* 3D 오버레이 Canvas - 은은하게 입자 효과만 부여 */}
+      <div style={{ position: "absolute", inset: 0, opacity: 0.4 }}>
+        <Canvas camera={{ position: [0, 0, 5] }}>
+          <ambientLight intensity={1.5} />
+          <InkMist />
+          <Sparkles count={30} scale={15} size={1.2} speed={0.2} opacity={0.3} color="white" />
+        </Canvas>
+      </div>
+      
+      {/* 아주 얇은 비네팅 효과만 부여 (이미지 부각) */}
+      <div 
+        style={{ 
+          position: "absolute", 
+          inset: 0, 
+          background: "radial-gradient(circle, transparent 30%, rgba(250, 249, 245, 0.4) 100%)", 
           pointerEvents: "none" 
         }} 
       />
