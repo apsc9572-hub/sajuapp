@@ -38,30 +38,41 @@ export default function RootLayout({
           </div>
           
           <footer style={{ 
-            padding: "16px 20px", 
+            padding: "12px 20px 16px 20px", 
             textAlign: "center", 
-            background: "rgba(255, 255, 255, 0.4)", 
-            backdropFilter: "blur(10px)",
+            background: "rgba(255, 255, 255, 0.3)", 
+            backdropFilter: "blur(5px)",
             position: "relative",
             zIndex: 10,
-            borderTop: "1px solid rgba(42, 54, 95, 0.05)"
+            borderTop: "1px solid rgba(42, 54, 95, 0.03)"
           }}>
             <div style={{ 
               display: "flex", 
               justifyContent: "center", 
               alignItems: "center",
-              gap: "24px", 
-              fontSize: "0.85rem", 
-              color: "var(--accent-indigo)", // 더 진한 색상으로 변경
-              fontWeight: "700", // 더 굵게
-              textShadow: "0 1px 10px rgba(255, 255, 255, 0.8)" // 텍스트 쉐도우 추가
+              gap: "10px", 
+              fontSize: "0.65rem", 
+              color: "var(--accent-indigo)",
+              fontWeight: "600",
+              marginBottom: "4px",
+              opacity: 0.6
             }}>
-              <Link href="/terms" style={{ textDecoration: "none", color: "inherit", transition: "color 0.2s" }} className="hover-link">이용약관</Link>
-              <div style={{ width: "4px", height: "4px", borderRadius: "50%", background: "var(--accent-gold)", opacity: 0.6 }} />
-              <Link href="/privacy" style={{ textDecoration: "none", color: "inherit", transition: "color 0.2s" }} className="hover-link">개인정보처리방침</Link>
+              <Link href="/terms" style={{ textDecoration: "none", color: "inherit" }} className="footer-link">이용약관</Link>
+              <span style={{ fontSize: "0.5rem", opacity: 0.2 }}>|</span>
+              <Link href="/privacy" style={{ textDecoration: "none", color: "inherit" }} className="footer-link">개인정보처리방침</Link>
             </div>
-            <div style={{ marginTop: "16px", fontSize: "0.75rem", color: "var(--accent-indigo)", opacity: 0.8, fontWeight: "600" }}>
-              © {new Date().getFullYear()} 청아매당 (Cheong-A Mae-Dang). All rights reserved.
+            
+            <div style={{ 
+              maxWidth: "600px", 
+              margin: "0 auto", 
+              fontSize: "0.6rem", 
+              color: "var(--accent-indigo)", 
+              opacity: 0.4, 
+              lineHeight: "1.3",
+              fontWeight: "400"
+            }}>
+              <p style={{ marginBottom: "2px" }}>분석 결과에 대한 최종 책임은 사용자에게 있습니다.</p>
+              <p>© {new Date().getFullYear()} 청아매당. All rights reserved.</p>
             </div>
           </footer>
         </div>

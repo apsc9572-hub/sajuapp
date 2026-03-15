@@ -9,48 +9,6 @@ import TraditionalBackground from "@/components/TraditionalBackground";
 import Disclaimer from "@/components/Disclaimer";
 import WheelDatePicker from "@/components/WheelDatePicker";
 
-// Global Helpers
-const cleanAstrologyTerms = (text: any): any => {
-  if (!text) return text;
-  if (typeof text !== 'string') {
-    if (Array.isArray(text)) return text.map(cleanAstrologyTerms);
-    if (typeof text === 'object') {
-      const cleaned: any = {};
-      for (const key in text) cleaned[key] = cleanAstrologyTerms(text[key]);
-      return cleaned;
-    }
-    return text;
-  }
-  
-    // Only fix malformed terms like "목 (木)", "목기", "갑신(申)" into "목(木)", "갑신" (clean extra hanja)
-    return text
-      .replace(/\*\*/g, '')
-      // Elements: English to Korean(Kanji)
-      .replace(/\b(Metal|Wood|Water|Fire|Earth)\b/g, (match) => {
-        const elementMap: Record<string, string> = {
-          'Metal': '금(金)', 'Wood': '목(木)', 'Water': '수(水)', 'Fire': '화(火)', 'Earth': '토(土)'
-        };
-        return elementMap[match] || match;
-      })
-      // Refined regex to match Korean term and consume ANY sequence of redundant Hanja/Korean parts
-      .replace(/(목|화|토|금|수|갑|을|병|정|무|기|경|신|임|계|자|축|인|묘|진|사|오|미|신|유|술|해)((?:\s*[\(（]?\s*[木火土金水甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]\s*[\)）\]]?)+)?/g, (match, kr, extras) => {
-        const elements = ['목', '화', '토', '금', '수'];
-        const map: Record<string, string> = {
-          '목': '木', '화': '火', '토': '土', '금': '金', '수': '水'
-        };
-        
-        if (!extras) return match;
-        
-        // Only force Hanja for core Elements
-        if (elements.includes(kr)) {
-          return `${kr}(${map[kr]})`;
-        }
-        
-        // For everything else (Stems/Branches), strip Hanja and return plain Korean
-        return kr;
-      });
-  };
-
 function FiveElementsDonut({ elements }: { elements: any[] }) {
   const total = elements.reduce((sum, el) => sum + el.value, 0) || 1;
   let currentOffset = 0;
@@ -158,74 +116,6 @@ function AnimatedGauge({ label, value, color, icon }: { label: string, value: nu
   );
 }
 
-const renderHighlightedText = (text: string) => {
-  if (!text || typeof text !== 'string') return text;
-
-  const ELEMENT_COLORS: Record<string, string> = {
-    '목(木)': '#81b29a',
-    '화(火)': '#e07a5f',
-    '토(土)': '#f2cc8f',
-    '금(金)': '#C9A050',
-    '수(水)': '#3d5a80'
-  };
-
-  const paragraphs = text.split('\n\n');
-
-  return paragraphs.map((para, i) => {
-    if (!para.trim()) return null;
-
-    const parts = para.split(/(<b>.*?<\/b>|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
-    const isHeader = /^[\d\s]*[📍📅🔍💡🎯🏆💎✨]/.test(para.trim());
-
-    return (
-      <div key={i} style={{ 
-        marginBottom: isHeader ? "24px" : "16px", 
-        marginTop: isHeader && i > 0 ? "32px" : "0",
-        lineHeight: "1.9", 
-        fontSize: isHeader ? "1.2rem" : "1.05rem",
-        fontWeight: isHeader ? "600" : "400",
-        color: isHeader ? "var(--accent-indigo)" : "var(--text-secondary)",
-        background: isHeader ? "transparent" : "rgba(255, 255, 255, 0.4)",
-        padding: isHeader ? "0" : "16px 20px",
-        borderRadius: "16px",
-        border: isHeader ? "none" : "1px solid rgba(42, 54, 95, 0.05)",
-        wordBreak: "keep-all",
-        fontFamily: "'Pretendard', sans-serif"
-      }}>
-        {parts.map((part, j) => {
-          if (part.startsWith('**') && part.endsWith('**')) {
-            return <span key={j}>{part.slice(2, -2)}</span>;
-          }
-          if (part.startsWith('<b>') && part.endsWith('</b>')) {
-            return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(3, -4)}</strong>;
-          }
-          if (ELEMENT_COLORS[part]) {
-            return <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong>;
-          }
-          return part;
-        })}
-      </div>
-    );
-  });
-};
-
-const renderInlineHighlights = (text: string) => {
-  if (!text || typeof text !== 'string') return text;
-  const cleanText = text.replace(/\*\*/g, '');
-  const ELEMENT_COLORS: Record<string, string> = {
-    '목(木)': '#81b29a', '화(火)': '#e07a5f', '토(土)': '#f2cc8f', '금(金)': '#C9A050', '수(水)': '#3d5a80'
-  };
-  const parts = cleanText.split(/(<b>.*?<\/b>|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
-  return parts.map((part, j) => {
-    if (part.startsWith('<b>') && part.endsWith('</b>')) {
-      return <strong key={j} style={{ color: "var(--text-primary)", fontWeight: "700" }}>{part.slice(3, -4)}</strong>;
-    }
-    if (ELEMENT_COLORS[part]) {
-      return <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong>;
-    }
-    return part;
-  });
-};
 
 export default function SajuPage() {
   const [date, setDate] = useState("1995-05-15");
@@ -279,6 +169,14 @@ export default function SajuPage() {
     "기타": { region: "대지", energy: "한반도의 고유한 생명력", longitude: 127.5, lmtOffset: -30 },
   };
 
+  const toKr = (str: string) => {
+    const map: Record<string, string> = {
+      "甲": "갑", "乙": "을", "丙": "병", "丁": "정", "戊": "무", "己": "기", "庚": "경", "辛": "신", "壬": "임", "癸": "계",
+      "子": "자", "丑": "축", "寅": "인", "卯": "묘", "辰": "진", "巳": "사", "午": "오", "未": "미", "申": "신", "酉": "유", "戌": "술", "亥": "해"
+    };
+    return str.split('').map(c => map[c] || c).join('');
+  };
+  
   const [bazi, setBazi] = useState<any>(null);
   const [reading, setReading] = useState<any>(null);
   const [isCached, setIsCached] = useState(false);
@@ -505,10 +403,6 @@ export default function SajuPage() {
   }
 }
 
-[필수 조건 - 절대 누락하지 마세요!]
-1. 'early', 'youth', 'middle', 'late' 그리고 'gaewun' 키 내부에 반드시 영어 키(general, early, youth, middle, late)를 사용하세요.
-2. 특히 'gaewun' 객체는 **반드시 'general' 키를 포함하여 5개의 연령대 키 모두를 빠짐없이 제공해야 합니다.** 'general'이 없으면 시스템 에러가 발생합니다.
-3. 'gaewun'의 모든 값은 예시처럼 'color', 'direction', 'element', 'item' 4가지 키를 가진 객체여야 합니다. 단, 'element' 값은 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 중 하나로만 정확히 표기해야 합니다.
 4. [매우 중요 - 흉운과 개운법]: 흉운이나 약점을 숨기지 말고 솔직하게 조언하되, 'gaewun' 항목 외에도 본문 곳곳에 운을 통제하고 보완할 구체적 행동 지침(마음가짐, 환경 변화 등)을 제시하세요.
 5. [매우 중요]: 모든 결과값에서 '오행'을 언급할 때는 색상 강조 표기를 위해, 처음부터 끝까지 일관되게 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 형식으로 한자를 병기하여 작성하세요!! ('화' 라고만 적지 마세요). 단, 십간(갑, 을 등)과 십이지(자, 축 등)는 한자 없이 한글로만 쓰세요. AI 언어 모델 특유의 딱딱한 말투나 강조 기호는 사용하지 마세요.
 6. [풀이 품질]: 전체 본문은 전문가가 직접 상담해주는 듯한 품격 있고 자연스러운 한국어로 작성해 주세요. '한 민족을 얻는다'와 같은 어색한 표현이나 사주 용어를 억지로 끼워 맞춘 듯한 문장은 피하고, 현대적이고 세련된 어투를 사용해 주세요. AI 특유의 딱딱한 말투나 마크다운 강조 기호(**)를 절대 사용하지 마세요.
@@ -537,7 +431,7 @@ export default function SajuPage() {
 
           if (apiRes.status === 503 && retries < maxRetries) {
             retries++;
-            await delay(1500 * retries); // Exponential backoff: 1.5s, 3s
+            await delay(1500 * retries); 
             continue;
           }
 
@@ -556,44 +450,95 @@ export default function SajuPage() {
         const llmResult = cleanAstrologyTerms(llmResultRaw);
 
         const resultData = {
-          bazi: baziData,
-          reading: {
-            elements: [
-              { label: "목", value: (counts['목']/8)*100, color: "#81b29a" },
-              { label: "화", value: (counts['화']/8)*100, color: "#e07a5f" },
-              { label: "토", value: (counts['토']/8)*100, color: "#f2cc8f" },
-              { label: "금", value: (counts['금']/8)*100, color: "#e5e5e5" },
-              { label: "수", value: (counts['수']/8)*100, color: "#3d5a80" }
-            ],
-            life_balance: llmResult.life_balance || { wealth: 50, love: 50, career: 50, health: 50 },
-            sections: [
-              { id: "general", t: "인생 총운", d: { content: llmResult.general, summary: llmResult.general_summary, keyword: llmResult.general_keyword, gaewun: llmResult.gaewun?.general || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-gold)" },
-              { id: "early", t: "초년: 10~20대", d: { content: llmResult.early, summary: llmResult.early_summary, keyword: llmResult.early_keyword, gaewun: llmResult.gaewun?.early || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#81b29a" },
-              { id: "youth", t: "청년: 30대", d: { content: llmResult.youth, summary: llmResult.youth_summary, keyword: llmResult.youth_keyword, gaewun: llmResult.gaewun?.youth || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#e07a5f" },
-              { id: "middle", t: "중년: 40대", d: { content: llmResult.middle, summary: llmResult.middle_summary, keyword: llmResult.middle_keyword, gaewun: llmResult.gaewun?.middle || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#C9A050" },
-              { id: "late", t: "말년: 50대 이후", d: { content: llmResult.late, summary: llmResult.late_summary, keyword: llmResult.late_keyword, gaewun: llmResult.gaewun?.late || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#3d5a80" }
-            ],
-            daeun: llmResult.daeun,
-            sinsal: llmResult.sinsal
-          },
+          elements: [
+            { label: "목", value: (counts['목']/8)*100, color: "#81b29a" },
+            { label: "화", value: (counts['화']/8)*100, color: "#e07a5f" },
+            { label: "토", value: (counts['토']/8)*100, color: "#f2cc8f" },
+            { label: "금", value: (counts['금']/8)*100, color: "#e5e5e5" },
+            { label: "수", value: (counts['수']/8)*100, color: "#3d5a80" }
+          ],
+          life_balance: llmResult.life_balance || { wealth: 50, love: 50, career: 50, health: 50 },
+          sections: [
+            { id: "general", t: "인생 총운", d: { content: llmResult.general, summary: llmResult.general_summary, keyword: llmResult.general_keyword, gaewun: llmResult.gaewun?.general || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-gold)" },
+            { id: "early", t: "초년: 10~20대", d: { content: llmResult.early, summary: llmResult.early_summary, keyword: llmResult.early_keyword, gaewun: llmResult.gaewun?.early || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-green)" },
+            { id: "youth", t: "청년: 30대", d: { content: llmResult.youth, summary: llmResult.youth_summary, keyword: llmResult.youth_keyword, gaewun: llmResult.gaewun?.youth || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-red)" },
+            { id: "middle", t: "중년: 40대", d: { content: llmResult.middle, summary: llmResult.middle_summary, keyword: llmResult.middle_keyword, gaewun: llmResult.gaewun?.middle || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-yellow)" },
+            { id: "late", t: "말년: 50대 이후", d: { content: llmResult.late, summary: llmResult.late_summary, keyword: llmResult.late_keyword, gaewun: llmResult.gaewun?.late || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-blue)" },
+            { id: "daeun", t: "대운 분석", d: { content: llmResult.daeun } },
+            { id: "sinsal", t: "신살 분석", d: { content: llmResult.sinsal } }
+          ],
           correctedTimeInfo: timeInfo
         };
 
-        setBazi(resultData.bazi);
-        setReading(resultData.reading);
-        localStorage.setItem(cacheKey, JSON.stringify(resultData));
+        setBazi(baziData);
+        setReading(resultData);
+        localStorage.setItem(cacheKey, JSON.stringify({ bazi: baziData, reading: resultData, correctedTimeInfo: timeInfo }));
         setIsLoading(false);
 
-    } catch (error: any) {
-        console.error(error);
-        alert(error.message || "오류가 발생했습니다.");
+    } catch (e: any) {
+        console.error(e);
+        alert(e.message || "오류가 발생했습니다.");
         setIsLoading(false);
     }
   };
-
-  const RollingNumber = ({ value }: { value: number }) => {
-    return <>{value}</>;
+  const renderHighlightedText = (text: string) => {
+    if (!text || typeof text !== 'string') return text;
+    const ELEMENT_COLORS: Record<string, string> = {
+      '목(木)': '#81b29a', '화(火)': '#e07a5f', '토(土)': '#f2cc8f', '금(金)': '#C9A050', '수(水)': '#3d5a80'
+    };
+    return text.split('\n\n').map((para, i) => {
+      const isHeader = /^[\d\s]*[📍📅🔍💡🎯🏆💎✨]/.test(para.trim());
+      const cleanPara = para.replace(/\*\*(.*?)\*\*/g, '$1').replace(/<b>(.*?)<\/b>/g, '$1');
+      const parts = cleanPara.split(/(목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+      return (
+        <div key={i} style={{ 
+          marginBottom: isHeader ? "24px" : "16px", 
+          marginTop: isHeader && i > 0 ? "32px" : "0",
+          lineHeight: "1.9", fontSize: isHeader ? "1.2rem" : "1.05rem", fontWeight: isHeader ? "600" : "400",
+          color: isHeader ? "var(--accent-indigo)" : "var(--text-secondary)", background: isHeader ? "transparent" : "rgba(255, 255, 255, 0.4)",
+          padding: isHeader ? "0" : "16px 20px", borderRadius: "16px", border: isHeader ? "none" : "1px solid rgba(42, 54, 95, 0.05)", wordBreak: "keep-all"
+        }}>
+          {parts.map((part, j) => ELEMENT_COLORS[part] ? <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong> : part)}
+        </div>
+      );
+    });
   };
+
+  const renderInlineHighlights = (text: string) => {
+    if (!text || typeof text !== 'string') return text;
+    const ELEMENT_COLORS: Record<string, string> = {
+      '목(木)': '#81b29a', '화(火)': '#e07a5f', '토(土)': '#f2cc8f', '금(金)': '#C9A050', '수(수)': '#3d5a80'
+    };
+    const parts = text.replace(/\*\*/g, '').split(/(목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+    return parts.map((part, j) => ELEMENT_COLORS[part] ? <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong> : part);
+  };
+
+  const cleanAstrologyTerms = (text: any): any => {
+    if (!text) return text;
+    if (typeof text !== 'string') {
+      if (Array.isArray(text)) return text.map(cleanAstrologyTerms);
+      if (typeof text === 'object') {
+        const cleaned: any = {};
+        for (const key in text) cleaned[key] = cleanAstrologyTerms(text[key]);
+        return cleaned;
+      }
+      return text;
+    }
+    return text
+      .replace(/\*\*/g, '')
+      .replace(/\b(Metal|Wood|Water|Fire|Earth)\b/g, (match) => {
+        const elementMap: Record<string, string> = { 'Metal': '금(金)', 'Wood': '목(木)', 'Water': '수(水)', 'Fire': '화(火)', 'Earth': '토(土)' };
+        return elementMap[match] || match;
+      })
+      .replace(/(목|화|토|금|수|갑|을|병|정|무|기|경|신|임|계|자|축|인|묘|진|사|오|미|신|유|술|해)((?:\s*[\(（]?\s*[木火土金水甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]\s*[\)）\]]?)+)?/g, (match, kr, extras) => {
+        const elements = ['목', '화', '토', '금', '수'];
+        const map: Record<string, string> = { '목': '木', '화': '火', '토': '土', '금': '金', '수': '水' };
+        if (!extras) return match;
+        return elements.includes(kr) ? `${kr}(${map[kr] || ''})` : kr;
+      });
+  };
+
+  const RollingNumber = ({ value }: { value: number }) => <>{value}</>;
 
   return (
     <main ref={topRef} style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
@@ -884,3 +829,4 @@ export default function SajuPage() {
     </main>
   );
 }
+
