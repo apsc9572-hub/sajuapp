@@ -703,7 +703,7 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
       const finalReading: Record<string, any> = {};
 
       if (["daily", "monthly", "yearly"].includes(typeParam)) {
-        currentType.keys.forEach((key: string) => {
+        for (const key of currentType.keys) {
           const raw = llmResult[key];
           if (typeof raw === 'string') {
             finalReading[key] = { content: raw, score: 80, gaewun: { color: "금색", direction: "동쪽", element: "금(金)", item: "장신구" } };
@@ -715,15 +715,17 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
               scores: raw.scores || null
             };
           } else {
-            finalReading[key] = { content: "세부 분석 정보를 생성하지 못했습니다.", score: 70, gaewun: { color: "흰색", direction: "서쪽", element: "수(水)", item: "금속 장신구" } };
+            throw new Error("기운을 완벽하게 읽어내지 못했습니다. 다시 한 번 분석을 시도해 주세요.");
           }
-        });
+        }
       } else {
-        currentType.keys.forEach((key: string) => {
-          // Fallback check: if the AI returned it wrapped in 'wealth_stages' (old behavior) or directly
+        for (const key of currentType.keys) {
           const raw = llmResult[key] || (llmResult.wealth_stages && llmResult.wealth_stages[key]);
-          finalReading[key] = raw || "분석 정보를 가져오지 못했습니다.";
-        });
+          if (!raw) {
+            throw new Error("기운을 완벽하게 읽어내지 못했습니다. 다시 한 번 분석을 시도해 주세요.");
+          }
+          finalReading[key] = raw;
+        }
       }
 
       if (typeParam === "wealth" || typeParam === "health" || typeParam === "love") {

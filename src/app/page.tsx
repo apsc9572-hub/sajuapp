@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Sparkles, MoonStar, BookOpen, Scroll, Navigation, Coins, Briefcase, Activity, Heart } from "lucide-react";
 import Link from "next/link";
@@ -18,6 +19,46 @@ export default function Home() {
     { title: "건강운", icon: <Activity className="w-8 h-8" strokeWidth={1.2} />, color: "#81b29a", link: "/fortune?type=health" },
     { title: "애정운", icon: <Heart className="w-8 h-8" strokeWidth={1.2} />, color: "var(--accent-cherry)", link: "/fortune?type=love" },
   ];
+  const [clickCount, setClickCount] = useState(0);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleDevReset = () => {
+    setClickCount((prev) => {
+      const newCount = prev + 1;
+      if (newCount >= 5) {
+        // Clear storages
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Clear all cookies
+        const cookies = document.cookie.split("; ");
+        for (let c = 0; c < cookies.length; c++) {
+          const d = window.location.hostname.split(".");
+          while (d.length > 0) {
+            const cookieBase = encodeURIComponent(cookies[c].split(";")[0].split("=")[0]) + '=; expires=Thu, 01-Jan-1970 00:00:01 GMT; domain=' + d.join('.') + ' ;path=';
+            const p = window.location.pathname.split('/');
+            document.cookie = cookieBase + '/';
+            while (p.length > 0) {
+              document.cookie = cookieBase + p.join('/');
+              p.pop();
+            }
+            d.shift();
+          }
+        }
+        
+        alert("개발자 모드: 모든 캐시 및 쿠키가 초기화되었습니다.");
+        window.location.reload();
+        return 0;
+      }
+      
+      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = setTimeout(() => {
+        setClickCount(0);
+      }, 2000);
+      
+      return newCount;
+    });
+  };
 
   return (
     <main style={{ width: "100%", minHeight: "100vh", position: "relative", overflow: "hidden", background: "var(--bg-primary)" }}>
@@ -48,6 +89,7 @@ export default function Home() {
           >
             <div style={{ position: "relative", marginBottom: "20px" }}>
               <motion.div
+                onClick={handleDevReset}
                 animate={{ 
                   y: [0, -5, 0],
                   scale: [1, 1.02, 1]
@@ -68,7 +110,8 @@ export default function Home() {
                   zIndex: 2,
                   boxShadow: "0 10px 40px rgba(42, 54, 95, 0.12)",
                   border: "2px solid rgba(248, 215, 218, 0.5)",
-                  overflow: "hidden"
+                  overflow: "hidden",
+                  cursor: "pointer"
                 }}
               >
                 <Image 

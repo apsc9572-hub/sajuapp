@@ -555,6 +555,11 @@ export default function SajuPage() {
         let llmResultRaw = await apiRes.json();
         const llmResult = cleanAstrologyTerms(llmResultRaw);
 
+        // Validation to prevent caching incomplete or failed AI analysis
+        if (!llmResult || !llmResult.general || !llmResult.early || !llmResult.youth || typeof llmResult.general !== 'string') {
+          throw new Error("명운의 기운을 완벽하게 읽어내지 못했습니다. 다시 한 번 분석을 시도해 주세요.");
+        }
+
         const resultData = {
           bazi: baziData,
           reading: {
