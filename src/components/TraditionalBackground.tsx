@@ -86,7 +86,7 @@ function InkMist() {
 
 export default function TraditionalBackground() {
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}>
+    <div style={{ position: "fixed", inset: 0, zIndex: -1, pointerEvents: "none" }}>
       {/* 생성된 한복 수묵화 배경 이미지 */}
       <div 
         style={{ 
@@ -113,7 +113,7 @@ export default function TraditionalBackground() {
       />
       
       {/* 3D 오버레이 Canvas - 꽃잎 및 안개 효과 */}
-      <div style={{ position: "absolute", inset: 0, opacity: 0.6 }}>
+      <div style={{ position: "absolute", inset: 0, opacity: 0.6, pointerEvents: "none" }}>
         <Canvas camera={{ position: [0, 0, 5] }} dpr={[1, 1.5]} gl={{ antialias: false }}>
           <ambientLight intensity={1.5} />
           <InkMist />

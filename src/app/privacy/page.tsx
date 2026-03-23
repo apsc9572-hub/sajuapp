@@ -11,7 +11,7 @@ export default function PrivacyPage() {
       <TraditionalBackground />
       
       <div style={{ 
-        maxWidth: "480px", 
+        maxWidth: "360px", 
         margin: "0 auto", 
         minHeight: "100vh", 
         position: "relative", 
@@ -35,31 +35,37 @@ export default function PrivacyPage() {
             >
               CHEONG-A MAE-DANG
             </motion.div>
-            <h1 style={{ fontSize: "2.2rem", fontWeight: "700", color: "var(--accent-indigo)", letterSpacing: "0.05em", fontFamily: "'Nanum Myeongjo', serif" }}>
+            <h1 style={{ fontSize: "1.8rem", fontWeight: "700", color: "var(--accent-indigo)", letterSpacing: "0.05em", fontFamily: "'Nanum Myeongjo', serif" }}>
               개인정보처리방침
             </h1>
             <div style={{ width: "32px", height: "1px", background: "var(--accent-gold)", margin: "16px auto" }}></div>
           </div>
 
-          <div style={{ fontSize: "0.95rem", lineHeight: "1.8", color: "var(--text-primary)", display: "flex", flexDirection: "column", gap: "32px", wordBreak: "keep-all" }}>
+          <div style={{ fontSize: "0.85rem", lineHeight: "1.8", color: "var(--text-primary)", display: "flex", flexDirection: "column", gap: "28px", wordBreak: "keep-all" }}>
             <section>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>1. 개인정보의 수집 및 이용 목적</h2>
-              <p style={{ opacity: 0.8 }}>'청아매당'은 사용자의 사주 분석 및 운세 결과 제공을 위해 최소한의 정보(생년월일, 태어난 시간, 성별)를 수집합니다. 수집된 정보는 오직 분석 목적으로만 사용되며 다른 용도로 활용되지 않습니다.</p>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>1. 개인정보의 수집 항목 및 방법</h2>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>회사는 원활한 사주 분석 서비스를 제공하기 위해 아래와 같은 최소한의 개인정보를 수집합니다.</p>
+              <ul style={{ opacity: 0.8, fontSize: "0.8rem", paddingLeft: "20px", margin: 0 }}>
+                <li>필수항목: 이름, 생년월일(양력/음력), 출생시간, 성별, 출생지(도시)</li>
+                <li>수집방법: 이용자가 서비스 내 입력 폼에 직접 입력</li>
+              </ul>
             </section>
 
             <section>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>2. 개인정보의 보유 및 이용 기간</h2>
-              <p style={{ opacity: 0.8 }}>사용자가 입력한 데이터는 분석 결과 제공 즉시 파기되거나, 브라우저의 세션 동안에만 임시로 보관됩니다. 별도의 서버에 개인 정보를 영구 저장하지 않습니다.</p>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>2. 개인정보의 수집 및 이용 목적</h2>
+              <p style={{ opacity: 0.8 }}>회사는 수집한 개인정보를 오직 <strong>사용자 맞춤형 사주 분석 결과 생성 및 서비스 제공</strong> 목적을 위해서만 이용합니다. 수집된 정보는 마케팅 등 다른 용도로 활용되지 않습니다.</p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>3. 제3자 제공 및 쿠키 사용</h2>
-              <p style={{ opacity: 0.8 }}>본 서비스는 구글 애드센스(Google AdSense) 등 외부 광고 플랫폼을 사용하며, 광고 최적화를 위해 쿠키(Cookie)를 사용할 수 있습니다. 사용자는 브라우저 설정을 통해 쿠키 수집을 거부할 수 있습니다.</p>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>3. 개인정보의 보유 및 파기</h2>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>1. 사용자가 입력한 개인정보는 일회성 분석 서비스의 경우 분석 완료 후 즉시 파기하거나, 관련 법령에 따라 최장 1년 이내에 파기합니다.</p>
+              <p style={{ opacity: 0.8 }}>2. 개인정보의 파기는 복구 및 재생이 불가능한 기술적 방법을 사용하여 안전하게 삭제합니다.</p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>4. 문의처</h2>
-              <p style={{ opacity: 0.8 }}>서비스 이용 중 개인정보 관련 문의는 <span style={{ fontWeight: "600", color: "var(--accent-indigo)" }}>psc7516@gmail.com</span>으로 연락 주시기 바랍니다.</p>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>4. 이용자의 권리 및 문의처</h2>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>이용자는 언제든지 자신의 개인정보에 대해 열람, 정정 및 삭제를 요청할 수 있습니다.</p>
+              <p style={{ opacity: 0.8 }}>문의사항은 대표 이메일 <span style={{ fontWeight: "600", color: "var(--accent-indigo)" }}>psc7516@gmail.com</span>으로 연락 주시기 바랍니다.</p>
             </section>
           </div>
 

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, ArrowUp, BookOpen, Clock, CalendarDays, Sparkles, MapPin, Coins, Heart, Briefcase, Activity, User, Star, Scroll } from "lucide-react";
+import { ArrowLeft, ArrowUp, BookOpen, Clock, CalendarDays, Sparkles, MapPin, Coins, Heart, Briefcase, Activity, User, Star, Scroll, Copy, Check } from "lucide-react";
 import { calculateSaju } from "ssaju";
 import TraditionalBackground from "@/components/TraditionalBackground";
 import Disclaimer from "@/components/Disclaimer";
@@ -50,13 +50,13 @@ function FiveElementsDonut({ elements }: { elements: any[] }) {
           })}
         </svg>
         <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", width: "100%" }}>
-          <div style={{ fontSize: "0.6rem", color: "var(--text-secondary)" }}>나의 기운</div>
+          <div style={{ fontSize: "0.6rem", color: "var(--text-secondary)" }}>?섏쓽 湲곗슫</div>
           <motion.div 
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             style={{ fontSize: "0.8rem", fontWeight: "bold", color: "var(--accent-gold)" }}
           >
-            오행
+            ?ㅽ뻾
           </motion.div>
         </div>
       </div>
@@ -122,57 +122,57 @@ export default function SajuPage() {
   const [time, setTime] = useState("14:30");
   const [isLunar, setIsLunar] = useState(false);
   const [gender, setGender] = useState("M");
-  const [birthCity, setBirthCity] = useState("서울");
+  const [birthCity, setBirthCity] = useState("?쒖슱");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
-  // 도시별 경도/LMT 보정 데이터베이스
+  // ?꾩떆蹂?寃쎈룄/LMT 蹂댁젙 ?곗씠?곕쿋?댁뒪
   const cityDataMap: Record<string, { region: string; energy: string; longitude: number; lmtOffset: number }> = {
-    "서울": { region: "산/강", energy: "수도의 중심에 서린 권위와 영민함", longitude: 127.0, lmtOffset: -32 },
-    "인천": { region: "바다", energy: "푸른 바다의 역동성과 개방적인 에너지", longitude: 126.7, lmtOffset: -33 },
-    "수원": { region: "평야", energy: "수원 화성의 정기와 조화로운 기운", longitude: 127.0, lmtOffset: -32 },
-    "성남": { region: "산/평야", energy: "도시의 현대적 흐름과 안정적인 터전", longitude: 127.1, lmtOffset: -32 },
-    "고양": { region: "강/평야", energy: "일산 호수공원의 평온함과 개방적 에너지", longitude: 126.8, lmtOffset: -33 },
-    "용인": { region: "산/평야", energy: "수지/기흥의 조화롭고 부드러운 기운", longitude: 127.2, lmtOffset: -31 },
-    "부천": { region: "평야", energy: "문화의 중심지로서 만인이 모이는 기운", longitude: 126.8, lmtOffset: -33 },
-    "안산": { region: "바다/강", energy: "서해의 기상을 품은 포용과 역동", longitude: 126.8, lmtOffset: -33 },
-    "남양주": { region: "산/강", energy: "다산 정약용의 지혜와 수려한 자연미", longitude: 127.2, lmtOffset: -31 },
-    "안양": { region: "산/평야", energy: "관악산 아래 곧고 바른 선비의 정기", longitude: 126.9, lmtOffset: -32 },
-    "화성": { region: "바다/평야", energy: "서해 바다와 비옥한 대지의 풍요로움", longitude: 126.8, lmtOffset: -33 },
-    "평택": { region: "평야/항구", energy: "세계로 뻗어가는 무역과 개척의 정기", longitude: 127.1, lmtOffset: -32 },
-    "의정부": { region: "산/군사", energy: "수호의 정신과 굳건한 평화의 기운", longitude: 127.0, lmtOffset: -32 },
-    "파주": { region: "강/평야", energy: "임진강의 흐름과 높은 기상의 예술혼", longitude: 126.8, lmtOffset: -33 },
-    "시흥": { region: "바다/평야", energy: "갯골의 생명력과 소금처럼 알찬 기운", longitude: 126.8, lmtOffset: -33 },
-    "김포": { region: "강/바다", energy: "한강 하구의 풍요와 새로운 기회의 터", longitude: 126.7, lmtOffset: -33 },
-    "광명": { region: "산/평야", energy: "빛의 도시답게 밝고 명랑한 지혜의 정기", longitude: 126.9, lmtOffset: -32 },
-    "광주(경기)": { region: "산/강", energy: "남한산성의 호국 정신과 맑은 자연미", longitude: 127.2, lmtOffset: -31 },
-    "군포": { region: "산/평야", energy: "수리산의 기품과 조화로운 삶의 기운", longitude: 126.9, lmtOffset: -32 },
-    "이천": { region: "평야", energy: "도자기의 예술성과 비옥한 쌀의 풍요", longitude: 127.4, lmtOffset: -30 },
-    "오산": { region: "평야/강", energy: "오산천의 여유와 따뜻한 포용력", longitude: 127.1, lmtOffset: -32 },
-    "하남": { region: "산/강", energy: "검단산의 기세와 한강의 평온함", longitude: 127.2, lmtOffset: -31 },
-    "양주": { region: "산/평야", energy: "양주 별산대의 풍류와 전통의 기운", longitude: 127.0, lmtOffset: -32 },
-    "구리": { region: "산/강", energy: "아차산과 한강이 만나는 길목의 행운", longitude: 127.1, lmtOffset: -32 },
-    "안성": { region: "평야/예술", energy: "안성마춤의 장인 정신과 풍류", longitude: 127.2, lmtOffset: -31 },
-    "포천": { region: "산/호수", energy: "백운산과 산정호수의 수려한 기품", longitude: 127.2, lmtOffset: -31 },
-    "의왕": { region: "산/호수", energy: "백운호수의 평온과 인자한 기운", longitude: 127.0, lmtOffset: -32 },
-    "여주": { region: "평야/강", energy: "세종대왕의 덕과 신륵사의 평화", longitude: 127.6, lmtOffset: -30 },
-    "동두천": { region: "산", energy: "소요산의 기백과 강직한 기운", longitude: 127.1, lmtOffset: -32 },
-    "과천": { region: "산", energy: "청계산의 맑음과 지혜로운 선비의 터", longitude: 127.0, lmtOffset: -32 },
-    "가평": { region: "산/강", energy: "자라섬의 싱그러움과 맑은 휴식", longitude: 127.5, lmtOffset: -30 },
-    "양평": { region: "산/강", energy: "용문산과 두물머리의 신성한 기운", longitude: 127.5, lmtOffset: -30 },
-    "연천": { region: "강/산", energy: "한탄강의 역동성과 유구한 대지의 정기", longitude: 127.1, lmtOffset: -32 },
-    "부산": { region: "바다", energy: "거친 파도를 품은 역동적인 해양 기운", longitude: 129.0, lmtOffset: -24 },
-    "대구": { region: "분지/화", energy: "뜨거운 열정과 곧은 선비의 기질", longitude: 128.6, lmtOffset: -26 },
-    "대전": { region: "평야/산", energy: "한반도 중심의 균형 잡힌 기운", longitude: 127.4, lmtOffset: -30 },
-    "광주": { region: "예술/풍류", energy: "풍부한 감수성과 예술적 끼", longitude: 126.9, lmtOffset: -32 },
-    "강릉": { region: "바다/산", energy: "동해의 깊은 푸름과 태백의 굳건함", longitude: 128.9, lmtOffset: -24 },
-    "제주": { region: "섬/바람", energy: "자유로운 영혼과 강인한 생명력", longitude: 126.5, lmtOffset: -34 },
-    "기타": { region: "대지", energy: "한반도의 고유한 생명력", longitude: 127.5, lmtOffset: -30 },
+    "?쒖슱": { region: "??媛?, energy: "?섎룄??以묒떖???쒕┛ 沅뚯쐞? ?곷???, longitude: 127.0, lmtOffset: -32 },
+    "?몄쿇": { region: "諛붾떎", energy: "?몃Ⅸ 諛붾떎????룞?깃낵 媛쒕갑?곸씤 ?먮꼫吏", longitude: 126.7, lmtOffset: -33 },
+    "?섏썝": { region: "?됱빞", energy: "?섏썝 ?붿꽦???뺢린? 議고솕濡쒖슫 湲곗슫", longitude: 127.0, lmtOffset: -32 },
+    "?깅궓": { region: "???됱빞", energy: "?꾩떆???꾨????먮쫫怨??덉젙?곸씤 ?곗쟾", longitude: 127.1, lmtOffset: -32 },
+    "怨좎뼇": { region: "媛??됱빞", energy: "?쇱궛 ?몄닔怨듭썝???됱삩?④낵 媛쒕갑???먮꼫吏", longitude: 126.8, lmtOffset: -33 },
+    "?⑹씤": { region: "???됱빞", energy: "?섏?/湲고씎??議고솕濡?퀬 遺?쒕윭??湲곗슫", longitude: 127.2, lmtOffset: -31 },
+    "遺泥?: { region: "?됱빞", energy: "臾명솕??以묒떖吏濡쒖꽌 留뚯씤??紐⑥씠??湲곗슫", longitude: 126.8, lmtOffset: -33 },
+    "?덉궛": { region: "諛붾떎/媛?, energy: "?쒗빐??湲곗긽???덉? ?ъ슜怨???룞", longitude: 126.8, lmtOffset: -33 },
+    "?⑥뼇二?: { region: "??媛?, energy: "?ㅼ궛 ?뺤빟?⑹쓽 吏?쒖? ?섎젮???먯뿰誘?, longitude: 127.2, lmtOffset: -31 },
+    "?덉뼇": { region: "???됱빞", energy: "愿?낆궛 ?꾨옒 怨㏐퀬 諛붾Ⅸ ?좊퉬???뺢린", longitude: 126.9, lmtOffset: -32 },
+    "?붿꽦": { region: "諛붾떎/?됱빞", energy: "?쒗빐 諛붾떎? 鍮꾩삦???吏???띿슂濡쒖?", longitude: 126.8, lmtOffset: -33 },
+    "?됲깮": { region: "?됱빞/??뎄", energy: "?멸퀎濡?六쀬뼱媛??臾댁뿭怨?媛쒖쿃???뺢린", longitude: 127.1, lmtOffset: -32 },
+    "?섏젙遺": { region: "??援곗궗", energy: "?섑샇???뺤떊怨?援녠굔???됲솕??湲곗슫", longitude: 127.0, lmtOffset: -32 },
+    "?뚯＜": { region: "媛??됱빞", energy: "?꾩쭊媛뺤쓽 ?먮쫫怨??믪? 湲곗긽???덉닠??, longitude: 126.8, lmtOffset: -33 },
+    "?쒗씎": { region: "諛붾떎/?됱빞", energy: "媛?낏???앸챸?κ낵 ?뚭툑泥섎읆 ?뚯갔 湲곗슫", longitude: 126.8, lmtOffset: -33 },
+    "源??: { region: "媛?諛붾떎", energy: "?쒓컯 ?섍뎄???띿슂? ?덈줈??湲고쉶????, longitude: 126.7, lmtOffset: -33 },
+    "愿묐챸": { region: "???됱빞", energy: "鍮쏆쓽 ?꾩떆?듦쾶 諛앷퀬 紐낅옉??吏?쒖쓽 ?뺢린", longitude: 126.9, lmtOffset: -32 },
+    "愿묒＜(寃쎄린)": { region: "??媛?, energy: "?⑦븳?곗꽦???멸뎅 ?뺤떊怨?留묒? ?먯뿰誘?, longitude: 127.2, lmtOffset: -31 },
+    "援고룷": { region: "???됱빞", energy: "?섎━?곗쓽 湲고뭹怨?議고솕濡쒖슫 ?띠쓽 湲곗슫", longitude: 126.9, lmtOffset: -32 },
+    "?댁쿇": { region: "?됱빞", energy: "?꾩옄湲곗쓽 ?덉닠?깃낵 鍮꾩삦??????띿슂", longitude: 127.4, lmtOffset: -30 },
+    "?ㅼ궛": { region: "?됱빞/媛?, energy: "?ㅼ궛泥쒖쓽 ?ъ쑀? ?곕쑜???ъ슜??, longitude: 127.1, lmtOffset: -32 },
+    "?섎궓": { region: "??媛?, energy: "寃?⑥궛??湲곗꽭? ?쒓컯???됱삩??, longitude: 127.2, lmtOffset: -31 },
+    "?묒＜": { region: "???됱빞", energy: "?묒＜ 蹂꾩궛????띾쪟? ?꾪넻??湲곗슫", longitude: 127.0, lmtOffset: -32 },
+    "援щ━": { region: "??媛?, energy: "?꾩감?곌낵 ?쒓컯??留뚮굹??湲몃ぉ???됱슫", longitude: 127.1, lmtOffset: -32 },
+    "?덉꽦": { region: "?됱빞/?덉닠", energy: "?덉꽦留덉땄???μ씤 ?뺤떊怨??띾쪟", longitude: 127.2, lmtOffset: -31 },
+    "?ъ쿇": { region: "???몄닔", energy: "諛깆슫?곌낵 ?곗젙?몄닔???섎젮??湲고뭹", longitude: 127.2, lmtOffset: -31 },
+    "?섏솗": { region: "???몄닔", energy: "諛깆슫?몄닔???됱삩怨??몄옄??湲곗슫", longitude: 127.0, lmtOffset: -32 },
+    "?ъ＜": { region: "?됱빞/媛?, energy: "?몄쥌??뺤쓽 ?뺢낵 ?좊Ⅵ?ъ쓽 ?됲솕", longitude: 127.6, lmtOffset: -30 },
+    "?숇몢泥?: { region: "??, energy: "?뚯슂?곗쓽 湲곕갚怨?媛뺤쭅??湲곗슫", longitude: 127.1, lmtOffset: -32 },
+    "怨쇱쿇": { region: "??, energy: "泥?퀎?곗쓽 留묒쓬怨?吏?쒕줈???좊퉬????, longitude: 127.0, lmtOffset: -32 },
+    "媛??: { region: "??媛?, energy: "?먮씪?ъ쓽 ?깃렇?ъ?怨?留묒? ?댁떇", longitude: 127.5, lmtOffset: -30 },
+    "?묓룊": { region: "??媛?, energy: "?⑸Ц?곌낵 ?먮Ъ癒몃━???좎꽦??湲곗슫", longitude: 127.5, lmtOffset: -30 },
+    "?곗쿇": { region: "媛???, energy: "?쒗깂媛뺤쓽 ??룞?깃낵 ?좉뎄???吏???뺢린", longitude: 127.1, lmtOffset: -32 },
+    "遺??: { region: "諛붾떎", energy: "嫄곗튇 ?뚮룄瑜??덉? ??룞?곸씤 ?댁뼇 湲곗슫", longitude: 129.0, lmtOffset: -24 },
+    "?援?: { region: "遺꾩?/??, energy: "?④굅???댁젙怨?怨㏃? ?좊퉬??湲곗쭏", longitude: 128.6, lmtOffset: -26 },
+    "???: { region: "?됱빞/??, energy: "?쒕컲??以묒떖??洹좏삎 ?≫엺 湲곗슫", longitude: 127.4, lmtOffset: -30 },
+    "愿묒＜": { region: "?덉닠/?띾쪟", energy: "?띾???媛먯닔?깃낵 ?덉닠????, longitude: 126.9, lmtOffset: -32 },
+    "媛뺣쫱": { region: "諛붾떎/??, energy: "?숉빐??源딆? ?몃쫫怨??쒕갚??援녠굔??, longitude: 128.9, lmtOffset: -24 },
+    "?쒖＜": { region: "??諛붾엺", energy: "?먯쑀濡쒖슫 ?곹샎怨?媛뺤씤???앸챸??, longitude: 126.5, lmtOffset: -34 },
+    "湲고?": { region: "?吏", energy: "?쒕컲?꾩쓽 怨좎쑀???앸챸??, longitude: 127.5, lmtOffset: -30 },
   };
 
   const toKr = (str: string) => {
     const map: Record<string, string> = {
-      "甲": "갑", "乙": "을", "丙": "병", "丁": "정", "戊": "무", "己": "기", "庚": "경", "辛": "신", "壬": "임", "癸": "계",
-      "子": "자", "丑": "축", "寅": "인", "卯": "묘", "辰": "진", "巳": "사", "午": "오", "未": "미", "申": "신", "酉": "유", "戌": "술", "亥": "해"
+      "??: "媛?, "阿?: "??, "訝?: "蹂?, "訝?: "??, "??: "臾?, "藥?: "湲?, "佯?: "寃?, "渦?: "??, "鶯?: "??, "??: "怨?,
+      "耶?: "??, "訝?: "異?, "野?: "??, "??: "臾?, "渦?: "吏?, "藥?: "??, "??: "??, "??: "誘?, "??: "??, "??: "??, "??: "??, "雅?: "??
     };
     return str.split('').map(c => map[c] || c).join('');
   };
@@ -185,17 +185,40 @@ export default function SajuPage() {
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [wisdomIdx, setWisdomIdx] = useState(0);
   const wisdomQuotes = [
-    "하늘의 기운을 살피고 있습니다...",
-    "명식의 조화를 분석하는 중입니다...",
-    "과거와 미래의 흐름을 읽어내고 있습니다...",
-    "당신만의 특별한 운명을 정리 중입니다...",
-    "거의 다 되었습니다. 잠시만 기다려주세요..."
+    "?섎뒛??湲곗슫???댄뵾怨??덉뒿?덈떎...",
+    "紐낆떇??議고솕瑜??댄뵾??以묒엯?덈떎...",
+    "怨쇨굅? 誘몃옒???먮쫫???쎌뼱?닿퀬 ?덉뒿?덈떎...",
+    "?뱀떊留뚯쓽 ?밸퀎???대챸???뺣━ 以묒엯?덈떎...",
+    "嫄곗쓽 ???섏뿀?듬땲?? ?좎떆留?湲곕떎?ㅼ＜?몄슂..."
   ];
   const [correctedTimeInfo, setCorrectedTimeInfo] = useState<any>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
-  // 데이터 영속성 유지 (Sync with localStorage)
+  const [clickCount, setClickCount] = useState(0);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleDevReset = () => {
+    setClickCount((prev) => {
+      const newCount = prev + 1;
+      if (newCount >= 5) {
+        localStorage.clear();
+        sessionStorage.clear();
+        document.cookie.split("; ").forEach((c) => {
+          const cookieName = encodeURIComponent(c.split("=")[0]);
+          document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        });
+        alert("媛쒕컻??紐⑤뱶: 紐⑤뱺 罹먯떆 諛?荑좏궎媛 珥덇린?붾릺?덉뒿?덈떎.");
+        window.location.reload();
+        return 0;
+      }
+      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = setTimeout(() => setClickCount(0), 2000);
+      return newCount;
+    });
+  };
+
+  // ?곗씠???곸냽???좎? (Sync with localStorage)
   useEffect(() => {
     const savedInfo = localStorage.getItem("user_birth_profile");
     if (savedInfo) {
@@ -224,10 +247,10 @@ export default function SajuPage() {
   }, [isLoading, bazi, reading]);
 
   const loadingTexts = [
-    "우주의 기운을 모으는 중...",
-    "타고난 명식을 분석하고 있습니다...",
-    "당신만을 위한 운명의 흐름을 읽어내는 중...",
-    "거의 다 왔어요, 문장을 정리하고 있습니다..."
+    "?곗＜??湲곗슫??紐⑥쑝??以?..",
+    "?怨좊궃 紐낆떇???댄뵾怨??덉뒿?덈떎...",
+    "?뱀떊留뚯쓣 ?꾪븳 ?대챸???먮쫫???쎌뼱?대뒗 以?..",
+    "嫄곗쓽 ???붿뼱?? 臾몄옣???뺣━?섍퀬 ?덉뒿?덈떎..."
   ];
 
   useEffect(() => {
@@ -274,8 +297,7 @@ export default function SajuPage() {
     setReading(null);
     setIsCached(false);
 
-    // 즉시 결과/로딩 영역으로 스크롤
-    setTimeout(() => {
+    // 利됱떆 寃곌낵/濡쒕뵫 ?곸뿭?쇰줈 ?ㅽ겕濡?    setTimeout(() => {
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
 
@@ -300,7 +322,7 @@ export default function SajuPage() {
         const [year, month, day] = date.split("-").map(Number);
         const [hour, min] = time.split(":").map(Number);
 
-        const cityData = cityDataMap[birthCity] || cityDataMap["기타"];
+        const cityData = cityDataMap[birthCity] || cityDataMap["湲고?"];
         const offsetMin = cityData.lmtOffset;
         const totalMinutes = hour * 60 + min + offsetMin;
         
@@ -322,14 +344,15 @@ export default function SajuPage() {
 
         const sajuRes = calculateSaju({
           year, month, day: correctedDay, hour: correctedHour, minute: correctedMin,
-          calendar: isLunar ? "lunar" : "solar"
+          calendar: isLunar ? "lunar" : "solar",
+          gender: gender === "M" ? "?? : "??
         });
 
-        if (!sajuRes) throw new Error("사주 산출에 실패했습니다.");
+        if (!sajuRes) throw new Error("?ъ＜ ?곗텧???ㅽ뙣?덉뒿?덈떎.");
 
         const HANJA_TO_KR: Record<string, string> = {
-          '甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계',
-          '子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해'
+          '??:'媛?,'阿?:'??,'訝?:'蹂?,'訝?:'??,'??:'臾?,'藥?:'湲?,'佯?:'寃?,'渦?:'??,'鶯?:'??,'??:'怨?,
+          '耶?:'??,'訝?:'異?,'野?:'??,'??:'臾?,'渦?:'吏?,'藥?:'??,'??:'??,'??:'誘?,'??:'??,'??:'??,'??:'??,'雅?:'??
         };
         const toKrFn = (s: string) => s.split('').map(c => HANJA_TO_KR[c] ?? c).join('');
 
@@ -346,73 +369,163 @@ export default function SajuPage() {
         };
 
         const getElementFromChar = (char: string) => {
-          if (['甲', '乙', '寅', '卯'].includes(char)) return '목';
-          if (['丙', '丁', '巳', '午'].includes(char)) return '화';
-          if (['戊', '己', '辰', '戌', '丑', '미'].includes(char)) return '토';
-          if (['庚', '辛', '申', '酉'].includes(char)) return '금';
-          if (['壬', '癸', '亥', '子'].includes(char)) return '수';
-          return '토';
+          if (['??, '阿?, '野?, '??].includes(char)) return '紐?;
+          if (['訝?, '訝?, '藥?, '??].includes(char)) return '??;
+          if (['??, '藥?, '渦?, '??, '訝?, '誘?].includes(char)) return '??;
+          if (['佯?, '渦?, '??, '??].includes(char)) return '湲?;
+          if (['鶯?, '??, '雅?, '耶?].includes(char)) return '??;
+          return '??;
         };
 
         const chars = [yearStr[0], yearStr[1], monthStr[0], monthStr[1], dayStr[0], dayStr[1], timeStr[0], timeStr[1]];
-        const counts: Record<string, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 };
+        const counts: Record<string, number> = { 紐? 0, ?? 0, ?? 0, 湲? 0, ?? 0 };
         chars.forEach(ch => { counts[getElementFromChar(ch)]++; });
         const dmElem = getElementFromChar(dayStr[0]);
-        const jaeseongElem = { 목:'토', 화:'금', 토:'수', 금:'목', 수:'화' }[dmElem] || '토';
+        const jaeseongElem = { 紐?'??, ??'湲?, ??'??, 湲?'紐?, ??'?? }[dmElem] || '??;
+
+        const currentYear = parseFloat(process.env.NEXT_PUBLIC_DEBUG_YEAR || "2026");
+        const koreanAge = currentYear - year + 1;
 
         const sajuAnalysisJson = {
-            user_info: { gender: gender === "M" ? "male" : "female", day_master: `${dayStr[0]}(${dmElem})` },
-            elements_ratio: { Wood: counts['목'], Fire: counts['화'], Earth: counts['토'], Metal: counts['금'], Water: counts['수'] },
-            core_格: sajuRes.advanced.geukguk,
-            shinsal: { lucky: sajuRes.advanced.sinsal.gilsin || [], caution: sajuRes.advanced.sinsal.hyungsin || [] }
+            user_info: { 
+              gender: gender === "M" ? "?⑥꽦" : "?ъ꽦", 
+              birth_year: year,
+              current_age: koreanAge,
+              day_master: `${dayStr[0]}(${dmElem})` 
+            },
+            elements_ratio: { Wood: counts['紐?], Fire: counts['??], Earth: counts['??], Metal: counts['湲?], Water: counts['??] },
+            core_?? sajuRes.advanced.geukguk,
+            gongmang: sajuRes.gongmang.branchesKo.join(', '),
+            daeun_direction: sajuRes.daeun.basis.direction === "forward" ? "?쒗뻾(?뺣갑??" : "??뻾(??갑??",
+            lucky_elements: sajuRes.advanced.yongsin.join(', '),
+            shinsal: { lucky: sajuRes.advanced.sinsal.gilsin || [], caution: sajuRes.advanced.sinsal.hyungsin || [] },
+            daeun_sequence: sajuRes.daeun.list.map((d: any) => {
+              const koreanAge = d.startAge + 1;
+              return `${koreanAge}??${koreanAge + 9}?? ${d.ganzhi}(${d.stemTenGod}/${d.branchTenGod})`;
+            }).slice(0, 8),
+            current_daeun: (() => {
+                const current = sajuRes.daeun.list.find((d: any) => (koreanAge - 1) >= d.startAge && (koreanAge - 1) <= d.endAge);
+                return current ? `${current.ganzhi}(${current.stemTenGod}/${current.branchTenGod})` : "?뺣낫 ?놁쓬";
+            })(),
+            daeun_chung_check: (() => {
+                const current = sajuRes.daeun.list.find((d: any) => (koreanAge - 1) >= d.startAge && (koreanAge - 1) <= d.endAge);
+                if (!current) return "遺꾩꽍 遺덇?";
+                
+                const checkChung = (g1: string, g2: string) => {
+                    const branchChung: Record<string, string> = {
+                      '??: '??, '??: '??, '異?: '誘?, '誘?: '異?, '??: '??, '??: '??,
+                      '臾?: '??, '??: '臾?, '吏?: '??, '??: '吏?, '??: '??, '??: '??
+                    };
+                    return branchChung[g1[1]] === g2[1];
+                };
+
+                const yearClashes = sajuRes.seyun
+                    .filter(s => s.year >= 2026 && s.year <= 2028)
+                    .filter(s => checkChung(current.ganzhi, s.ganzhi))
+                    .map(s => `${s.year}??${s.ganzhi})`);
+
+                const monthClashes = sajuRes.wolun
+                    .filter(w => checkChung(current.ganzhi, w.ganzhi))
+                    .map(w => `${w.month}??${w.ganzhi})`);
+
+                return {
+                    is_chung_active: yearClashes.length > 0 || monthClashes.length > 0,
+                    year_clashes: yearClashes.join(', ') || "?놁쓬",
+                    month_clashes: monthClashes.join(', ') || "?놁쓬",
+                    desc: "?꾩옱 ??닿낵 ?몄슫/?붿슫??吏吏媛 ?쒕줈 異?亦??섎뒗 愿怨꾩엯?덈떎. ?대뒗 蹂?붿? 異⑸룎, ?뱀? ?덇린移?紐삵븳 ?ш굔???붿떆?섎?濡??좎쓽 源딄쾶 ??댄빐???⑸땲??"
+                };
+            })(),
+            tenGod_lookup: (() => {
+              const dmChar = dayStr[0];
+              const branchToStem: Record<string, string> = {
+                '??: '怨?, '異?: '湲?, '??: '媛?, '臾?: '??, '吏?: '臾?, '??: '蹂?,
+                '??: '??, '誘?: '湲?, '??: '寃?, '??: '??, '??: '臾?, '??: '??
+              };
+              const stems: Record<string, { element: string, polarity: string }> = {
+                '媛?: { element: '紐?, polarity: '+' }, '??: { element: '紐?, polarity: '-' },
+                '蹂?: { element: '??, polarity: '+' }, '??: { element: '??, polarity: '-' },
+                '臾?: { element: '??, polarity: '+' }, '湲?: { element: '??, polarity: '-' },
+                '寃?: { element: '湲?, polarity: '+' }, '??: { element: '湲?, polarity: '-' },
+                '??: { element: '??, polarity: '+' }, '怨?: { element: '??, polarity: '-' }
+              };
+              const elements = ['紐?, '??, '??, '湲?, '??];
+              
+              const calculateTenGod = (target: string) => {
+                const me = stems[dmChar];
+                const you = stems[target];
+                if (!me || !you) return "";
+                const diff = (elements.indexOf(you.element) - elements.indexOf(me.element) + 5) % 5;
+                const samePolarity = me.polarity === you.polarity;
+                if (diff === 0) return samePolarity ? "鍮꾧껄" : "寃곸옱";
+                if (diff === 1) return samePolarity ? "?앹떊" : "?곴?";
+                if (diff === 2) return samePolarity ? "?몄옱" : "?뺤옱";
+                if (diff === 3) return samePolarity ? "?멸?" : "?뺢?";
+                if (diff === 4) return samePolarity ? "?몄씤" : "?뺤씤";
+                return "";
+              };
+              return {
+                stems_mapping: Object.keys(branchToStem).map(b => branchToStem[b]).filter((v, i, a) => a.indexOf(v) === i).map(s => `${s}(${calculateTenGod(s)})`).join(', '),
+                branches_mapping: Object.keys(branchToStem).map(b => `${b}(${calculateTenGod(branchToStem[b])})`).join(', '),
+                note: `* ?쇨컙 ${dmChar} 湲곗? 紐낇솗????떊 留ㅽ븨?낅땲?? ?덈? ?由ш쾶 ?좎텛?섏? 留덉꽭??`
+              };
+            })()
         };
 
         const generateSystemPromptString = (json: any) => {
-          return `당신은 청아매당(淸雅梅堂)의 최고 명리학 권위자입니다. 다음 사주 데이터를 기반으로 인생 총운, 재물운, 그리고 인생의 4단계를 에세이 형식으로 길게 풀이해 주세요.
-단순히 성격을 나열하는 뻔한 풀이는 절대 금지합니다. 사주의 기운이 어떻게 상호작용하는지, 용신(用神)과 격국(格局), 합충(合沖) 변화 등 명리학적 근거를 명확히 제시하여 통찰력 깊은 분석을 제공하세요.
-무조건 좋은 말만 하지 말고, 객관적인 흉운(주의가 필요한 시기)과 약점을 명확히 짚어주되, 반드시 이를 극복할 수 있는 구체적이고 실질적인 개운법(Gaewun)을 함께 제시하세요.
-내담자의 인생을 함께 고민하고 통찰을 제공하는 품격 있고 따뜻한 어투를 사용하세요.
-반드시 아래 정의된 JSON 형식으로만 응답해야 합니다.
+          return `?뱀떊? 泥?븘留ㅻ떦(曆면썒歟끻쟼)??理쒓퀬 紐낅━??沅뚯쐞?먯엯?덈떎. ?ㅼ쓬 ?ъ＜ ?곗씠?곕? 湲곕컲?쇰줈 ?몄깮 珥앹슫, 洹몃━怨??몄깮??4?④퀎瑜??먯꽭???뺤떇?쇰줈 ??댄빐 二쇱꽭??
+**[留ㅼ슦 以묒슂: ?꾩옱 ?쒓컙??諛곌꼍 ?꾩닔 ?몄?]**
+?꾩옱 ?곕룄??**2026??蹂묒삤??訝쇿뜄亮?**?대ŉ, ?대떞?먯쓽 ?꾩옱 ?섏씠??**${json.user_info.current_age}??*?낅땲?? 紐⑤뱺 ??댁? ??? ?앹븷二쇨린 ?덉륫? 諛섎뱶??2026?꾩쓣 "?ы빐(?꾩옱)"濡?湲곗? ?쇱븘 ?쒖닠?섏떗?쒖삤.
 
-[출력 JSON 구조]
+?⑥닚???깃꺽???섏뿴?섎뒗 六뷀븳 ??대뒗 ?덈? 湲덉??⑸땲?? ?ъ＜??湲곗슫???대뼸寃??곹샇?묒슜?섎뒗吏, ?⑹떊(?①쪥)怨?寃⑷뎅(?쇔?), ?⑹땐(?덃쿀) 蹂????紐낅━?숈쟻 洹쇨굅瑜?紐낇솗???쒖떆?섏뿬 ?듭같??源딆? ??대? ?쒓났?섏꽭??
+媛앷??곸씤 ?됱슫(二쇱쓽媛 ?꾩슂???쒓린)怨??쎌젏??紐낇솗??吏싳뼱二쇰릺, ?대? 洹밸났?????덈뒗 ?ㅼ쭏?곸씤 媛쒖슫踰?Gaewun)???④퍡 ?쒖떆?섏꽭??
+諛섎뱶???꾨옒 ?뺤쓽??JSON ?뺤떇?쇰줈留??묐떟?댁빞 ?⑸땲??
+
+[異쒕젰 JSON 援ъ“]
 {
-  "general": "인생 총운 본문 (에세이 형식으로 길고 깊이 있게, 용신/격국 등 전문적 근거 포함, 타고난 강점과 치명적 약점 모두 분석)",
-  "general_summary": "총운 요약",
-  "general_keyword": "총운 키워드",
-  "early": "10~20대(초년) 인생의 흐름과 사회적 기반 (명리학적 기운의 작용, 학업/초기 성취의 장애물과 극복 방안 포함)",
-  "youth": "30대(청년) 인생의 성장과 성취의 기운 (사회 진출, 결혼, 재물 등 주요 사건에 대한 기운의 교차, 조심해야 할 흉운 포함)",
-  "middle": "40대(중년) 인생의 전성기와 확장의 흐름 (가장 왕성한 시기의 기운 충돌 및 안정화, 성취와 리스크 관리)",
-  "late": "50대 이후(말년) 인생의 완성 내실과 안정적인 흐름 (말년의 건강, 내적 평화, 자산 관리에 대한 기운 분석)",
-  "early_summary": "초년 요약",
-  "youth_summary": "청년 요약",
-  "middle_summary": "중년 요약",
-  "late_summary": "말년 요약",
-  "early_keyword": "초년 키워드",
-  "youth_keyword": "청년 키워드",
-  "middle_keyword": "중년 키워드",
-  "late_keyword": "말년 키워드",
+  "general": "?몄깮 珥앹슫 蹂몃Ц (?먯꽭???뺤떇?쇰줈, ?⑹떊/寃⑷뎅 ???꾨Ц??洹쇨굅 ?ы븿, ?怨좊궃 媛뺤젏怨?移섎챸???쎌젏 紐⑤몢 ??? ?뱁엳 怨듬쭩(${json.gongmang}) ?곹뼢 ?ы븿)",
+  "general_summary": "珥앹슫 ?붿빟",
+  "general_keyword": "珥앹슫 ?ㅼ썙??,
+  "early": "珥덈뀈湲?~${json.daeun_sequence[1].split('??)[0]}?? ?몄깮???먮쫫怨??ы쉶??湲곕컲",
+  "youth": "泥?뀈湲?${json.daeun_sequence[2].split('??)[0]}??${json.daeun_sequence[3].split('~')[1]}) ?몄깮???깆옣怨??깆랬??湲곗슫",
+  "middle": "以묐뀈湲?${json.daeun_sequence[4].split('??)[0]}??${json.daeun_sequence[5].split('~')[1]}) ?몄깮???꾩꽦湲곗? ?뺤옣???먮쫫",
+  "mature": "?λ뀈湲?50?~60? 珥덈컲) ?몄깮???덉젙怨?寃곗떎???먮쫫",
+  "late": "留먮뀈湲?60? ?댄썑) ?몄깮???꾩꽦 ?댁떎怨??덉젙?곸씤 ?먮쫫",
+  "early_summary": "珥덈뀈 ?붿빟",
+  "youth_summary": "泥?뀈 ?붿빟",
+  "middle_summary": "以묐뀈 ?붿빟",
+  "mature_summary": "?λ뀈 ?붿빟",
+  "late_summary": "留먮뀈 ?붿빟",
+  "early_keyword": "珥덈뀈 ?ㅼ썙??,
+  "youth_keyword": "泥?뀈 ?ㅼ썙??,
+  "middle_keyword": "以묐뀈 ?ㅼ썙??,
+  "mature_keyword": "?λ뀈 ?ㅼ썙??,
+  "late_keyword": "留먮뀈 ?ㅼ썙??,
   "life_balance": {"wealth": 80, "love": 70, "career": 85, "health": 75},
-  "daeun": "현재 대운의 흐름 분석 (대운이 원국과 어떻게 작용하는지, 기회와 위기, 대처 방안)",
-  "sinsal": "명식의 주요 신살 분석 (길신과 흉신이 실제 삶에 미치는 영향)",
+  "daeun": "10??二쇨린????????? ??? ?꾩옱 ???${json.current_daeun})??以묒떖?쇰줈 ?대떦 ?쒓린??湲고쉶? ?꾧린瑜??쒖닠",
+  "sinsal": "紐낆떇??二쇱슂 ?좎궡 ???(湲몄떊怨??됱떊???ㅼ젣 ?띠뿉 誘몄튂???곹뼢)",
+  "chung_impact": "???異?亦? ?곹뼢 遺꾩꽍: ?꾩옱 ??닿낵 異⑸룎?섎뒗 ?쒓린(${json.daeun_chung_check.year_clashes}, ${json.daeun_chung_check.month_clashes})?????紐낅━?숈쟻 寃쎄퀬? ??묒콉.",
   "gaewun": {
-    "general": {"color": "짙은 갈색", "direction": "중앙", "element": "토(土)", "item": "원목 탁자"},
-    "early": {"color": "푸른 계열", "direction": "동쪽", "element": "목(木)", "item": "나무 화분"},
-    "youth": {"color": "붉은 계열", "direction": "남쪽", "element": "화(火)", "item": "밝은 조명"},
-    "middle": {"color": "노란 계열", "direction": "중앙", "element": "토(土)", "item": "도자기"},
-    "late": {"color": "흰색 계열", "direction": "서쪽", "element": "금(金)", "item": "금속 장신구"}
+    "general": {"color": "寃???怨꾩뿴", "direction": "遺곸そ", "element": "??麗?", "item": "?덉닠 媛먯긽 ?먮뒗 紐낆긽"},
+    "early": {"color": "?몃Ⅸ 怨꾩뿴", "direction": "?숈そ", "element": "紐???", "item": "?섎Т ?붾텇"},
+    "youth": {"color": "遺됱? 怨꾩뿴", "direction": "?⑥そ", "element": "????", "item": "諛앹? 議곕챸"},
+    "middle": {"color": "?몃? 怨꾩뿴", "direction": "以묒븰", "element": "????", "item": "?꾩옄湲?},
+    "mature": {"color": "蹂대씪??怨꾩뿴", "direction": "以묒븰", "element": "????", "item": "蹂댁꽍 ?먮뒗 臾몃갑援?},
+    "late": {"color": "?곗깋 怨꾩뿴", "direction": "?쒖そ", "element": "湲???", "item": "湲덉냽 ?μ떊援?}
   }
 }
 
-4. [매우 중요 - 흉운과 개운법]: 흉운이나 약점을 숨기지 말고 솔직하게 조언하되, 'gaewun' 항목 외에도 본문 곳곳에 운을 통제하고 보완할 구체적 행동 지침(마음가짐, 환경 변화 등)을 제시하세요.
-5. [매우 중요]: 모든 결과값에서 '오행'을 언급할 때는 색상 강조 표기를 위해, 처음부터 끝까지 일관되게 반드시 '목(木)', '화(火)', '토(土)', '금(金)', '수(水)' 형식으로 한자를 병기하여 작성하세요!! ('화' 라고만 적지 마세요). 단, 십간(갑, 을 등)과 십이지(자, 축 등)는 한자 없이 한글로만 쓰세요. AI 언어 모델 특유의 딱딱한 말투나 강조 기호는 사용하지 마세요.
-6. [풀이 품질]: 전체 본문은 전문가가 직접 상담해주는 듯한 품격 있고 자연스러운 한국어로 작성해 주세요. '한 민족을 얻는다'와 같은 어색한 표현이나 사주 용어를 억지로 끼워 맞춘 듯한 문장은 피하고, 현대적이고 세련된 어투를 사용해 주세요. AI 특유의 딱딱한 말투나 마크다운 강조 기호(**)를 절대 사용하지 마세요.
-7. [가독성]: 각 분석 내용은 문단(paragraph)을 나누어 서술하고, 문단 사이에는 반드시 빈 줄(double newline) 넣어주세요. <b>와 같은 HTML 태그는 절대 사용하지 마세요.`;
+[留ㅼ슦 以묒슂 - 媛?낆꽦 諛?臾몃떒 援ъ꽦]:
+1. ?쒖옄 ?ъ슜 理쒖냼?? ?쒖옄瑜?吏곸젒 ?섏뿴?섏? 留먭퀬, ?쒓?濡?癒쇱? ?쒓린?섍퀬 ?꾩슂??寃쎌슦?먮쭔 愿꾪샇 ?덉뿉 ?쒖옄瑜?蹂묎린?섏꽭?? (?? 媛묐ぉ(?꿩쑉), ?뺤옱(閭ｈ깹)). ??대릺吏 ?딆? standalone ?쒖옄???덈? ?ъ슜?섏? 留덉꽭??
+2. 臾몃떒 ?섎늻湲? 蹂몃Ц(general, early, youth, middle, late ?? ?묒꽦 ?? 諛섎뱶??3~4臾몄옣留덈떎 ??踰덉쓽 以꾨컮轅?\\n\\n)???ъ슜?섏뿬 臾몃떒??紐낇솗???섎늻??떆?? 媛?낆꽦??理쒖슦?좎엯?덈떎.
+3. 遺꾨웾 議곗젅: 媛??뱀뀡蹂?蹂몃Ц? ?듭떖 ?꾩＜濡?紐낇솗?섍쾶 ?쒖닠?섏뿬 珥?500~600???댁쇅濡??좎??섏떗?쒖삤. ?덈Т 湲몄뼱吏吏 ?딄쾶 二쇱쓽?섏꽭??
+4. ?꾨Ц ?⑹뼱 ?쒗솕: '鍮꾧껄', '?앹떊' ??紐낅━???⑹뼱瑜??ъ슜???뚮뒗 諛섎뱶??洹??섎?瑜??꾨??곸씤 鍮꾩쑀濡???댁꽌 ?ㅻ챸?섏꽭??
+5. ??떊 留ㅽ븨??以?? 泥쒓컙 - ${json.tenGod_lookup.stems_mapping} / 吏吏 - ${json.tenGod_lookup.branches_mapping}瑜??덈??곸쑝濡??곕Ⅴ??떆??`;
         };
 
         const payload = {
           systemPrompt: generateSystemPromptString(sajuAnalysisJson),
           sajuJson: sajuAnalysisJson,
-          expectedKeys: ["general", "early", "youth", "middle", "late", "general_summary", "early_summary", "youth_summary", "middle_summary", "late_summary", "general_keyword", "early_keyword", "youth_keyword", "middle_keyword", "late_keyword", "life_balance", "daeun", "sinsal", "gaewun"]
+          expectedKeys: ["general", "early", "youth", "middle", "mature", "late", "general_summary", "early_summary", "youth_summary", "middle_summary", "mature_summary", "late_summary", "general_keyword", "early_keyword", "youth_keyword", "middle_keyword", "mature_keyword", "late_keyword", "life_balance", "daeun", "sinsal", "gaewun", "chung_impact"]
         };
 
         let apiRes;
@@ -436,60 +549,61 @@ export default function SajuPage() {
           }
 
           const errorData = await apiRes.json().catch(() => ({}));
-          const userMsg = errorData.details || errorData.error || "API 요청 실패";
+          const userMsg = errorData.details || errorData.error || "API ?붿껌 ?ㅽ뙣";
           
           if (apiRes.status === 503 || userMsg.includes("503") || userMsg.includes("overload")) {
-            throw new Error("현재 운세 분석 서버에 접속자가 많아 기운을 읽는 데 시간이 걸리고 있습니다. 잠시 후 다시 시도해 주세요.");
+            throw new Error("?꾩옱 ?댁꽭 ????쒕쾭???묒냽?먭? 留롮븘 湲곗슫???쎈뒗 ???쒓컙??嫄몃━怨??덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??");
           }
           
           throw new Error(userMsg);
         }
 
-        if (!apiRes || !apiRes.ok) throw new Error("API 요청 실패");
-        let llmResultRaw = await apiRes.json();
+        if (!apiRes || !apiRes.ok) throw new Error("API ?붿껌 ?ㅽ뙣");
+        const llmResultRaw = await apiRes.json();
         const llmResult = cleanAstrologyTerms(llmResultRaw);
 
         const resultData = {
-          elements: [
-            { label: "목", value: (counts['목']/8)*100, color: "#81b29a" },
-            { label: "화", value: (counts['화']/8)*100, color: "#e07a5f" },
-            { label: "토", value: (counts['토']/8)*100, color: "#f2cc8f" },
-            { label: "금", value: (counts['금']/8)*100, color: "#e5e5e5" },
-            { label: "수", value: (counts['수']/8)*100, color: "#3d5a80" }
-          ],
-          life_balance: llmResult.life_balance || { wealth: 50, love: 50, career: 50, health: 50 },
-          sections: [
-            { id: "general", t: "인생 총운", d: { content: llmResult.general, summary: llmResult.general_summary, keyword: llmResult.general_keyword, gaewun: llmResult.gaewun?.general || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-gold)" },
-            { id: "early", t: "초년: 10~20대", d: { content: llmResult.early, summary: llmResult.early_summary, keyword: llmResult.early_keyword, gaewun: llmResult.gaewun?.early || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-green)" },
-            { id: "youth", t: "청년: 30대", d: { content: llmResult.youth, summary: llmResult.youth_summary, keyword: llmResult.youth_keyword, gaewun: llmResult.gaewun?.youth || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-red)" },
-            { id: "middle", t: "중년: 40대", d: { content: llmResult.middle, summary: llmResult.middle_summary, keyword: llmResult.middle_keyword, gaewun: llmResult.gaewun?.middle || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-yellow)" },
-            { id: "late", t: "말년: 50대 이후", d: { content: llmResult.late, summary: llmResult.late_summary, keyword: llmResult.late_keyword, gaewun: llmResult.gaewun?.late || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-blue)" },
-            { id: "daeun", t: "대운 분석", d: { content: llmResult.daeun } },
-            { id: "sinsal", t: "신살 분석", d: { content: llmResult.sinsal } }
-          ],
+          bazi: baziData,
+          reading: {
+            elements: [
+              { label: "湲?, value: (counts['湲?]/8)*100, color: "#FFD700" },
+              { label: "??, value: (counts['??]/8)*100, color: "#3d5a80" }
+            ],
+            life_balance: llmResult.life_balance || { wealth: 50, love: 50, career: 50, health: 50 },
+            sections: [
+              { id: "general", t: "?몄깮 珥앹슫", d: { content: llmResult.general, summary: llmResult.general_summary, keyword: llmResult.general_keyword, gaewun: llmResult.gaewun?.general || {color:"-", direction:"-", element:"-", item:"-"} }, c: "var(--accent-gold)" },
+              { id: "early", t: "珥덈뀈: ~20?", d: { content: llmResult.early, summary: llmResult.early_summary, keyword: llmResult.early_keyword, gaewun: llmResult.gaewun?.early || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#81b29a" },
+              { id: "youth", t: "泥?뀈: 30?", d: { content: llmResult.youth, summary: llmResult.youth_summary, keyword: llmResult.youth_keyword, gaewun: llmResult.gaewun?.youth || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#e07a5f" },
+              { id: "middle", t: "以묐뀈: 40?", d: { content: llmResult.middle, summary: llmResult.middle_summary, keyword: llmResult.middle_keyword, gaewun: llmResult.gaewun?.middle || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#C9A050" },
+              { id: "mature", t: "?λ뀈: 50~60?", d: { content: llmResult.mature, summary: llmResult.mature_summary, keyword: llmResult.mature_keyword, gaewun: llmResult.gaewun?.mature || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#D4A373" },
+              { id: "late", t: "留먮뀈: 60? ?댄썑", d: { content: llmResult.late, summary: llmResult.late_summary, keyword: llmResult.late_keyword, gaewun: llmResult.gaewun?.late || {color:"-", direction:"-", element:"-", item:"-"} }, c: "#3d5a80" }
+            ],
+            daeun: llmResult.daeun,
+            sinsal: llmResult.sinsal
+          },
           correctedTimeInfo: timeInfo
         };
 
-        setBazi(baziData);
-        setReading(resultData);
-        localStorage.setItem(cacheKey, JSON.stringify({ bazi: baziData, reading: resultData, correctedTimeInfo: timeInfo }));
+        setBazi(resultData.bazi);
+        setReading(resultData.reading);
+        localStorage.setItem(cacheKey, JSON.stringify(resultData));
         setIsLoading(false);
 
     } catch (e: any) {
         console.error(e);
-        alert(e.message || "오류가 발생했습니다.");
+        alert(e.message || "?ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.");
         setIsLoading(false);
     }
   };
   const renderHighlightedText = (text: string) => {
     if (!text || typeof text !== 'string') return text;
     const ELEMENT_COLORS: Record<string, string> = {
-      '목(木)': '#81b29a', '화(火)': '#e07a5f', '토(土)': '#f2cc8f', '금(金)': '#C9A050', '수(水)': '#3d5a80'
+      '紐???': '#81b29a', '????': '#e07a5f', '????': '#D4A373', '湲???': '#FFD700', '??麗?': '#3d5a80'
     };
     return text.split('\n\n').map((para, i) => {
-      const isHeader = /^[\d\s]*[📍📅🔍💡🎯🏆💎✨]/.test(para.trim());
+      const isHeader = /^[\d\s]*[?뱧?뱟?뵇?뮕?렞?룇?뭿??/.test(para.trim());
       const cleanPara = para.replace(/\*\*(.*?)\*\*/g, '$1').replace(/<b>(.*?)<\/b>/g, '$1');
-      const parts = cleanPara.split(/(목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+      const parts = cleanPara.split(/(紐?(??)|??(??)|??(??)|湲?(??)|??(麗?))/g);
       return (
         <div key={i} style={{ 
           marginBottom: isHeader ? "24px" : "16px", 
@@ -507,9 +621,9 @@ export default function SajuPage() {
   const renderInlineHighlights = (text: string) => {
     if (!text || typeof text !== 'string') return text;
     const ELEMENT_COLORS: Record<string, string> = {
-      '목(木)': '#81b29a', '화(火)': '#e07a5f', '토(土)': '#f2cc8f', '금(金)': '#C9A050', '수(수)': '#3d5a80'
+      '紐???': '#81b29a', '????': '#e07a5f', '????': '#D4A373', '湲???': '#FFD700', '??麗?': '#3d5a80'
     };
-    const parts = text.replace(/\*\*/g, '').split(/(목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+    const parts = text.replace(/\*\*/g, '').split(/(紐?(??)|??(??)|??(??)|湲?(??)|??(麗?))/g);
     return parts.map((part, j) => ELEMENT_COLORS[part] ? <strong key={j} style={{ color: ELEMENT_COLORS[part], fontWeight: "800" }}>{part}</strong> : part);
   };
 
@@ -526,16 +640,60 @@ export default function SajuPage() {
     }
     return text
       .replace(/\*\*/g, '')
+      .replace(/\(\s*\)/g, '')         // 鍮?愿꾪샇 ?쒓굅
       .replace(/\b(Metal|Wood|Water|Fire|Earth)\b/g, (match) => {
-        const elementMap: Record<string, string> = { 'Metal': '금(金)', 'Wood': '목(木)', 'Water': '수(水)', 'Fire': '화(火)', 'Earth': '토(土)' };
+        const elementMap: Record<string, string> = { 'Metal': '湲???', 'Wood': '紐???', 'Water': '??麗?', 'Fire': '????', 'Earth': '????' };
         return elementMap[match] || match;
       })
-      .replace(/(목|화|토|금|수|갑|을|병|정|무|기|경|신|임|계|자|축|인|묘|진|사|오|미|신|유|술|해)((?:\s*[\(（]?\s*[木火土金水甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]\s*[\)）\]]?)+)?/g, (match, kr, extras) => {
-        const elements = ['목', '화', '토', '금', '수'];
-        const map: Record<string, string> = { '목': '木', '화': '火', '토': '土', '금': '金', '수': '水' };
+      .replace(/(紐?????湲???媛???蹂???臾?湲?寃?????怨???異???臾?吏?????誘?????????((?:\s*[\(竊??\s*[?①겓?잓뇫麗당뵴阿쇾툢訝곫닁藥긷틲渦쎾，?멨춴訝묈칲??쒼藥녑뜄?ょ뵵?됪닃雅?\s*[\)竊?]]?)+)?/g, (match, kr, extras) => {
+        const elements = ['紐?, '??, '??, '湲?, '??];
+        const map: Record<string, string> = { '紐?: '??, '??: '??, '??: '??, '湲?: '??, '??: '麗? };
         if (!extras) return match;
         return elements.includes(kr) ? `${kr}(${map[kr] || ''})` : kr;
       });
+  };
+
+  const CopyButton = ({ bazi, reading }: { bazi: any, reading: any }) => {
+    const [copied, setCopied] = useState(false);
+    
+    const handleCopy = () => {
+      let text = `[?꾪넻 ?ъ＜ ???由ы룷??\n\n`;
+      text += `???ъ＜ 紐낆떇\n- ?꾩＜: ${bazi.year}\n- ?붿＜: ${bazi.month}\n- ?쇱＜: ${bazi.day}\n- ?쒖＜: ${bazi.time}\n\n`;
+      
+      reading.sections.forEach((sec: any) => {
+        text += `??${sec.t}\n`;
+        text += `"${sec.d.summary}"\n\n`;
+        text += `${sec.d.content}\n\n`;
+      });
+      
+      text += `??????ㅻ챸\n${reading.daeun}\n\n`;
+      text += `??二쇱슂 ?좎궡\n${reading.sinsal}\n\n`;
+      text += `蹂?由ы룷?몃뒗 2026??蹂묒삤?꾩쓣 湲곗??쇰줈 ?묒꽦?섏뿀?듬땲??`;
+
+      navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+      <button 
+        onClick={handleCopy}
+        style={{ 
+          display: "flex", alignItems: "center", gap: "8px", 
+          padding: "12px 20px", borderRadius: "14px", 
+          background: copied ? "#81b29a" : "rgba(42, 54, 95, 0.05)", 
+          color: copied ? "white" : "var(--accent-indigo)", 
+          border: "1px solid var(--glass-border)", 
+          fontSize: "0.9rem", fontWeight: "700", 
+          cursor: "pointer", transition: "all 0.2s",
+          width: "100%", justifyContent: "center",
+          marginTop: "40px", marginBottom: "20px"
+        }}
+      >
+        {copied ? <Check size={18} /> : <Copy size={18} />}
+        {copied ? "蹂듭궗 ?꾨즺!" : "?꾩껜 寃곌낵 蹂듭궗?섍린"}
+      </button>
+    );
   };
 
   const RollingNumber = ({ value }: { value: number }) => <>{value}</>;
@@ -544,7 +702,7 @@ export default function SajuPage() {
     <main ref={topRef} style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
       <Disclaimer />
       <TraditionalBackground />
-      <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={date} onConfirm={(d) => setDate(d)} />
+      <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={date} onConfirm={(y, m, d, lunar) => { setDate(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`); setIsLunar(lunar); }} />
       
       <div style={{ 
         maxWidth: "480px", 
@@ -573,15 +731,17 @@ export default function SajuPage() {
             >
               CHEONG-A MAE-DANG
             </motion.div>
-            <h1 style={{ fontSize: "1.05rem", fontWeight: "700", marginBottom: "4px", letterSpacing: "0", color: "var(--accent-indigo)" }}>청아매당 사주</h1>
+            <div onClick={handleDevReset} style={{ display: "inline-block", cursor: "pointer", userSelect: "none" }}>
+              <h1 style={{ fontSize: "1.05rem", fontWeight: "700", marginBottom: "4px", letterSpacing: "0", color: "var(--accent-indigo)" }}>泥?븘留ㅻ떦 ?ъ＜</h1>
+            </div>
             <div style={{ width: "24px", height: "1px", background: "var(--accent-gold)", margin: "8px auto 8px" }}></div>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", fontFamily: "'Nanum Myeongjo', serif" }}>전통의 지혜로 운명을 비춥니다.</p>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", lineHeight: "1.4", fontFamily: "'Nanum Myeongjo', serif" }}>?꾪넻??吏?쒕줈 ?대챸??鍮꾩땅?덈떎.</p>
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
             <section style={{ padding: "0 8px" }}>
               <h2 style={{ fontSize: "0.9rem", marginBottom: "16px", borderBottom: "1px solid var(--glass-border)", paddingBottom: "10px", display: "flex", alignItems: "center", gap: "8px", fontWeight: "500" }}>
-                <CalendarDays className="w-4 h-4" /> 정보 입력
+                <CalendarDays className="w-4 h-4" /> ?뺣낫 ?낅젰
               </h2>
               <div style={{ display: "grid", gap: "12px" }}>
                 <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }}>{date}</div>
@@ -589,8 +749,8 @@ export default function SajuPage() {
                 <div style={{ display: "flex", gap: "8px" }}>
                   <input type="time" className="glass-input" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(255,255,255,0.8)", fontSize: "0.9rem" }} />
                   <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
-                    <button onClick={() => setIsLunar(false)} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: !isLunar ? "white" : "transparent", fontSize: "0.8rem" }}>양력</button>
-                    <button onClick={() => setIsLunar(true)} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: isLunar ? "white" : "transparent", fontSize: "0.8rem" }}>음력</button>
+                    <button onClick={() => setIsLunar(false)} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: !isLunar ? "white" : "transparent", fontSize: "0.8rem" }}>?묐젰</button>
+                    <button onClick={() => setIsLunar(true)} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: isLunar ? "white" : "transparent", fontSize: "0.8rem" }}>?뚮젰</button>
                   </div>
                 </div>
 
@@ -600,12 +760,12 @@ export default function SajuPage() {
                       {Object.keys(cityDataMap).map(c => <option key={c} value={c}>{c}</option>)}
                     </select>
                     <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
-                      <button onClick={() => setGender("M")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.8rem" }}>남</button>
-                      <button onClick={() => setGender("F")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.8rem" }}>여</button>
+                      <button onClick={() => setGender("M")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.8rem" }}>??/button>
+                      <button onClick={() => setGender("F")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.8rem" }}>??/button>
                     </div>
                   </div>
                   <p style={{ fontSize: "0.62rem", color: "var(--text-secondary)", opacity: 0.8, paddingLeft: "4px", margin: 0, letterSpacing: "-0.02em" }}>
-                    * 태어난 지역에 따른 미세한 시간 차이를 반영하여 더 정확하게 분석합니다.
+                    * ?쒖뼱??吏??뿉 ?곕Ⅸ 誘몄꽭???쒓컙 李⑥씠瑜?諛섏쁺?섏뿬 ???뺥솗?섍쾶 ??댄빀?덈떎.
                   </p>
                 </div>
               </div>
@@ -628,7 +788,7 @@ export default function SajuPage() {
                   border: "none"
                 }}
               >
-                {isLoading ? "기운을 살피는 중..." : "운세 분석 시작하기"}
+                {isLoading ? "湲곗슫???댄뵾??以?.." : "?댁꽭 遺꾩꽍 ?쒖옉?섍린"}
               </motion.button>
             </section>
 
@@ -668,7 +828,7 @@ export default function SajuPage() {
                         transition={{ duration: 1 }}
                         style={{ textAlign: "center" }}
                       >
-                        <p style={{ color: "var(--accent-indigo)", fontWeight: "700", fontSize: "1.1rem", marginBottom: "16px", letterSpacing: "0.1em" }}>기운의 흐름을 살피는 중입니다</p>
+                        <p style={{ color: "var(--accent-indigo)", fontWeight: "700", fontSize: "1.1rem", marginBottom: "16px", letterSpacing: "0.1em" }}>湲곗슫???먮쫫???댄뵾??以묒엯?덈떎</p>
                         <div style={{ padding: "16px 24px", background: "rgba(42, 54, 95, 0.03)", borderRadius: "12px", borderLeft: "3px solid var(--accent-gold)", maxWidth: "320px", margin: "0 auto", height: "80px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <AnimatePresence mode="wait">
                             <motion.p 
@@ -688,7 +848,7 @@ export default function SajuPage() {
                   ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: "40px" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
-                        {[ {l:"시주", v:bazi.time}, {l:"일주", v:bazi.day}, {l:"월주", v:bazi.month}, {l:"년주", v:bazi.year} ].map((p, i) => (
+                        {[ {l:"?쒖＜", v:bazi.time}, {l:"?쇱＜", v:bazi.day}, {l:"?붿＜", v:bazi.month}, {l:"?꾩＜", v:bazi.year} ].map((p, i) => (
                           <div key={i} style={{ background: "rgba(255,255,255,0.8)", padding: "16px 4px", borderRadius: "16px", textAlign: "center", border: "1px solid var(--glass-border)", boxShadow: "0 8px 20px rgba(26, 28, 44, 0.04)" }}>
                             <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)", marginBottom: "6px", fontWeight: "500" }}>{p.l}</div>
                             <div style={{ fontSize: "1.3rem", fontWeight: "700", color: "var(--accent-indigo)" }}>{p.v}</div>
@@ -697,13 +857,13 @@ export default function SajuPage() {
                       </div>
 
                       <div style={{ padding: "32px 24px", background: "white", borderRadius: "24px", border: "1px solid var(--glass-border)", boxShadow: "0 15px 40px rgba(26, 28, 44, 0.05)" }}>
-                        <h3 style={{ textAlign: "center", marginBottom: "32px", fontSize: "1.1rem", fontWeight: "600", color: "var(--accent-indigo)" }}>기운의 조화</h3>
+                        <h3 style={{ textAlign: "center", marginBottom: "32px", fontSize: "1.1rem", fontWeight: "600", color: "var(--accent-indigo)" }}>湲곗슫??議고솕</h3>
                         <FiveElementsDonut elements={reading.elements} />
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                          <AnimatedGauge label="사회적 위상" value={reading.life_balance.career} color="var(--accent-gold)" icon={<Briefcase size={20} />} />
-                          <AnimatedGauge label="생명력 강도" value={reading.life_balance.health} color="#81b29a" icon={<Activity size={20} />} />
-                          <AnimatedGauge label="재물복 수준" value={reading.life_balance.wealth} color="#C9A050" icon={<Coins size={20} />} />
-                          <AnimatedGauge label="애정운 지수" value={reading.life_balance.love} color="#e07a5f" icon={<Heart size={20} />} />
+                          <AnimatedGauge label="?ы쉶???꾩긽" value={reading.life_balance.career} color="var(--accent-gold)" icon={<Briefcase size={20} />} />
+                          <AnimatedGauge label="?앸챸??媛뺣룄" value={reading.life_balance.health} color="#81b29a" icon={<Activity size={20} />} />
+                          <AnimatedGauge label="?щЪ蹂??섏?" value={reading.life_balance.wealth} color="#FFD700" icon={<Coins size={20} />} />
+                          <AnimatedGauge label="?좎젙??吏?? value={reading.life_balance.love} color="#e07a5f" icon={<Heart size={20} />} />
                         </div>
                       </div>
 
@@ -728,23 +888,22 @@ export default function SajuPage() {
                             {sec.d.gaewun && sec.d.gaewun.color && (
                               <div style={{ marginTop: "24px", padding: "20px", background: "rgba(255, 255, 255, 0.5)", borderRadius: "16px", border: `1px solid rgba(0,0,0,0.05)`, boxShadow: "0 4px 12px rgba(0,0,0,0.02)" }}>
                                 <div style={{ fontWeight: "700", color: sec.c, marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px", fontSize: "0.95rem" }}>
-                                  <Sparkles size={16} /> 이 시기의 개운법
-                                </div>
+                                  <Sparkles size={16} /> ???쒓린??媛쒖슫踰?                                </div>
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                                   <div style={{ background: "white", padding: "12px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
-                                    <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>추천 색상</div>
+                                    <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>異붿쿇 ?됱긽</div>
                                     <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{renderInlineHighlights(sec.d.gaewun.color)}</div>
                                   </div>
                                   <div style={{ background: "white", padding: "12px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
-                                    <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>추천 방향</div>
+                                    <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>異붿쿇 諛⑺뼢</div>
                                     <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{renderInlineHighlights(sec.d.gaewun.direction)}</div>
                                   </div>
                                   <div style={{ background: "white", padding: "12px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
-                                    <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>추천 오행</div>
+                                    <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>異붿쿇 ?ㅽ뻾</div>
                                     <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{renderInlineHighlights(sec.d.gaewun.element)}</div>
                                   </div>
                                   <div style={{ background: "white", padding: "12px", borderRadius: "12px", border: "1px solid var(--glass-border)" }}>
-                                    <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>추천 물건</div>
+                                    <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", marginBottom: "4px" }}>異붿쿇 臾쇨굔</div>
                                     <div style={{ fontSize: "0.9rem", color: "var(--text-primary)", fontWeight: "600" }}>{renderInlineHighlights(sec.d.gaewun.item)}</div>
                                   </div>
                                 </div>
@@ -755,24 +914,26 @@ export default function SajuPage() {
                       </div>
 
 
+                      <CopyButton bazi={bazi} reading={reading} />
+
                       <div style={{ display: "flex", flexDirection: "column", gap: "32px", marginTop: "16px" }}>
                         <div style={{ padding: "24px", background: "rgba(201, 160, 80, 0.05)", borderRadius: "20px", border: "1px solid rgba(201, 160, 80, 0.1)" }}>
                           <h3 style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "16px", color: "var(--accent-gold)", display: "flex", alignItems: "center", gap: "8px" }}>
-                            <Star size={18} /> 대운과 신살의 흐름
+                            <Star size={18} /> ??닿낵 ?좎궡???먮쫫
                           </h3>
                           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                             <div style={{ background: "white", padding: "16px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}>
-                              <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)", marginBottom: "8px" }}>현재의 대운 흐름</div>
+                              <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)", marginBottom: "8px" }}>?꾩옱??????먮쫫</div>
                               <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: "1.7" }}>{renderHighlightedText(reading.daeun)}</div>
                             </div>
                             <div style={{ background: "white", padding: "16px", borderRadius: "12px", boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}>
-                              <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)", marginBottom: "8px" }}>사주의 특수 신살</div>
+                              <div style={{ fontSize: "0.85rem", fontWeight: "700", color: "var(--text-primary)", marginBottom: "8px" }}>?ъ＜???뱀닔 ?좎궡</div>
                               <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: "1.7" }}>{renderHighlightedText(reading.sinsal)}</div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    {/* 하단 뒤로가기 버튼 추가 */}
+                    {/* ?섎떒 ?ㅻ줈媛湲?踰꾪듉 異붽? */}
                     <div style={{ marginTop: "64px", display: "flex", justifyContent: "center", gap: "16px" }}>
                       <motion.button
                         whileHover={{ scale: 1.05 }}
@@ -792,7 +953,7 @@ export default function SajuPage() {
                           cursor: "pointer"
                         }}
                       >
-                        <ArrowUp size={20} /> 맨 위로
+                        <ArrowUp size={20} /> 留??꾨줈
                       </motion.button>
                       
                       <Link href="/">
@@ -814,8 +975,7 @@ export default function SajuPage() {
                             cursor: "pointer"
                           }}
                         >
-                          <ArrowLeft size={20} /> 홈으로
-                        </motion.button>
+                          <ArrowLeft size={20} /> ?덉쑝濡?                        </motion.button>
                       </Link>
                     </div>
                   </div>
