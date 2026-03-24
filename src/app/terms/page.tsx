@@ -52,6 +52,7 @@ export default function TermsPage() {
               <div style={{ opacity: 0.8, background: "rgba(0,0,0,0.02)", padding: "16px", borderRadius: "12px", fontSize: "0.8rem" }}>
                 상호: 플레이앤겟<br />
                 사업자등록번호: 170-53-00867<br />
+                통신판매업 번호: 2026-인천계양-0283<br />
                 대표자: 박성철<br />
                 주소: 인천 계양구 용종로 124 134동 1402호
               </div>

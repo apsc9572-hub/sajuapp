@@ -64,6 +64,13 @@ export default function PrivacyPage() {
 
             <section>
               <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>4. 이용자의 권리 및 문의처</h2>
+              <div style={{ opacity: 0.8, background: "rgba(0,0,0,0.02)", padding: "16px", borderRadius: "12px", fontSize: "0.8rem", marginBottom: "8px" }}>
+                상호: 플레이앤겟<br />
+                사업자등록번호: 170-53-00867<br />
+                통신판매업 번호: 2026-인천계양-0283<br />
+                대표자: 박성철<br />
+                주소: 인천 계양구 용종로 124 134동 1402호
+              </div>
               <p style={{ opacity: 0.8, marginBottom: "8px" }}>이용자는 언제든지 자신의 개인정보에 대해 열람, 정정 및 삭제를 요청할 수 있습니다.</p>
               <p style={{ opacity: 0.8 }}>문의사항은 대표 이메일 <span style={{ fontWeight: "600", color: "var(--accent-indigo)" }}>psc7516@gmail.com</span>으로 연락 주시기 바랍니다.</p>
             </section>

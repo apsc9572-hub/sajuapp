@@ -388,7 +388,20 @@ export default function SajuPage() {
       resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 50);
 
-    const cacheKey = `saju_cache_v9_${date}_${time}_${isLunar}_${gender}_${birthCity}`;
+    // 전통사주 캐시 자동 초기화 (매년 01월 01일 00:00 기준)
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    try {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith("saju_cache_") && !key.endsWith(`_${currentYear}`)) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch (e) {
+      console.warn("Saju cache cleanup failed:", e);
+    }
+
+    const cacheKey = `saju_cache_v10_${date}_${time}_${isLunar}_${gender}_${birthCity}_${currentYear}`;
     const cachedData = localStorage.getItem(cacheKey);
     
     if (cachedData) {

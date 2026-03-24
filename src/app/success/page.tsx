@@ -108,36 +108,63 @@ function SuccessContent() {
 
   const handleCopy = () => {
     if (!reading) return;
-    const text = `
-[청아매당 프리미엄 사주 리포트]
-${reading.headline}
-${reading.subheadline}
-
-[분석 결과]
-${reading.yongsin ? `나의 용신: ${reading.yongsin}\n${reading.yongsin_desc}\n` : ""}
-제목: ${reading.analysis?.title}
-
-인생의 형상:
-${reading.analysis?.life_shape}
-
-영역별 집중 분석 & 해답:
-${reading.analysis?.solution}
-
-실전 개운 비책:
-${reading.luck_advice}
-
-핵심 성패 시기:
-${reading.analysis?.timing}
-
-플레이앤겟(청아매당) © 2026. 모든 권리 보유.
-    `.trim();
-
+    const text = `[청아매당 프리미엄 사주 리포트]\n${reading.headline}\n${reading.subheadline}\n\n[분석 결과]\n${reading.yongsin ? `나의 용신: ${reading.yongsin}\n${reading.yongsin_desc}\n` : ""}제목: ${reading.analysis?.title}\n\n인생의 형상:\n${reading.analysis?.life_shape}\n\n영역별 집중 분석 & 해답:\n${reading.analysis?.solution}\n\n실전 개운 비책:\n${reading.luck_advice}\n\n핵심 성패 시기:\n${reading.analysis?.timing}\n\n플레이앤겟(청아매당) © 2026. 모든 권리 보유.`.trim();
     navigator.clipboard.writeText(text).then(() => {
       alert("전체 결과가 클립보드에 복사되었습니다.");
     }).catch(err => {
       console.error("복사 실패:", err);
       alert("복사에 실패했습니다.");
     });
+  };
+
+  const [emailForReport, setEmailForReport] = useState("");
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailSentSuccess, setEmailSentSuccess] = useState(false);
+
+  const handleKakaoShare = () => {
+    if (!reading || !(window as any).Kakao) {
+      alert("카카오톡SDK를 불러오는 중입니다...");
+      return;
+    }
+    const Kakao = (window as any).Kakao;
+    if (!Kakao.isInitialized()) {
+      Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "5370d0fd3be699d7a2f1952f99052601");
+    }
+
+    Kakao.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: '청아매당 PREMIUM 사주 감명',
+        description: '당신만을 위한 고품격 명리 처방전이 도착했습니다.',
+        imageUrl: 'https://www.cheongamaedang.com/cheong_a_mae_dang_final_logo.png',
+        link: { mobileWebUrl: window.location.href, webUrl: window.location.href },
+      },
+      buttons: [{ title: '결과 확인하기', link: { mobileWebUrl: window.location.href, webUrl: window.location.href } }],
+    });
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailForReport || !reading) {
+      alert("이메일 주소를 입력해주세요.");
+      return;
+    }
+    setIsSendingEmail(true);
+    try {
+      const res = await fetch("/api/send-result", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userEmail: emailForReport, reading, sajuData: failedSajuData }),
+      });
+      if (res.ok) {
+        setEmailSentSuccess(true);
+      } else {
+        throw new Error("발송 실패");
+      }
+    } catch (e) {
+      alert("이메일 발송 중 오류가 발생했습니다.");
+    } finally {
+      setIsSendingEmail(false);
+    }
   };
 
   const [userEmail, setUserEmail] = useState("");
@@ -296,7 +323,77 @@ ${reading.analysis?.timing}
         )}
 
         {status === "completed" && (
-          <SajuResultView reading={reading} detailedData={detailedData} onCopy={handleCopy} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+            {/* Premium Delivery Notice Card */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }}
+              style={{ 
+                background: "linear-gradient(135deg, #fdfbf7 0%, #ffffff 100%)", 
+                padding: "32px 24px", 
+                borderRadius: "28px", 
+                border: "1.5px solid rgba(212, 163, 115, 0.3)",
+                boxShadow: "0 15px 40px rgba(0,0,0,0.06)",
+                textAlign: "center",
+                position: "relative",
+                overflow: "hidden"
+              }}
+            >
+              <div style={{ position: "absolute", top: 0, right: 0, padding: "12px", opacity: 0.1 }}><Sparkles size={40} color="var(--accent-gold)" /></div>
+              <div style={{ background: "rgba(212, 163, 115, 0.1)", color: "#8a6d3b", padding: "6px 16px", borderRadius: "30px", fontSize: "0.75rem", fontWeight: "800", display: "inline-block", marginBottom: "20px", letterSpacing: "0.05em" }}>
+                PREMIUM DELIVERY SERVICE
+              </div>
+              <h3 style={{ fontSize: "1.35rem", fontWeight: "900", color: "var(--accent-indigo)", marginBottom: "16px", lineHeight: "1.45", wordBreak: "keep-all", fontFamily: "'Nanum Myeongjo', serif" }}>
+                청아매당의 대가가 귀하의 명식을 고찰 중입니다.
+              </h3>
+              <p style={{ fontSize: "0.95rem", color: "#666", lineHeight: "1.7", marginBottom: "28px", wordBreak: "keep-all", fontWeight: "500" }}>
+                귀하의 질문 내용은 전문 명리 용어가 포함된 심층 분석이 필요하여, **청아매당의 30년 내공 명리 대가**가 직접 세심히 **살피고 있으며**, 분석이 종료되는 즉시 아래 채널로 당신만의 소중한 인생 지도를 전송해 드립니다.
+              </p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <button 
+                  onClick={handleKakaoShare}
+                  style={{ width: "100%", padding: "16px", borderRadius: "16px", background: "#FEE500", color: "#3C1E1E", border: "none", fontWeight: "800", fontSize: "1rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", boxShadow: "0 4px 12px rgba(254, 229, 0, 0.2)" }}
+                >
+                  <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png" alt="kakao" style={{ width: "20px" }} />
+                  카카오톡으로 결과 받기
+                </button>
+
+                <div style={{ marginTop: "8px" }}>
+                  {!emailSentSuccess ? (
+                    <div style={{ background: "white", padding: "4px", borderRadius: "18px", border: "1.5px solid #eee", display: "flex", alignItems: "center", boxShadow: "0 4px 10px rgba(0,0,0,0.02)" }}>
+                      <input 
+                        type="email" 
+                        value={emailForReport}
+                        onChange={(e) => setEmailForReport(e.target.value)}
+                        placeholder="이메일 주소 입력"
+                        style={{ flex: 1, border: "none", padding: "12px 16px", fontSize: "0.95rem", outline: "none", background: "transparent" }}
+                      />
+                      <button 
+                        onClick={handleSendEmail}
+                        disabled={isSendingEmail}
+                        style={{ background: "var(--accent-indigo)", color: "white", border: "none", padding: "12px 20px", borderRadius: "14px", fontWeight: "700", cursor: "pointer", opacity: isSendingEmail ? 0.7 : 1 }}
+                      >
+                        {isSendingEmail ? "발송 중..." : "이메일 전송"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ background: "rgba(46, 125, 50, 0.05)", color: "#2E7D32", padding: "16px", borderRadius: "16px", fontWeight: "700", fontSize: "0.9rem", border: "1.5px solid rgba(46, 125, 50, 0.1)" }}>
+                      ✅ 이메일로 분석 결과가 발송되었습니다.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+
+            <div style={{ marginTop: "20px", borderTop: "2px dashed #eee", paddingTop: "40px" }}>
+              <div style={{ textAlign: "center", marginBottom: "30px" }}>
+                <span style={{ fontSize: "0.75rem", color: "#999", fontWeight: "800", letterSpacing: "0.1em" }}>PREVIEW</span>
+                <h4 style={{ fontSize: "1.1rem", color: "#333", fontWeight: "800" }}>명리 초록 (심층 분석 초안)</h4>
+              </div>
+              <SajuResultView reading={reading} detailedData={detailedData} onCopy={handleCopy} />
+            </div>
+          </div>
         )}
       </div>
     </main>

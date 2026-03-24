@@ -433,10 +433,10 @@ export default function SajuResultView({ reading, detailedData, onCopy }: { read
             
             <div style={{ textAlign: "left", background: "#f8f9fa", padding: "16px", borderRadius: "12px", border: "1px solid #eee" }}>
                 <p style={{ fontSize: "0.65rem", color: "#666", margin: "0 0 4px" }}><b>상호:</b> 플레이앤겟 | <b>대표자:</b> 박성철</p>
-                <p style={{ fontSize: "0.65rem", color: "#666", margin: "0 0 4px" }}><b>사업자등록번호:</b> 170-53-00867</p>
+                <p style={{ fontSize: "0.65rem", color: "#666", margin: "0 0 4px" }}><b>사업자번호:</b> 170-53-00867 | <b>통신판매업:</b> 2026-인천계양-0283</p>
                 <p style={{ fontSize: "0.65rem", color: "#666", margin: "0" }}><b>주소:</b> 인천광역시 계양구 용종로 124, 134동 1402호</p>
                 <div style={{ marginTop: "12px", borderTop: "1px solid #eee", paddingTop: "8px", fontSize: "0.6rem", color: "#aaa" }}>
-                    © 2026 청아매당. 본 리포트는 인공지능 명리 엔진을 활용한 개인 맞춤형 분석 결과입니다.
+                    © 2026 청아매당. 본 리포트는 청아매당의 명리 엔진을 활용한 개인 맞춤형 분석 결과입니다.
                 </div>
             </div>
         </div>

@@ -79,6 +79,7 @@ export default function RootLayout({
                 lineHeight: "1.1",
                 fontWeight: "400"
               }}>
+                <p style={{ marginBottom: "1px" }}>사업자번호: 170-53-00867 | 통신판매업: 2026-인천계양-0283</p>
                 <p style={{ marginBottom: "1px" }}>풀이 및 감명 결과에 대한 최종 책임은 사용자에게 있습니다.</p>
                 <p>© {new Date().getFullYear()} 청아매당. All rights reserved.</p>
               </div>

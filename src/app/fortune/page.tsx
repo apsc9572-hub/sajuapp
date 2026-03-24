@@ -442,21 +442,35 @@ function FortuneContent() {
     } else if (typeParam === "yearly") {
       timeModifier = `${now.getFullYear()}`;
     }
-    return `fortune_v32_${date}_${time}_${isLunar}_${gender}_${typeParam}_${timeModifier}`;
+    return `fortune_v33_${date}_${time}_${isLunar}_${gender}_${typeParam}_${timeModifier}`;
   };
 
   // 자동 캐시 로드 제거: 사용자가 직접 버튼을 눌러야만 넘어감 (다른 날짜 선택 가능하도록)
 
   const calculateFortune = async () => {
-    // 일간 운세 캐시 자동 초기화 (00:00시 기준 지난 날짜 캐시 삭제)
+    // 운세 캐시 자동 초기화 (오늘의 흐름: 매일, 이달의 흐름: 매월, 올해의 흐름: 매년 기준 지난 캐시 삭제)
     try {
       const now = new Date();
-      const todaySuffix = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+      const todaySuffix = `${currentYear}-${currentMonth}-${now.getDate()}`;
+      const monthSuffix = `${currentYear}-${currentMonth}`;
+      const yearSuffix = `${currentYear}`;
+
       Object.keys(localStorage).forEach(key => {
-        if (key.startsWith("fortune_") && key.includes("_daily_")) {
-          if (!key.endsWith(todaySuffix)) {
-            localStorage.removeItem(key);
-          }
+        if (!key.startsWith("fortune_")) return;
+        
+        // 오늘의 흐름 캐시 삭제
+        if (key.includes("_daily_") && !key.endsWith(todaySuffix)) {
+          localStorage.removeItem(key);
+        } 
+        // 이달의 흐름 캐시 삭제
+        else if (key.includes("_monthly_") && !key.endsWith(monthSuffix)) {
+          localStorage.removeItem(key);
+        }
+        // 올해의 흐름 캐시 삭제
+        else if (key.includes("_yearly_") && !key.endsWith(yearSuffix)) {
+          localStorage.removeItem(key);
         }
       });
     } catch (e) {

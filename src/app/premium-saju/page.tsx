@@ -963,6 +963,40 @@ export default function PremiumSajuPage() {
     });
   };
 
+  const handleKakaoSync = () => {
+    if (!(window as any).Kakao) {
+      alert("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
+    const Kakao = (window as any).Kakao;
+    if (!Kakao.isInitialized()) {
+      Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "5370d0fd3be699d7a2f1952f99052601");
+    }
+
+    Kakao.Auth.login({
+      success: function(authObj: any) {
+        Kakao.API.request({
+          url: '/v2/user/me',
+          success: function(res: any) {
+            const kakaoAccount = res.kakao_account;
+            if (kakaoAccount) {
+              if (kakaoAccount.gender) {
+                setGender(kakaoAccount.gender === "male" ? "M" : "F");
+              }
+              alert(`${res.properties?.nickname || "사용자"}님의 정보가 연동되었습니다.`);
+            }
+          },
+          fail: function(error: any) {
+            console.error(error);
+          }
+        });
+      },
+      fail: function(err: any) {
+        console.error(err);
+      },
+    });
+  };
+
   const handleKakaoShare = () => {
     if (!reading) return;
     if (!(window as any).Kakao) {
@@ -1563,6 +1597,22 @@ export default function PremiumSajuPage() {
                     알고 싶은 주제와 질문을 입력해 주세요.
                   </p>
                 </div>
+
+                {/* Kakao Sync Button */}
+                <motion.button 
+                  whileHover={{ scale: 1.02, backgroundColor: "#F7E000" }} 
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleKakaoSync}
+                  style={{ 
+                    width: "100%", padding: "14px", borderRadius: "16px", background: "#FEE500", 
+                    color: "#3C1E1E", fontWeight: "800", fontSize: "0.95rem", border: "none", 
+                    display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", 
+                    boxShadow: "0 4px 12px rgba(254, 229, 0, 0.25)", marginBottom: "16px", cursor: "pointer" 
+                  }}
+                >
+                  <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png" alt="kakao" style={{ width: "20px" }} />
+                  카카오톡으로 1초 만에 정보입력
+                </motion.button>
                 <div style={{ background: "white", padding: "16px", borderRadius: "20px", boxShadow: "0 10px 30px rgba(0,0,0,0.03)", border: "1px solid var(--glass-border)", display: "flex", flexDirection: "column", gap: "10px" }}>
                   <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", fontSize: "0.95rem", textAlign: "center", fontWeight: "600" }}>{date}</div>
                   <div style={{ display: "flex", gap: "10px" }}>

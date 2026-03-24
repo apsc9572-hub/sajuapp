@@ -77,7 +77,7 @@ async function callGemini(apiKey: string, sajuJson: any, userAnswers: any) {
 {
   "headline": "귀하의 질문을 명리학적으로 풀어낸 답변입니다.",
   "subheadline": "내담자의 현재 상황을 관통하는 통찰 (한 문장)",
-  "yongsin": "AI가 판별한 용신 (예: 목(木), 화(火))",
+  "yongsin": "청아매당 대가가 판별한 용신 (예: 목(木), 화(火))",
   "yongsin_desc": "용신에 대한 매우 간결한 설명",
   "basic_elements": {"wood": 0, "fire": 0, "earth": 0, "metal": 0, "water": 0},
   "corrected_elements": {"wood": 0, "fire": 0, "earth": 0, "metal": 0, "water": 0},
@@ -174,11 +174,21 @@ export async function POST(req: Request) {
       callClaude(anthropicKey, systemPrompt, sajuJson, userAnswers)
     ]);
 
+    const stripAIMarkers = (text: string) => {
+      if (!text || typeof text !== 'string') return text;
+      return text.replace(/\*\*\*|---|###/g, '').trim();
+    };
+
     // Merge results
     const finalResult = {
       ...geminiResult,
-      analysis: claudeResult.analysis,
-      luck_advice: claudeResult.luck_advice
+      analysis: {
+        title: stripAIMarkers(claudeResult.analysis?.title),
+        life_shape: stripAIMarkers(claudeResult.analysis?.life_shape),
+        solution: stripAIMarkers(claudeResult.analysis?.solution),
+        timing: stripAIMarkers(claudeResult.analysis?.timing),
+      },
+      luck_advice: stripAIMarkers(claudeResult.luck_advice)
     };
 
     return NextResponse.json(finalResult);
