@@ -215,7 +215,7 @@ export const calculateMajorSals = (pillars: any) => {
     return results;
 };
 
-export const performPremiumAnalysis = async (data: any) => {
+export const prepareAnalysisData = async (data: any) => {
     const { date, time, isLunar, birthCity, gender, selectedCategory, userQuestion } = data;
     const [y, m, d] = date.split("-").map(Number);
     const [h, mi] = time.split(":").map(Number);
@@ -233,6 +233,12 @@ export const performPremiumAnalysis = async (data: any) => {
     const hourStemKo = stemsShort[hourStemIdx];
     const hourBranchKo = branchesShort[timeIdx];
 
+    const getSipsung = (dayStemKo: string, targetKo: string) => {
+        // Simple fallback since true sipsung is calculated by ssaju for first 3 pillars.
+        return "-";
+    }
+
+    // @ts-ignore - Manually extending sajuRes.pillarDetails for the hour pillar
     sajuRes.pillarDetails.hour = {
         stem: stemsHanja[hourStemKo],
         branch: branchesHanja[hourBranchKo],
@@ -240,6 +246,8 @@ export const performPremiumAnalysis = async (data: any) => {
         branchKo: hourBranchKo,
         stemIdx: hourStemIdx,
         branchIdx: timeIdx,
+        stemTenGod: "-",
+        branchTenGod: "-",
         element: { stem: getElementFromChar(hourStemKo), branch: getElementFromChar(hourBranchKo) },
         yinYang: {
             stem: ["갑", "병", "무", "경", "임"].includes(hourStemKo) ? "양" : "음",
@@ -285,21 +293,31 @@ export const performPremiumAnalysis = async (data: any) => {
 그의 고통에 깊이 공감하고 실질적인 해결책을 제시하는 '인생 리포트'를 작성해야 합니다.
 
 [핵심 요구사항 - 반드시 준수]
-1. **분량**: **공백 포함 최소 6000자에서 6500자 사이**의 압도적인 분량으로 작성하십시오.
-2. **질문 집중**: 내담자의 구체적인 질문("${userQuestion}")에 대해 명리학적 근거를 바탕으로 집요하게 파고드십시오.
+1. **압도적 분량**: **전체 리포트가 10,000자 이상**이 되도록, 담당하신 해당 세션을 매우 집요하고 상세하게 작성하십시오. 
+2. **질문 집중**: 내담자의 구체적인 질문("${userQuestion}")에 대해 명리학적 근거를 바탕으로 끊임없이 파고드십시오.
 3. **가독성**: **5~8문장마다 반드시 문단을 나누고, 문단 사이에는 빈 줄 두 번(\\n\\n)**을 삽입하십시오. 
 4. **금지 사항 (절대 준수)**:
-   - **'***', '---', '###' 같은 AI 특유의 마크다운 기호를 절대 사용하지 마십시오.** (강조는 오직 ★표시만 사용)
-   - "네, 사주 풀이를 시작하겠습니다"와 같은 **AI 특유의 서두나 맺음말을 절대 하지 마십시오.**
-   - "데이터에 따르면", "분석 결과" 등의 기계적인 표현을 배제하고, 대가가 직접 이야기를 들려주듯 품격 있는 문체로 작성하십시오.
-5. **Yongsin Analysis**: 제공된 오행의 강약(elements_ratio)과 신강/신약 정보(strength_analysis)를 바탕으로, 이 사주에 가장 필요한 **'용신(Yongsin)'과 '희신(Heesin)'을 직접 판별**하십시오.
+   - **'***', '---', '###' 같은 마크다운 기호를 절대 사용하지 마십시오.** (강조는 오직 ★표시만 사용)
+   - "네, 시작하겠습니다"와 같은 **AI 특유의 서두나 맺음말을 절대 하지 마십시오.**
+   - "데이터에 따르면", "분석 결과" 등의 기계적인 표현을 배제하고, 대가(大家)가 직접 삶의 지도를 그려주듯 품격 있는 문체로 작성하십시오.
 
 [출력 지침]
-반드시 제공된 JSON 구조에 맞춰 한국어로만 작성하십시오. 마크다운 기호나 HTML 태그는 절대 사용하지 마십시오. 오직 텍스트로만 품격 있게 작성하십시오.`;
+마크다운 기호나 HTML 태그는 절대 사용하지 마십시오. 오직 순수한 텍스트로만 품격 있게 작성하십시오.`;
 
+    return {
+      sajuJson: sajuAnalysisJson,
+      systemPrompt: systemPrompt,
+      userAnswers: [`${selectedCategory}: ${userQuestion || "특별한 질문 없음 (올해와 내년 운세 집중)"}`],
+      sajuRes, stages12, majorSals, basePercentages, correctedPercentages, baseStrength, correctedStrength, elementalLabels, y
+    };
+};
+
+export const performPremiumAnalysis = async (data: any) => {
+    const { sajuJson, systemPrompt, userAnswers, sajuRes, stages12, majorSals, basePercentages, correctedPercentages, baseStrength, correctedStrength, elementalLabels, y } = await prepareAnalysisData(data);
+    
     const apiRes = await fetch("/api/premium-saju", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ systemPrompt, sajuJson: sajuAnalysisJson, userAnswers: [`${selectedCategory}: ${userQuestion || "특별한 질문 없음 (올해와 내년 운세 집중)"}`] })
+      body: JSON.stringify({ systemPrompt, sajuJson, userAnswers })
     });
 
     const llmResult = await apiRes.json();

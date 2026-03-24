@@ -12,6 +12,8 @@ import WheelDatePicker from "@/components/WheelDatePicker";
 import PaymentModal from "@/components/PaymentModal";
 import KoreanLunarCalendar from "korean-lunar-calendar";
 import { v4 as uuidv4 } from "uuid";
+import Script from "next/script";
+import { Suspense } from "react";
 
 const NEW_CATEGORIES = ["재물운", "사업운", "애정운", "직장운", "학업운", "인생총운"];
 
@@ -829,8 +831,9 @@ const cityLmtOffsets: Record<string, number> = {
   "의왕": -32, "여주": -30, "동두천": -32, "과천": -32, "가평": -30, "양평": -30, "연천": -32, "강릉": -24, "기타": -30
 };
 
-export default function PremiumSajuPage() {
+function PremiumSajuContent() {
   const router = useRouter();
+  const [kakaoReady, setKakaoReady] = useState(false);
   const [step, setStep] = useState(0); // 0: Birth Input, 1: Category Select, 2: User Question, 3: Loading/Result
   const [selectedCategory, setSelectedCategory] = useState("");
   const [userQuestion, setUserQuestion] = useState("");
@@ -841,6 +844,9 @@ export default function PremiumSajuPage() {
   const [isLunar, setIsLunar] = useState(false);
   const [gender, setGender] = useState("M");
   const [birthCity, setBirthCity] = useState("서울");
+  const [userEmail, setUserEmail] = useState("");
+  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "kakao">("email");
+  const [kakaoToken, setKakaoToken] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [customerKey] = useState(() => uuidv4());
@@ -888,14 +894,15 @@ export default function PremiumSajuPage() {
         if (parsed.isLunar !== undefined) setIsLunar(parsed.isLunar);
         if (parsed.gender) setGender(parsed.gender);
         if (parsed.birthCity) setBirthCity(parsed.birthCity);
+        if (parsed.userEmail) setUserEmail(parsed.userEmail);
       } catch (e) { console.error("Error loading profile", e); }
     }
   }, []);
 
   useEffect(() => {
-    const profile = { date, time, isLunar, gender, birthCity };
+    const profile = { date, time, isLunar, gender, birthCity, userEmail };
     localStorage.setItem("user_birth_profile", JSON.stringify(profile));
-  }, [date, time, isLunar, gender, birthCity]);
+  }, [date, time, isLunar, gender, birthCity, userEmail]);
 
   // Load animation
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -963,17 +970,48 @@ export default function PremiumSajuPage() {
     });
   };
 
+  useEffect(() => {
+    const initKakao = () => {
+      if (typeof window !== "undefined" && (window as any).Kakao) {
+        const Kakao = (window as any).Kakao;
+        if (!Kakao.isInitialized()) {
+          const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "b60b41a84d11534e64bd1422cba88b5d";
+          try {
+            Kakao.init(key);
+            console.log("Kakao SDK Initialized with key:", key);
+          } catch (e) {
+            console.error("Kakao Init Error during useEffect:", e);
+          }
+        }
+        setKakaoReady(true);
+        console.log("Loaded Kakao Modules in useEffect:", Object.keys(Kakao));
+      }
+    };
+
+    if (kakaoReady || (window as any).Kakao) {
+      initKakao();
+    }
+  }, [kakaoReady]);
+
   const handleKakaoSync = () => {
-    if (!(window as any).Kakao) {
-      alert("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+    const Kakao = (window as any).Kakao;
+    if (!Kakao || !Kakao.Auth) {
+      alert("카카오톡 SDK 또는 인증 모듈을 불러오는 중입니다. 1~2초 후 다시 시도해주세요.");
+      console.error("Kakao SDK or Auth module missing. Kakao Ready State:", kakaoReady);
+      if (Kakao) console.log("Current Kakao Keys:", Object.keys(Kakao));
       return;
     }
-    const Kakao = (window as any).Kakao;
+    
     if (!Kakao.isInitialized()) {
-      Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "5370d0fd3be699d7a2f1952f99052601");
+      try {
+        Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "b60b41a84d11534e64bd1422cba88b5d");
+      } catch (e) {
+        console.error("Kakao Init Error during Sync:", e);
+      }
     }
 
     Kakao.Auth.login({
+      scope: 'profile_nickname, account_email, gender, talk_message',
       success: function(authObj: any) {
         Kakao.API.request({
           url: '/v2/user/me',
@@ -982,6 +1020,13 @@ export default function PremiumSajuPage() {
             if (kakaoAccount) {
               if (kakaoAccount.gender) {
                 setGender(kakaoAccount.gender === "male" ? "M" : "F");
+              }
+              if (kakaoAccount.email) {
+                setUserEmail(kakaoAccount.email);
+              }
+              if (authObj.access_token) {
+                setKakaoToken(authObj.access_token);
+                sessionStorage.setItem("kakao_access_token", authObj.access_token);
               }
               alert(`${res.properties?.nickname || "사용자"}님의 정보가 연동되었습니다.`);
             }
@@ -999,14 +1044,14 @@ export default function PremiumSajuPage() {
 
   const handleKakaoShare = () => {
     if (!reading) return;
-    if (!(window as any).Kakao) {
+    if (!kakaoReady && !(window as any).Kakao) {
       alert("카카오톡 공유 기능을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
     
     const Kakao = (window as any).Kakao;
     if (!Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "5370d0fd3be699d7a2f1952f99052601";
+      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "b60b41a84d11534e64bd1422cba88b5d";
       try {
         Kakao.init(key);
       } catch (e) {
@@ -1562,7 +1607,8 @@ export default function PremiumSajuPage() {
   };
 
   return (
-    <main ref={topRef} style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
+    <>
+      <main ref={topRef} style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
       <Disclaimer />
       <TraditionalBackground />
       <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={typeof date === 'string' ? date : "1991-01-13"} onConfirm={(y, m, d, lunar) => { setDate(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`); setIsLunar(lunar); setIsDatePickerOpen(false); }} />
@@ -1598,53 +1644,84 @@ export default function PremiumSajuPage() {
                   </p>
                 </div>
 
-                {/* Kakao Sync Button */}
-                <motion.button 
-                  whileHover={{ scale: 1.02, backgroundColor: "#F7E000" }} 
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleKakaoSync}
-                  style={{ 
-                    width: "100%", padding: "14px", borderRadius: "16px", background: "#FEE500", 
-                    color: "#3C1E1E", fontWeight: "800", fontSize: "0.95rem", border: "none", 
-                    display: "flex", justifyContent: "center", alignItems: "center", gap: "10px", 
-                    boxShadow: "0 4px 12px rgba(254, 229, 0, 0.25)", marginBottom: "16px", cursor: "pointer" 
-                  }}
-                >
-                  <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png" alt="kakao" style={{ width: "20px" }} />
-                  카카오톡으로 1초 만에 정보입력
-                </motion.button>
-                <div style={{ background: "white", padding: "16px", borderRadius: "20px", boxShadow: "0 10px 30px rgba(0,0,0,0.03)", border: "1px solid var(--glass-border)", display: "flex", flexDirection: "column", gap: "10px" }}>
-                  <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", fontSize: "0.95rem", textAlign: "center", fontWeight: "600" }}>{date}</div>
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <input type="time" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", border: "none", fontSize: "0.95rem", fontWeight: "600", outline: "none", textAlign: "center" }} />
-                    <div style={{ display: "flex", background: "rgba(0,0,0,0.04)", borderRadius: "12px", padding: "4px" }}>
-                      <button onClick={() => setIsLunar(false)} style={{ padding: "0 12px", borderRadius: "8px", border: "none", background: !isLunar ? "var(--accent-indigo)" : "transparent", fontWeight: "600", fontSize: "0.9rem", color: !isLunar ? "white" : "var(--text-secondary)", transition: "all 0.2s" }}>양력</button>
-                      <button onClick={() => setIsLunar(true)} style={{ padding: "0 12px", borderRadius: "8px", border: "none", background: isLunar ? "var(--accent-indigo)" : "transparent", fontWeight: "600", fontSize: "0.9rem", color: isLunar ? "white" : "var(--text-secondary)", transition: "all 0.2s" }}>음력</button>
+                  <div style={{ background: "white", padding: "16px", borderRadius: "20px", boxShadow: "0 10px 30px rgba(0,0,0,0.03)", border: "1px solid var(--glass-border)", display: "flex", flexDirection: "column", gap: "10px" }}>
+                    {/* Delivery Method Selector */}
+                    <div style={{ display: "flex", gap: "8px", marginBottom: "10px", background: "rgba(0,0,0,0.04)", padding: "4px", borderRadius: "14px" }}>
+                      <button 
+                        onClick={() => setDeliveryMethod("email")}
+                        style={{ flex: 1, padding: "10px 0", borderRadius: "10px", border: "none", background: deliveryMethod === "email" ? "white" : "transparent", color: deliveryMethod === "email" ? "var(--accent-indigo)" : "#999", fontWeight: "700", fontSize: "0.85rem", boxShadow: deliveryMethod === "email" ? "0 2px 8px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}
+                      >
+                        이메일로 받기
+                      </button>
+                      <button 
+                        onClick={() => setDeliveryMethod("kakao")}
+                        style={{ flex: 1, padding: "10px 0", borderRadius: "10px", border: "none", background: deliveryMethod === "kakao" ? "white" : "transparent", color: deliveryMethod === "kakao" ? "#3C1E1E" : "#999", fontWeight: "700", fontSize: "0.85rem", boxShadow: deliveryMethod === "kakao" ? "0 2px 8px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}
+                      >
+                        카카오톡으로 받기
+                      </button>
                     </div>
-                  </div>
-                  <div style={{ display: "flex", gap: "6px", flexDirection: "column" }}>
+
+                    {deliveryMethod === "email" ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "4px" }}>
+                        <span style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--accent-indigo)", marginLeft: "4px" }}>결과를 받으실 이메일 (필수)</span>
+                        <input 
+                          type="email" 
+                          value={userEmail} 
+                          onChange={(e) => setUserEmail(e.target.value)} 
+                          placeholder="example@email.com"
+                          style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", border: "none", fontSize: "0.95rem", fontWeight: "600", outline: "none" }} 
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ marginBottom: "4px" }}>
+                        <span style={{ display: "block", fontSize: "0.75rem", fontWeight: "800", color: "var(--accent-indigo)", marginLeft: "4px", marginBottom: "6px" }}>카카오 계정 연동 (필수)</span>
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={handleKakaoSync}
+                          style={{ 
+                            width: "100%", padding: "12px", borderRadius: "12px", background: "#FEE500", 
+                            color: "#3C1E1E", fontWeight: "800", fontSize: "0.9rem", border: "none", 
+                            display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", 
+                            boxShadow: "0 4px 12px rgba(254, 229, 0, 0.15)", cursor: "pointer" 
+                          }}
+                        >
+                          <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png" alt="kakao" style={{ width: "18px" }} />
+                          {kakaoToken ? "카카오 정보 연동 완료" : "카카오 1초 연동하기"}
+                        </motion.button>
+                      </div>
+                    )}
+                    <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", fontSize: "0.95rem", textAlign: "center", fontWeight: "600" }}>{date}</div>
                     <div style={{ display: "flex", gap: "10px" }}>
-                      <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", border: "none", fontSize: "0.95rem", fontWeight: "600", outline: "none" }}>
-                        <optgroup label="주요 광역시">
-                          {["서울", "부산", "대구", "인천", "광주", "대전", "울산", "제주"].map(c => <option key={c} value={c}>{c}</option>)}
-                        </optgroup>
-                        <optgroup label="경기도 및 주요 도시">
-                          {Object.keys(cityLmtOffsets).filter(c => !["서울", "부산", "대구", "인천", "광주", "대전", "울산", "제주", "기타"].includes(c)).map(c => <option key={c} value={c}>{c}</option>)}
-                        </optgroup>
-                        <optgroup label="기타">
-                          <option value="기타">기타 지역</option>
-                        </optgroup>
-                      </select>
-                      <div style={{ display: "flex", background: "rgba(0,0,0,0.04)", borderRadius: "12px", padding: "4px", flex: 1 }}>
-                        <button onClick={() => setGender("M")} style={{ flex: 1, padding: "8px 0", borderRadius: "8px", border: "none", background: gender === "M" ? "var(--accent-indigo)" : "transparent", fontWeight: "600", fontSize: "0.9rem", color: gender === "M" ? "white" : "var(--text-secondary)", transition: "all 0.2s" }}>남성</button>
-                        <button onClick={() => setGender("F")} style={{ flex: 1, padding: "8px 0", borderRadius: "8px", border: "none", background: gender === "F" ? "var(--accent-indigo)" : "transparent", fontWeight: "600", fontSize: "0.9rem", color: gender === "F" ? "white" : "var(--text-secondary)", transition: "all 0.2s" }}>여성</button>
+                      <input type="time" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", border: "none", fontSize: "0.95rem", fontWeight: "600", outline: "none", textAlign: "center" }} />
+                      <div style={{ display: "flex", background: "rgba(0,0,0,0.04)", borderRadius: "12px", padding: "4px" }}>
+                        <button onClick={() => setIsLunar(false)} style={{ padding: "0 12px", borderRadius: "8px", border: "none", background: !isLunar ? "var(--accent-indigo)" : "transparent", fontWeight: "600", fontSize: "0.9rem", color: !isLunar ? "white" : "var(--text-secondary)", transition: "all 0.2s" }}>양력</button>
+                        <button onClick={() => setIsLunar(true)} style={{ padding: "0 12px", borderRadius: "8px", border: "none", background: isLunar ? "var(--accent-indigo)" : "transparent", fontWeight: "600", fontSize: "0.9rem", color: isLunar ? "white" : "var(--text-secondary)", transition: "all 0.2s" }}>음력</button>
                       </div>
                     </div>
-                    <p style={{ fontSize: "0.7rem", color: "var(--text-secondary)", margin: "4px 0 0 4px", borderLeft: "2px solid rgba(42, 54, 95, 0.2)", paddingLeft: "8px" }}>
-                      * 태어난 지역에 따른 시간차를 반영해 정밀하게 살핍니다.
-                    </p>
+                    <div style={{ display: "flex", gap: "6px", flexDirection: "column" }}>
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <select className="glass-input" value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", border: "none", fontSize: "0.95rem", fontWeight: "600", outline: "none" }}>
+                          <optgroup label="주요 광역시">
+                            {["서울", "부산", "대구", "인천", "광주", "대전", "울산", "제주"].map(c => <option key={c} value={c}>{c}</option>)}
+                          </optgroup>
+                          <optgroup label="경기도 및 주요 도시">
+                            {Object.keys(cityLmtOffsets).filter(c => !["서울", "부산", "대구", "인천", "광주", "대전", "울산", "제주", "기타"].includes(c)).map(c => <option key={c} value={c}>{c}</option>)}
+                          </optgroup>
+                          <optgroup label="기타">
+                            <option value="기타">기타 지역</option>
+                          </optgroup>
+                        </select>
+                        <div style={{ display: "flex", background: "rgba(0,0,0,0.04)", borderRadius: "12px", padding: "4px", flex: 1 }}>
+                          <button onClick={() => setGender("M")} style={{ flex: 1, padding: "8px 0", borderRadius: "8px", border: "none", background: gender === "M" ? "var(--accent-indigo)" : "transparent", fontWeight: "600", fontSize: "0.9rem", color: gender === "M" ? "white" : "var(--text-secondary)", transition: "all 0.2s" }}>남성</button>
+                          <button onClick={() => setGender("F")} style={{ flex: 1, padding: "8px 0", borderRadius: "8px", border: "none", background: gender === "F" ? "var(--accent-indigo)" : "transparent", fontWeight: "600", fontSize: "0.9rem", color: gender === "F" ? "white" : "var(--text-secondary)", transition: "all 0.2s" }}>여성</button>
+                        </div>
+                      </div>
+                      <p style={{ fontSize: "0.7rem", color: "var(--text-secondary)", margin: "4px 0 0 4px", borderLeft: "2px solid rgba(42, 54, 95, 0.2)", paddingLeft: "8px" }}>
+                        * 태어난 지역에 따른 시간차를 반영해 정밀하게 살핍니다.
+                      </p>
+                    </div>
                   </div>
-                </div>
                 <button onClick={() => setStep(1)} className="btn-primary" style={{ width: "100%", marginTop: "16px", padding: "14px", borderRadius: "16px", background: "linear-gradient(135deg, var(--accent-indigo), #1A1C2C)", color: "var(--accent-gold)", fontWeight: "700", fontSize: "1.05rem", border: "none", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", boxShadow: "0 10px 25px rgba(0,0,0,0.15)" }}>
                   심층 질문 시작하기 <ArrowRight size={18} />
                 </button>
@@ -1710,7 +1787,8 @@ export default function PremiumSajuPage() {
                   onClick={() => {
                     const paymentData = {
                       date, time, isLunar, birthCity, gender, 
-                      selectedCategory, userQuestion
+                      selectedCategory, userQuestion, userEmail,
+                      deliveryMethod // Added
                     };
                     localStorage.setItem("premium_saju_data", JSON.stringify(paymentData));
                     setIsPaymentModalOpen(true);
@@ -1976,5 +2054,23 @@ export default function PremiumSajuPage() {
         customerKey={customerKey}
       />
     </main>
+    <Script 
+      src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
+      onLoad={() => {
+        setKakaoReady(true);
+        if ((window as any).Kakao && !(window as any).Kakao.isInitialized()) {
+          (window as any).Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "b60b41a84d11534e64bd1422cba88b5d");
+        }
+      }}
+    />
+    </>
+  );
+}
+
+export default function PremiumSajuPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PremiumSajuContent />
+    </Suspense>
   );
 }

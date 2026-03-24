@@ -100,27 +100,23 @@ async function callGemini(apiKey: string, sajuJson: any, userAnswers: any) {
   return JSON.parse(text);
 }
 
-async function callClaude(apiKey: string, systemPrompt: string, sajuJson: any, userAnswers: any) {
+async function callClaudeSection(apiKey: string, systemPrompt: string, sajuJson: any, userAnswers: any, section: 'life_shape' | 'solution' | 'timing_advice') {
   const modelId = 'claude-sonnet-4-5-20250929';
   const apiUrl = 'https://api.anthropic.com/v1/messages';
+
+  const instructions = {
+    life_shape: '### [태스크: 인생의 전체적인 형상 분석]\n제공된 사주 데이터를 바탕으로 내담자의 삶의 궤적과 그릇을 "대서사시"처럼 장대하게 서술하십시오. 최소 2000자 이상 작성이 목표입니다. 출력 포맷은 오직 JSON {"life_shape": "내용"} 입니다.',
+    solution: '### [태스크: 고민에 대한 심층 해답 및 영역별 조언]\n내담자의 질문(${JSON.stringify(userAnswers)})에 대해 명리학적 근거를 바탕으로 집요하고 상세하게 해답을 제시하십시오. 최소 3000자 이상 작성이 목표입니다. 출력 포맷은 오직 JSON {"solution": "내용"} 입니다.',
+    timing_advice: '### [태스크: 성패 시기 및 개운 비책]\n2026-2028년의 구체적인 운의 흐름과 일상에서 실천 가능한 개운 비책을 서술하십시오. 최소 1500자 이상 작성이 목표입니다. 출력 포맷은 오직 JSON {"timing": "내용", "luck_advice": "내용"} 입니다.'
+  };
 
   const promptText = `
 [Data] ${JSON.stringify(sajuJson)}
 [Answers] ${JSON.stringify(userAnswers)}
 
-### [Phase 2: 심층 작문 및 대안 제시]
-당신은 30년 경력의 명리학 대가로서, 제공된 데이터를 바탕으로 아래 구조의 6000자 이상 압도적 분량의 리포트를 작성하십시오.
+${instructions[section]}
 
-### [Phase 3: 출력 포맷 (Strict JSON ONLY)]
-{
-  "analysis": {
-    "title": "운명의 대전환점 분석",
-    "life_shape": "사주 전체의 형상을 대서사시처럼 장대하게 서술 (1500자 이상)",
-    "solution": "질문에 대한 심층 해답과 영역별 조언 (3000자 이상)",
-    "timing": "2026-2028 운의 흐름과 구체적 행동 지침 (1500자 이상)"
-  },
-  "luck_advice": "일상에서 실천 가능한 개운 비책"
-}
+[주의] 절대 요약하지 말고, 대가의 깊이 있는 통찰을 모든 문장에 녹여내어 압도적인 분량으로 작성하십시오.
 `;
 
   const response = await fetch(apiUrl, {
@@ -141,18 +137,21 @@ async function callClaude(apiKey: string, systemPrompt: string, sajuJson: any, u
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Claude API Error: ${response.status} - ${errorText}`);
+    throw new Error(`Claude API Error (${section}): ${response.status} - ${errorText}`);
   }
   const resJson = await response.json();
   const text = resJson.content?.[0]?.text;
 
-  // Clean and Parse logic from original route
   let s = text.indexOf('{'), e = text.lastIndexOf('}');
   let clean = text.substring(s, e + 1);
   try {
     return JSON.parse(clean);
   } catch {
-    return extractDataRegex(text);
+    // If JSON fails, return the raw text mapped to the expected key
+    if (section === 'timing_advice') {
+      return { timing: text, luck_advice: "기운을 보하며 때를 기다리십시오." };
+    }
+    return { [section]: text };
   }
 }
 
@@ -168,33 +167,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: '시스템 설정 오류 (API Key missing)' }, { status: 500 });
     }
 
-    // Run both in parallel for speed
-    const [geminiResult, claudeResult] = await Promise.all([
+    // Run all analysis phases in parallel for maximum speed and length
+    const [geminiResult, part1, part2, part3] = await Promise.all([
       callGemini(geminiKey, sajuJson, userAnswers),
-      callClaude(anthropicKey, systemPrompt, sajuJson, userAnswers)
+      callClaudeSection(anthropicKey, systemPrompt, sajuJson, userAnswers, 'life_shape'),
+      callClaudeSection(anthropicKey, systemPrompt, sajuJson, userAnswers, 'solution'),
+      callClaudeSection(anthropicKey, systemPrompt, sajuJson, userAnswers, 'timing_advice')
     ]);
 
     const stripAIMarkers = (text: string) => {
-      if (!text || typeof text !== 'string') return text;
-      return text.replace(/\*\*\*|---|###/g, '').trim();
+      if (!text || typeof text !== 'string') return text || "";
+      return text.replace(/\*\*\*|---|###|```json|```/g, '').trim();
     };
 
-    // Merge results
+    // Merge results from 4 different AI instances
     const finalResult = {
       ...geminiResult,
       analysis: {
-        title: stripAIMarkers(claudeResult.analysis?.title),
-        life_shape: stripAIMarkers(claudeResult.analysis?.life_shape),
-        solution: stripAIMarkers(claudeResult.analysis?.solution),
-        timing: stripAIMarkers(claudeResult.analysis?.timing),
+        title: "운명의 대전환점 분석 리포트",
+        life_shape: stripAIMarkers(part1.life_shape),
+        solution: stripAIMarkers(part2.solution),
+        timing: stripAIMarkers(part3.timing),
       },
-      luck_advice: stripAIMarkers(claudeResult.luck_advice)
+      luck_advice: stripAIMarkers(part3.luck_advice)
     };
 
     return NextResponse.json(finalResult);
 
   } catch (err: any) {
-    console.error("Split API Error:", err);
+    console.error("Multi-Phase API Error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
