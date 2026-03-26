@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 ${systemPrompt}
 
 You MUST return a JSON object containing EXACTLY these keys: ${keysStr}.
-Ensure each analysis is detailed and natural. While you should explain the astrological reasoning (the "why"), do so in a way that is easy for laypeople to understand.
+Ensure each analysis is detailed and natural. **Strictly use polite language (하십시오체/해요체).** While you should explain the astrological reasoning (the "why"), do so in a way that is easy for laypeople to understand.
 
 For context, here is the raw JSON analysis again:
 ${JSON.stringify(sajuJson)}
