@@ -54,7 +54,8 @@ export default function TermsPage() {
                 사업자등록번호: 170-53-00867<br />
                 통신판매업 번호: 2026-인천계양-0283<br />
                 대표자: 박성철<br />
-                주소: 인천 계양구 용종로 124 134동 1402호
+                주소: 인천시 계양구 용종로 124 134-1402<br />
+                유선전화번호: 010-8243-7516
               </div>
             </section>
 
@@ -69,7 +70,12 @@ export default function TermsPage() {
             <section>
               <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>제4조 (환불 정책)</h2>
               <p style={{ opacity: 0.8, marginBottom: "8px" }}>1. 본 서비스의 프리미엄 사주 및 운세 결과는 결제와 동시에 생성이 시작되어 즉시 제공되는 <strong>디지털 맞춤형 콘텐츠</strong>입니다.</p>
-              <p style={{ opacity: 0.8 }}>2. 전자상거래법 제17조 제2항 제5호에 의거하여, 디지털 콘텐츠의 제공이 개시된 이후에는 단순 변심으로 인한 환불이 불가능합니다.</p>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>2. 전자상거래법 제17조 제2항 제5호에 의거하여, 디지털 콘텐츠의 제공이 개시된 이후에는 단순 변심으로 인한 환불이 불가능합니다.</p>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>3. 단, 아래와 같은 사유에 해당할 경우 회사는 환불 조치를 진행할 수 있습니다.</p>
+              <ul style={{ opacity: 0.8, fontSize: "0.8rem", paddingLeft: "20px", margin: 0 }}>
+                <li>회사의 귀책사유로 결제 오류가 발생하여 최종 분석 결과를 제공받지 못한 경우</li>
+                <li>회사의 귀책사유로 서비스가 장기 중단되어 구매한 콘텐츠를 이용할 수 없는 경우</li>
+              </ul>
             </section>
 
             <section>

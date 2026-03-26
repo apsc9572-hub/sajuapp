@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const body = JSON.parse(bodyText);
     console.log("[QStash Worker] Verified task:", body);
 
-    const { userEmail, sajuData, orderId, kakaoToken, deliveryMethod } = body;
+    const { userEmail, sajuData, orderId, kakaoToken, deliveryMethod, images } = body;
 
     if (!userEmail || !sajuData || !orderId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
       kakaoToken,
       sajuData,
       orderId,
-      deliveryMethod
+      deliveryMethod,
+      images
     });
 
     return NextResponse.json({ success: true });

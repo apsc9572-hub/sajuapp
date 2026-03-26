@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Sparkles, Navigation, CalendarDays, Coins, Heart, Briefcase, Activity, Target, Copy, Download, ArrowUp, Home, CreditCard } from "lucide-react";
-import { calculateSaju } from "ssaju";
+import { getUnifiedSaju } from "@/lib/unified-saju";
 import TraditionalBackground from "@/components/TraditionalBackground";
 import Disclaimer from "@/components/Disclaimer";
 import WheelDatePicker from "@/components/WheelDatePicker";
@@ -14,19 +14,20 @@ import KoreanLunarCalendar from "korean-lunar-calendar";
 import { v4 as uuidv4 } from "uuid";
 import Script from "next/script";
 import { Suspense } from "react";
+import { prepareAnalysisData, getElementFromChar } from "@/lib/premium-saju-utils";
 
 const NEW_CATEGORIES = ["재물운", "사업운", "애정운", "직장운", "학업운", "인생총운"];
 
-const stemsHanja: Record<string, string> = {
+export const stemsHanja: Record<string, string> = {
   "갑": "甲", "을": "乙", "병": "丙", "정": "丁", "무": "戊",
   "기": "己", "경": "庚", "신": "辛", "임": "壬", "계": "癸"
 };
-const branchesHanja: Record<string, string> = {
+export const branchesHanja: Record<string, string> = {
   "자": "子", "축": "丑", "인": "寅", "묘": "卯", "진": "辰", "사": "巳",
   "오": "午", "미": "未", "신": "申", "유": "酉", "술": "戌", "해": "亥"
 };
 
-const getElementColor = (char: string) => {
+export const getElementColor = (char: string) => {
   if (!char) return 'var(--text-primary)';
   const c = char.toLowerCase();
   if (['목', '甲', '乙', '寅', '묘', '卯', 'wood'].some(v => c.includes(v))) return '#81b29a'; // green
@@ -37,20 +38,6 @@ const getElementColor = (char: string) => {
   return 'var(--text-primary)';
 };
 
-const getElementFromChar = (char: string) => {
-  const wood = ['갑', '을', '인', '묘', '甲', '乙', '寅', '卯'];
-  const fire = ['병', '정', '사', '오', '丙', '丁', '巳', '午'];
-  const earth = ['무', '기', '진', '술', '축', '미', '戊', '己', '辰', '戌', '丑', '未'];
-  const metal = ['경', '신', '申', '유', '庚', '辛', '酉'];
-  const water = ['임', '계', '해', '자', '壬', '癸', '亥', '子'];
-  
-  if (wood.some(c => char.includes(c))) return '목';
-  if (fire.some(c => char.includes(c))) return '화';
-  if (earth.some(c => char.includes(c))) return '토';
-  if (metal.some(c => char.includes(c))) return '금';
-  if (water.some(c => char.includes(c))) return '수';
-  return '토';
-};
 
 const calculate12Sals = (dayBranchKo: string, targetBranchKo: string) => {
   const groups: Record<string, string[]> = {
@@ -95,252 +82,129 @@ const getElementHanja = (element: string) => {
   return "";
 };
 
-// 청아매당 고유의 '모던 오리엔탈' 카드 명식 디자인 (이미지 참고를 바탕으로 한 독창적 재해석)
-const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, tenGods: any, stages12: any, sals: any }) => {
+// 프리미엄 8단 명식표 (포스텔러 스타일 고도화)
+export const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, tenGods: any, stages12: any, sals: any }) => {
   if (!data) return null;
 
-  const calculateStrength = (ratios: any, ilgan: string) => {
-    let support = 0;
-    const { wood, fire, earth, metal, water } = ratios;
-    if (ilgan === '목') support = wood + water;
-    else if (ilgan === '화') support = fire + wood;
-    else if (ilgan === '토') support = earth + fire;
-    else if (ilgan === '금') support = metal + earth;
-    else if (ilgan === '수') support = water + metal;
-    if (support >= 80) return "태강(極強)";
-    if (support >= 55) return "신강(身強)";
-    if (support >= 45) return "중화(中和)";
-    if (support >= 20) return "신약(身弱)";
-    return "태약(極弱)";
-  };
-  
   const pillars = [
     { 
-      label: "시주", 
+      label: "생시", 
       data: data.hour, 
-      stage: stages12?.hour || "-", 
-      topTen: data.hour.tenGodStem || tenGods?.hour?.stem || "-",
-      bottomTen: data.hour.tenGodBranch || tenGods?.hour?.branch || "-",
-      sals: sals?.hour || [], 
-      posKo: "말년" 
+      stage: data.hour.stage12 || stages12?.hour || "-", 
+      topTen: data.hour.stemTenGod || data.hour.tenGodStem || tenGods?.hour?.stem || "-",
+      bottomTen: data.hour.branchTenGod || data.hour.tenGodBranch || tenGods?.hour?.branch || "-",
+      hidden: data.hour.hidden || data.hour.hiddenText || "-",
+      sinsal: data.hour.sinsals?.find((s: string) => ["천살", "반안살", "육해살", "지살", "연살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살", "겁살", "재살"].some(name => s.includes(name))) || sals?.hour?.twelveSal || "-",
+      gwiin: data.hour.sinsals?.filter((s: string) => s.includes("귀인")).join(" ") || sals?.hour?.specialSals?.filter((s: string) => s.includes("귀인")).join(" ") || "-"
     },
     { 
-      label: "일주", 
+      label: "생일", 
       data: data.day, 
-      stage: stages12?.day || "-", 
+      stage: data.day.stage12 || stages12?.day || "-", 
       topTen: "일간", 
-      bottomTen: data.day.tenGodBranch || tenGods?.day?.branch || "-",
-      sals: sals?.day || [], 
-      posKo: "중년" 
+      bottomTen: data.day.branchTenGod || data.day.tenGodBranch || tenGods?.day?.branch || "-",
+      hidden: data.day.hidden || data.day.hiddenText || "-",
+      sinsal: data.day.sinsals?.find((s: string) => ["천살", "반안살", "육해살", "지살", "연살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살", "겁살", "재살"].some(name => s.includes(name))) || sals?.day?.twelveSal || "-",
+      gwiin: data.day.sinsals?.filter((s: string) => s.includes("귀인")).join(" ") || sals?.day?.specialSals?.filter((s: string) => s.includes("귀인")).join(" ") || "-"
     },
     { 
-      label: "월주", 
+      label: "생월", 
       data: data.month, 
-      stage: stages12?.month || "-", 
-      topTen: data.month.tenGodStem || tenGods?.month?.stem || "-",
-      bottomTen: data.month.tenGodBranch || tenGods?.month?.branch || "-",
-      sals: sals?.month || [], 
-      posKo: "청년" 
+      stage: data.month.stage12 || stages12?.month || "-", 
+      topTen: data.month.stemTenGod || data.month.tenGodStem || tenGods?.month?.stem || "-",
+      bottomTen: data.month.branchTenGod || data.month.tenGodBranch || tenGods?.month?.branch || "-",
+      hidden: data.month.hidden || data.month.hiddenText || "-",
+      sinsal: data.month.sinsals?.find((s: string) => ["천살", "반안살", "육해살", "지살", "연살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살", "겁살", "재살"].some(name => s.includes(name))) || sals?.month?.twelveSal || "-",
+      gwiin: data.month.sinsals?.filter((s: string) => s.includes("귀인")).join(" ") || sals?.month?.specialSals?.filter((s: string) => s.includes("귀인")).join(" ") || "-"
     },
     { 
-      label: "년주", 
+      label: "생년", 
       data: data.year, 
-      stage: stages12?.year || "-", 
-      topTen: data.year.tenGodStem || tenGods?.year?.stem || "-",
-      bottomTen: data.year.tenGodBranch || tenGods?.year?.branch || "-",
-      sals: sals?.year || [], 
-      posKo: "초년" 
+      stage: data.year.stage12 || stages12?.year || "-", 
+      topTen: data.year.stemTenGod || data.year.tenGodStem || tenGods?.year?.stem || "-",
+      bottomTen: data.year.branchTenGod || data.year.tenGodBranch || tenGods?.year?.branch || "-",
+      hidden: data.year.hidden || data.year.hiddenText || "-",
+      sinsal: data.year.sinsals?.find((s: string) => ["천살", "반안살", "육해살", "지살", "연살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살", "겁살", "재살"].some(name => s.includes(name))) || sals?.year?.twelveSal || "-",
+      gwiin: data.year.sinsals?.filter((s: string) => s.includes("귀인")).join(" ") || sals?.year?.specialSals?.filter((s: string) => s.includes("귀인")).join(" ") || "-"
     }
   ];
 
+  const rowLabels = ["천간", "십성", "지지", "십성", "지장간", "12운성", "12신살"];
+
   return (
-    <div className="saju-pillar-container" style={{ 
-      margin: "20px 0",
-      padding: "8px",
-      background: "white",
-      borderRadius: "20px",
-      border: "1.5px solid #3d5a80",
-      boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
-      overflowX: "hidden"
-    }}>
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "58px 1fr 1fr 1fr 1fr", // 라벨 너비 소폭 확장 (십이운성 잘림 방지)
-        width: "100%", 
-        border: "1px solid #eee",
-        borderRadius: "12px",
-        overflow: "hidden"
-      }}>
-        {/* 헤더 행 (시 일 월 년) */}
-        <div style={{ padding: "12px 0", background: "#f8f9fa", borderBottom: "1px solid #eee", borderRight: "1px solid #eee" }}></div>
+    <div style={{ margin: "16px 0", background: "white", borderRadius: "20px", padding: "6px", border: "1.5px solid #eee", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "50px 1fr 1fr 1fr 1fr", borderRadius: "14px", overflow: "hidden", border: "1px solid #f0f0f0" }}>
+        {/* Header */}
+        <div style={{ background: "#f8f9fa", padding: "10px 0", borderBottom: "1px solid #eee" }} />
         {pillars.map((p, i) => (
-          <div key={`header-${i}`} style={{ 
-            padding: "12px 0", 
-            background: "#f8f9fa", 
-            borderBottom: "1px solid #eee", 
-            borderRight: i < 3 ? "1px solid #eee" : "none",
-            textAlign: "center",
-            fontSize: "1rem",
-            fontWeight: "900",
-            color: "#333"
-          }}>
-            {p.label.replace("주", "")}
+          <div key={i} style={{ background: "#f8f9fa", padding: "10px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.95rem", fontWeight: "800", color: "#666" }}>
+            {p.label}
           </div>
         ))}
 
-        {/* 십성 (상) */}
-        <div style={{ padding: "10px 0", borderBottom: "1px solid #eee", borderRight: "1px solid #eee", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center", background: "#fcfcfc" }}>
-            <div style={{ fontSize: "0.75rem", fontWeight: "800", color: "#333" }}>십성</div>
-        </div>
+        {/* 1. 천간 */}
+        <div style={{ background: "#fcfcfc", padding: "10px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.75rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>천간</div>
         {pillars.map((p, i) => (
-          <div key={`topten-${i}`} style={{ 
-            padding: "10px 0", 
-            borderBottom: "1px solid #eee", 
-            borderRight: i < 3 ? "1px solid #eee" : "none",
-            textAlign: "center",
-            fontSize: "0.85rem",
-            fontWeight: "700",
-            color: p.topTen === "일간" ? "#333" : "#666" // 진한 색상 완화
-          }}>
+          <div key={i} style={{ padding: "12px 0", borderBottom: "1px solid #eee", textAlign: "center", position: "relative" }}>
+            <div style={{ fontSize: "2.2rem", fontWeight: "900", color: getElementColor(p.data.element.stem), lineHeight: "1" }}>
+              {stemsHanja[p.data.stemKo]}
+            </div>
+            <div style={{ position: "absolute", bottom: "4px", right: "4px", fontSize: "0.65rem", fontWeight: "700", opacity: 0.7, color: getElementColor(p.data.element.stem) }}>
+              {p.data.element.stem.includes("Yang") ? "+" : "-"}{getElementHanja(p.data.element.stem)}
+            </div>
+          </div>
+        ))}
+
+        {/* 2. 십성 (천간) */}
+        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.75rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>십성</div>
+        {pillars.map((p, i) => (
+          <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "1rem", fontWeight: "800", color: p.topTen === "일간" ? "#333" : getElementColor(p.data.element.stem) }}>
             {p.topTen}
           </div>
         ))}
 
-        {/* 천간 (Hanja + Subtext) */}
-        <div style={{ padding: "12px 0", borderBottom: "1px solid #eee", borderRight: "1px solid #eee", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center", background: "#fcfcfc" }}>
-            <div style={{ fontSize: "0.75rem", fontWeight: "800", color: "#333" }}>천간</div>
-        </div>
+        {/* 3. 지지 */}
+        <div style={{ background: "#fcfcfc", padding: "10px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.75rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>지지</div>
         {pillars.map((p, i) => (
-          <div key={`stem-${i}`} style={{ 
-            padding: "10px 0", 
-            borderBottom: "1px solid #eee", 
-            borderRight: i < 3 ? "1px solid #eee" : "none",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "2px"
-          }}>
-            <div style={{ 
-                width: "42px", height: "42px", borderRadius: "10px", 
-                background: getElementColor(p.data.element.stem),
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: "white", fontSize: "1.3rem", fontWeight: "900"
-            }}>
-                {stemsHanja[p.data.stemKo]}
+          <div key={i} style={{ padding: "12px 0", borderBottom: "1px solid #eee", textAlign: "center", position: "relative" }}>
+            <div style={{ fontSize: "2.2rem", fontWeight: "900", color: getElementColor(p.data.element.branch), lineHeight: "1" }}>
+              {branchesHanja[p.data.branchKo]}
             </div>
-            <div style={{ fontSize: "0.6rem", fontWeight: "700", color: "#666" }}>
-                {p.data.stemKo}
-                <span style={{ fontSize: "0.6rem", opacity: 0.6, marginLeft: "2px" }}>
-                  /{p.data.element.stem.includes("Yang") ? "陽" : "陰"}{getElementHanja(p.data.element.stem)}
-                </span>
+            <div style={{ position: "absolute", bottom: "4px", right: "4px", fontSize: "0.65rem", fontWeight: "700", opacity: 0.7, color: getElementColor(p.data.element.branch) }}>
+              {p.data.element.branch.includes("Yang") ? "+" : "-"}{getElementHanja(p.data.element.branch)}
             </div>
           </div>
         ))}
 
-        {/* 지지 (Hanja + Subtext) */}
-        <div style={{ padding: "12px 0", borderBottom: "1px solid #eee", borderRight: "1px solid #eee", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center", background: "#fcfcfc" }}>
-            <div style={{ fontSize: "0.75rem", fontWeight: "800", color: "#333" }}>지지</div>
-        </div>
+        {/* 4. 십성 (지지) */}
+        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.75rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>십성</div>
         {pillars.map((p, i) => (
-          <div key={`branch-${i}`} style={{ 
-            padding: "10px 0", 
-            borderBottom: "1px solid #eee", 
-            borderRight: i < 3 ? "1px solid #eee" : "none",
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "2px"
-          }}>
-            <div style={{ 
-                width: "34px", height: "34px", borderRadius: "8px", 
-                background: getElementColor(p.data.element.branch),
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: "white", fontSize: "1.1rem", fontWeight: "900"
-            }}>
-                {branchesHanja[p.data.branchKo]}
-            </div>
-            <div style={{ fontSize: "0.55rem", fontWeight: "700", color: "#666" }}>
-                {p.data.branchKo}
-                <span style={{ fontSize: "0.6rem", opacity: 0.6, marginLeft: "2px" }}>
-                  /{p.data.element.branch.includes("Yang") ? "陽" : "陰"}{getElementHanja(p.data.element.branch)}
-                </span>
-            </div>
-          </div>
-        ))}
-
-        {/* 십성 (하 - 지지) */}
-        <div style={{ padding: "8px 0", borderBottom: "1px solid #eee", borderRight: "1px solid #eee", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center", background: "#fcfcfc" }}>
-            <div style={{ fontSize: "0.75rem", fontWeight: "800", color: "#333" }}>십성</div>
-        </div>
-        {pillars.map((p, i) => (
-          <div key={`bottomten-${i}`} style={{ 
-            padding: "8px 0", 
-            borderBottom: "1px solid #eee", 
-            borderRight: i < 3 ? "1px solid #eee" : "none",
-            textAlign: "center",
-            fontSize: "0.85rem",
-            fontWeight: "700",
-            color: "#666" // 진한 색상 완화
-          }}>
+          <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "1rem", fontWeight: "800", color: getElementColor(p.data.element.branch) }}>
             {p.bottomTen}
           </div>
         ))}
 
-        {/* 12운성 */}
-        <div style={{ padding: "14px 0", borderBottom: "1px solid #eee", borderRight: "1px solid #eee", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center", background: "#fcfcfc" }}>
-            <div style={{ fontSize: "0.7rem", fontWeight: "900", color: "#333", letterSpacing: "-0.05em", whiteSpace: "nowrap" }}>십이운성</div>
-        </div>
+        {/* 5. 지장간 */}
+        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.7rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>지장간</div>
         {pillars.map((p, i) => (
-          <div key={`stage-${i}`} style={{ 
-            padding: "14px 0", 
-            borderBottom: "1px solid #eee", 
-            borderRight: i < 3 ? "1px solid #eee" : "none",
-            textAlign: "center",
-            fontSize: "0.95rem",
-            fontWeight: "900",
-            color: "#333"
-          }}>
+          <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.85rem", color: "#666", fontWeight: "600" }}>
+            {p.hidden}
+          </div>
+        ))}
+
+        {/* 6. 12운성 */}
+        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.7rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>12운성</div>
+        {pillars.map((p, i) => (
+          <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.95rem", color: "#333", fontWeight: "700" }}>
             {p.stage}
           </div>
         ))}
 
-        {/* 신살 */}
-        <div style={{ padding: "14px 0", borderBottom: "1px solid #eee", borderRight: "1px solid #eee", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center", background: "#fcfcfc" }}>
-            <div style={{ fontSize: "0.85rem", fontWeight: "900", color: "#ec4899" }}>신살</div>
-            <div style={{ fontSize: "0.65rem", color: "#999" }}>(신살)</div>
-        </div>
+        {/* 7. 12신살 */}
+        <div style={{ background: "#fcfcfc", padding: "8px 0", textAlign: "center", fontSize: "0.7rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>12신살</div>
         {pillars.map((p, i) => (
-          <div key={`sinsal-${i}`} style={{ 
-            padding: "14px 0", 
-            borderBottom: "1px solid #eee", 
-            borderRight: i < 3 ? "1px solid #eee" : "none",
-            textAlign: "center",
-            fontSize: "0.85rem",
-            fontWeight: "800",
-            color: "#666"
-          }}>
-            {p.sals?.twelveSal || "(없음)"}
-          </div>
-        ))}
-
-        {/* 귀인 */}
-        <div style={{ padding: "14px 0", borderRight: "1px solid #eee", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center", background: "#fcfcfc" }}>
-            <div style={{ fontSize: "0.85rem", fontWeight: "900", color: "var(--accent-gold)" }}>귀인</div>
-            <div style={{ fontSize: "0.65rem", color: "#999" }}>(귀인)</div>
-        </div>
-        {pillars.map((p, i) => (
-          <div key={`gwiin-${i}`} style={{ 
-            padding: "14px 0", 
-            borderRight: i < 3 ? "1px solid #eee" : "none",
-            textAlign: "center",
-            fontSize: "0.8rem",
-            fontWeight: "800",
-            color: "var(--accent-gold)"
-          }}>
-            {/* 귀인 정보 추출 */}
-            {p.sals?.specialSals?.filter((s: string) => s.includes("귀인")).slice(0, 1).join(" ") || "(없음)"}
+          <div key={i} style={{ padding: "8px 0", textAlign: "center", fontSize: "0.85rem", color: "#666", fontWeight: "600" }}>
+            {p.sinsal}
           </div>
         ))}
       </div>
@@ -351,7 +215,7 @@ const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, tenGods
 
 
 // 세로형 오행 바 차트 (청아매당 독창적 수묵 디자인)
-const ElementBarChart = ({ data, strength }: { data: any, strength?: string }) => {
+export const ElementBarChart = ({ data, strength }: { data: any, strength?: string }) => {
   if (!data) return null;
   const elements = [
     { key: "wood", label: "목", hanja: "木", color: "#81b29a" },
@@ -437,148 +301,181 @@ const ElementBarChart = ({ data, strength }: { data: any, strength?: string }) =
   );
 };
 
-// 오행 순환 다이어그램 (독창적인 수묵 기하학 디자인)
-const ElementalCycleDiagram = ({ counts }: { counts: any }) => {
+// 오행 순환 다이어그램 (포스텔러 스타일 Stargate 재해석)
+export const StargateElementChart = ({ percentages }: { percentages: any }) => {
   const elements = [
-    { key: "wood", label: "목", color: "#81b29a", pos: { x: 100, y: 30 } },
-    { key: "fire", label: "화", color: "#e07a5f", pos: { x: 175, y: 85 } },
-    { key: "earth", label: "토", color: "#f2cc8f", pos: { x: 150, y: 165 } },
-    { key: "metal", label: "금", color: "#C9A050", pos: { x: 50, y: 165 } },
-    { key: "water", label: "수", color: "#3d5a80", pos: { x: 25, y: 85 } }
+    { key: "wood", label: "목", hanja: "木", color: "#81b29a", pos: { x: 100, y: 35 } },
+    { key: "fire", label: "화", hanja: "火", color: "#e07a5f", pos: { x: 165, y: 85 } },
+    { key: "earth", label: "토", hanja: "土", color: "#f2cc8f", pos: { x: 140, y: 165 } },
+    { key: "metal", label: "금", hanja: "金", color: "#C9A050", pos: { x: 60, y: 165 } },
+    { key: "water", label: "수", hanja: "水", color: "#3d5a80", pos: { x: 35, y: 85 } }
   ];
 
   return (
-    <div style={{ position: "relative", width: "260px", height: "260px", margin: "10px auto" }}>
-      <svg width="260" height="260" viewBox="0 0 200 200">
-        {/* 중앙 상징 (독창적 포인트 - 구름 문양) */}
-        <g opacity="0.05" transform="translate(100, 100) scale(0.6)">
-            <path d="M-50,0 Q0,-50 50,0 Q0,50 -50,0" fill="var(--accent-indigo)" />
-            <path d="M-30,-20 Q10,-50 50,-20" fill="none" stroke="var(--accent-indigo)" strokeWidth="2" />
-        </g>
+    <div style={{ position: "relative", width: "100%", maxWidth: "320px", margin: "20px auto", padding: "10px", background: "white", borderRadius: "30px", boxShadow: "0 10px 40px rgba(0,0,0,0.04)" }}>
+      <svg width="100%" height="100%" viewBox="0 0 200 200" style={{ display: "block" }}>
+        <defs>
+          <marker id="arrowhead-saeng" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6" fill="#3b82f6" opacity="0.6" />
+          </marker>
+          <marker id="arrowhead-geuk" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6" fill="#ef4444" opacity="0.6" />
+          </marker>
+        </defs>
 
-        {/* 상극 화살표 (중앙 집중형 직선) */}
+        {/* 상극 화살표 (내부 별 모양) */}
         {elements.map((el, i) => {
           const target = elements[(i + 2) % 5];
           return (
             <line 
               key={`geuk-${i}`}
               x1={el.pos.x} y1={el.pos.y} x2={target.pos.x} y2={target.pos.y}
-              stroke="rgba(0,0,0,0.06)"
-              strokeWidth="1"
-              strokeDasharray="4,2"
+              stroke="#ef4444" strokeWidth="1.5" strokeOpacity="0.25"
+              markerEnd="url(#arrowhead-geuk)"
             />
           );
         })}
 
-        {/* 상생 곡선 화살표 */}
+        {/* 상생 화살표 (외부 순환) */}
         {elements.map((el, i) => {
           const next = elements[(i + 1) % 5];
+          const midX = (el.pos.x + next.pos.x) / 2;
+          const midY = (el.pos.y + next.pos.y) / 2;
           return (
             <path 
               key={`saeng-${i}`}
-              d={`M ${el.pos.x} ${el.pos.y} A 85 85 0 0 1 ${next.pos.x} ${next.pos.y}`}
-              fill="none"
-              stroke="rgba(0,0,0,0.1)"
-              strokeWidth="1.2"
-              markerEnd="url(#arrowhead-new)"
+              d={`M ${el.pos.x} ${el.pos.y} Q ${midX + (midX-100)*0.2} ${midY + (midY-100)*0.2} ${next.pos.x} ${next.pos.y}`}
+              fill="none" stroke="#3b82f6" strokeWidth="2" strokeOpacity="0.3"
+              markerEnd="url(#arrowhead-saeng)"
             />
           );
         })}
 
-        <defs>
-          <marker id="arrowhead-new" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-            <path d="M0,0 L8,3 L0,6" fill="rgba(0,0,0,0.15)" />
-          </marker>
-        </defs>
-
-        {/* 오행 노드 - 브러쉬 터치 느낌 */}
-        {elements.map((el, i) => (
-          <g key={i}>
-            <circle cx={el.pos.x} cy={el.pos.y} r="24" fill="white" filter="drop-shadow(0 4px 10px rgba(0,0,0,0.05))" />
-            <circle cx={el.pos.x} cy={el.pos.y} r="22" fill="none" stroke={el.color} strokeWidth="2" />
-            <text x={el.pos.x} y={el.pos.y - 3} textAnchor="middle" fontSize="0.95rem" fontWeight="900" fill={el.color}>{el.label}</text>
-            <text x={el.pos.x} y={el.pos.y + 11} textAnchor="middle" fontSize="0.65rem" fontWeight="700" fill="#999">{counts[el.key] || 0}개</text>
-          </g>
-        ))}
+        {/* 오행 노드 */}
+        {elements.map((el, i) => {
+          const val = percentages[el.key] || 0;
+          return (
+            <g key={i}>
+              <circle cx={el.pos.x} cy={el.pos.y} r="26" fill="white" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.06))" />
+              <circle cx={el.pos.x} cy={el.pos.y} r="24" fill="none" stroke={el.color} strokeWidth="2.5" />
+              <text x={el.pos.x} y={el.pos.y - 4} textAnchor="middle" fontSize="0.75rem" fontWeight="900" fill={el.color}>{el.label}({el.hanja})</text>
+              <text x={el.pos.x} y={el.pos.y + 10} textAnchor="middle" fontSize="0.85rem" fontWeight="900" fill="#333">{val.toFixed(1)}%</text>
+            </g>
+          );
+        })}
       </svg>
-      
-      {/* 하단 범례 */}
-      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "-10px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.65rem", color: "#888", fontWeight: "700" }}>
-            <div style={{ width: "10px", height: "1px", background: "#aaa" }} /> 상생(도움)
+      <div style={{ display: "flex", justifyContent: "center", gap: "20px", marginTop: "10px", paddingBottom: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.7rem", fontWeight: "700", color: "#3b82f6" }}>
+          <div style={{ width: "12px", height: "2px", background: "#3b82f6", opacity: 0.6 }} /> 상생(도움)
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.65rem", color: "#888", fontWeight: "700" }}>
-            <div style={{ width: "10px", height: "1px", background: "#ddd", borderBottom: "1px dashed #ddd" }} /> 상극(제어)
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.7rem", fontWeight: "700", color: "#ef4444" }}>
+          <div style={{ width: "12px", height: "2px", background: "#ef4444", opacity: 0.6 }} /> 상극(제어)
         </div>
       </div>
     </div>
   );
 };
 
-const SinSalTable = ({ data, sals }: { data: any, sals: any }) => {
-  if (!data || !sals) return null;
-  const pillars = [
-    { label: "시주", stem: data.hour.stemKo, branch: data.hour.branchKo, sals: sals.hour, color: getElementColor(data.hour.element.stem) },
-    { label: "일주", stem: data.day.stemKo, branch: data.day.branchKo, sals: sals.day, color: getElementColor(data.day.element.stem) },
-    { label: "월주", stem: data.month.stemKo, branch: data.month.branchKo, sals: sals.month, color: getElementColor(data.month.element.stem) },
-    { label: "년주", stem: data.year.stemKo, branch: data.year.branchKo, sals: sals.year, color: getElementColor(data.year.element.stem) }
-  ];
+// 십성 도넛 차트 (신규)
+export const SipsungDonutChart = ({ data }: { data: any }) => {
+  if (!data) return null;
+  const items = [
+    { label: "식신", value: data.siksin || 0, color: "#81b29a" },
+    { label: "상관", value: data.sanggwan || 0, color: "#81b29a" },
+    { label: "편재", value: data.pyeonja || 0, color: "#e07a5f" },
+    { label: "정재", value: data.jeongja || 0, color: "#e07a5f" },
+    { label: "편관", value: data.pyeongwan || 0, color: "#f2cc8f" },
+    { label: "정관", value: data.jeonggwan || 0, color: "#f2cc8f" },
+    { label: "편인", value: data.pyeonin || 0, color: "#C9A050" },
+    { label: "정인", value: data.jeongin || 0, color: "#C9A050" },
+    { label: "비견", value: data.bigyeon || 0, color: "#3d5a80" },
+    { label: "겁재", value: data.geobjae || 0, color: "#3d5a80" }
+  ].filter(v => v.value > 0).sort((a,b) => b.value - a.value);
 
-  const allSals = Array.from(new Set(pillars.flatMap(p => [p.sals?.twelveSal, ...(p.sals?.specialSals || [])]).filter(v => v)));
+  const total = items.reduce((sum, item) => sum + item.value, 0) || 1;
+  let currentOffset = 0;
 
   return (
-    <div style={{ 
-      marginTop: "15px", 
-      padding: "16px 12px", 
-      background: "white", 
-      borderRadius: "20px", 
-      border: "1px solid rgba(201,160,80,0.15)", 
-      boxShadow: "0 10px 40px rgba(0,0,0,0.04)",
-      position: "relative"
-    }}>
-      {/* 전통 문양 장식 */}
-      <div style={{ position: "absolute", bottom: "10px", left: "10px", opacity: 0.08, pointerEvents: "none" }}>
-        <svg width="50" height="50" viewBox="0 0 100 100" fill="var(--accent-gold)">
-          <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="5,5" />
-          <path d="M50 20 L50 80 M20 50 L80 50" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
-        <div style={{ width: "24px", height: "24px", borderRadius: "6px", background: "rgba(201,160,80,0.1)", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <Sparkles size={14} color="var(--accent-gold)" />
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "20px", background: "white", padding: "24px", borderRadius: "30px", boxShadow: "0 10px 40px rgba(0,0,0,0.04)" }}>
+      <h3 style={{ fontSize: "1.1rem", fontWeight: "900", color: "#333", margin: 0 }}>십성 분포 분석</h3>
+      <div style={{ display: "flex", alignItems: "center", gap: "30px", width: "100%" }}>
+        <div style={{ position: "relative", width: "140px", height: "140px" }}>
+          <svg viewBox="0 0 100 100" style={{ transform: "rotate(-90deg)" }}>
+            {items.map((item, i) => {
+              const dashArray = (item.value / total) * 263.9;
+              const offset = (currentOffset / total) * 263.9;
+              currentOffset += item.value;
+              return (
+                <circle
+                  key={i}
+                  cx="50" cy="50" r="42"
+                  fill="transparent"
+                  stroke={item.color}
+                  strokeWidth="10"
+                  strokeDasharray={`${dashArray} 263.9`}
+                  strokeDashoffset={-offset}
+                  strokeLinecap="round"
+                />
+              );
+            })}
+          </svg>
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", width: "100%" }}>
+            <div style={{ fontSize: "0.75rem", color: "#999", fontWeight: "700" }}>대표 기운</div>
+            <div style={{ fontSize: "1.1rem", color: "#333", fontWeight: "900", wordBreak: "keep-all" }}>{items[0]?.label || "순환"}</div>
+          </div>
         </div>
-        <h3 style={{ fontSize: "1.1rem", fontWeight: "900", color: "#333", margin: 0, fontFamily: "'Nanum Myeongjo', serif" }}>신살과 길성 분석</h3>
+        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr", gap: "8px" }}>
+          {items.map((item, i) => (
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: item.color }} />
+                <span style={{ fontSize: "0.85rem", fontWeight: "700", color: "#666" }}>{item.label}</span>
+              </div>
+              <span style={{ fontSize: "0.85rem", fontWeight: "900", color: "#333" }}>{((item.value/total)*100).toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
       </div>
-      <p style={{ fontSize: "0.8rem", color: "#888", marginBottom: "20px", lineHeight: "1.6" }}>
-        {allSals.join(", ")}
-      </p>
+    </div>
+  );
+};
 
-      <div className="sinsal-table-container" style={{ width: "100%", overflowX: "hidden" }}>
-        <div style={{ width: "100%", border: "1px solid rgba(201,160,80,0.1)", borderRadius: "16px", overflow: "hidden" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", textAlign: "center", background: "rgba(201,160,80,0.04)", borderBottom: "1px solid rgba(201,160,80,0.1)", fontSize: "0.75rem", fontWeight: "800", color: "var(--accent-gold)" }}>
-            {pillars.map((p, i) => <div key={i} style={{ padding: "10px 0", borderRight: i < 3 ? "1px solid rgba(201,160,80,0.1)" : "none" }}>{p.label}</div>)}
-          </div>
-          
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", textAlign: "center", borderBottom: "1px solid #f0f0f0" }}>
-            {pillars.map((p, i) => (
-              <div key={i} style={{ padding: "12px 0", borderRight: i < 3 ? "1px solid #f0f0f0" : "none" }}>
-                <div style={{ fontSize: "1.2rem", fontWeight: "900", color: p.color, marginBottom: "4px" }}>{stemsHanja[p.stem] || p.stem}</div>
-                {/* 천간 영역: 12신살 금지, 길성만 허용 */}
-                <div style={{ fontSize: "0.65rem", color: "var(--accent-gold)", fontWeight: "700" }}>
-                  {p.sals?.specialSals?.filter((s: string) => (s.includes("귀인") || s.includes("덕")) && !s.includes("살")).slice(0, 1).join(" ") || "-"}
-                </div>
-              </div>
-            ))}
-          </div>
+// 주요 신살 및 길성 요약 (포스텔러 스타일)
+export const MajorSinsalSummary = ({ sals }: { sals: any }) => {
+  if (!sals) return null;
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", textAlign: "center" }}>
-            {pillars.map((p, i) => (
-              <div key={i} style={{ padding: "10px 0", borderRight: i < 3 ? "1px solid #f0f0f0" : "none" }}>
-                <div style={{ fontSize: "1.1rem", fontWeight: "900", color: getElementColor(getElementFromChar(p.branch)), marginBottom: "2px" }}>{branchesHanja[p.branch] || p.branch}</div>
-                <div style={{ fontSize: "0.6rem", color: "#888", fontWeight: "700" }}>{p.sals?.twelveSal || "×"}</div>
-                {p.sals?.specialSals?.length > 0 && <div style={{ fontSize: "0.55rem", color: "#bbb", marginTop: "1px" }}>{p.sals?.specialSals?.slice(1).slice(0, 1).join(" ") || ""}</div>}
-              </div>
-            ))}
+  const allSals = [
+    ...sals.year.specialSals, ...sals.month.specialSals, 
+    ...sals.day.specialSals, ...sals.hour.specialSals,
+    sals.year.twelveSal, sals.month.twelveSal, 
+    sals.day.twelveSal, sals.hour.twelveSal
+  ].filter((s, i, a) => s && a.indexOf(s) === i);
+
+  const majorSinsals = allSals.filter(s => s.includes("살")).slice(0, 4);
+  const majorGilsungs = allSals.filter(s => s.includes("귀인") || s.includes("덕")).slice(0, 4);
+
+  return (
+    <div style={{ marginTop: "24px", padding: "24px", background: "white", borderRadius: "30px", boxShadow: "0 10px 40px rgba(0,0,0,0.04)", border: "1px solid rgba(236,72,153,0.1)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+        <Sparkles size={20} color="#ec4899" />
+        <h3 style={{ fontSize: "1.1rem", fontWeight: "900", color: "#333", margin: 0 }}>나의 주요 신살과 길성</h3>
+      </div>
+      
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div style={{ background: "rgba(236,72,153,0.05)", padding: "16px", borderRadius: "20px" }}>
+          <div style={{ fontSize: "0.75rem", fontWeight: "800", color: "#ec4899", marginBottom: "8px" }}>핵심 신살(神殺)</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            {majorSinsals.length > 0 ? majorSinsals.map((s, i) => (
+              <span key={i} style={{ background: "white", color: "#ec4899", padding: "4px 10px", borderRadius: "10px", fontSize: "0.8rem", fontWeight: "700", border: "1px solid rgba(236,72,153,0.2)" }}>{s}</span>
+            )) : <span style={{ color: "#ccc", fontSize: "0.8rem" }}>특이 신살 없음</span>}
+          </div>
+        </div>
+        <div style={{ background: "rgba(201,160,80,0.05)", padding: "16px", borderRadius: "20px" }}>
+          <div style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--accent-gold)", marginBottom: "8px" }}>핵심 길성(吉星)</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            {majorGilsungs.length > 0 ? majorGilsungs.map((s, i) => (
+              <span key={i} style={{ background: "white", color: "var(--accent-gold)", padding: "4px 10px", borderRadius: "10px", fontSize: "0.8rem", fontWeight: "700", border: "1px solid rgba(201,160,80,0.2)" }}>{s}</span>
+            )) : <span style={{ color: "#ccc", fontSize: "0.8rem" }}>특이 길성 없음</span>}
           </div>
         </div>
       </div>
@@ -586,8 +483,10 @@ const SinSalTable = ({ data, sals }: { data: any, sals: any }) => {
   );
 };
 
+
+
 // 대운표 컴포넌트 (이미지 1 참고)
-const DaeunTable = ({ userName, startAge, cycles, direction, currentIndex }: { userName: string, startAge: number, cycles: any[], direction?: string, currentIndex?: number }) => {
+export const DaeunTable = ({ userName, startAge, cycles, direction, currentIndex }: { userName: string, startAge: number, cycles: any[], direction?: string, currentIndex?: number }) => {
   if (!cycles || cycles.length === 0) return null;
   return (
     <div style={{ marginTop: "5px", marginBottom: "15px" }}>
@@ -678,9 +577,12 @@ const DaeunTable = ({ userName, startAge, cycles, direction, currentIndex }: { u
           {cycles.map((c, i) => (
             <div key={`ganji-${i}`} style={{ 
               padding: "12px 2px", 
-              background: i === currentIndex ? "rgba(201,160,80,0.05)" : "white", 
+              background: i === currentIndex ? "rgba(201,160,80,0.08)" : "white", 
               borderLeft: i > 0 ? "1px solid #eee" : "none",
-              textAlign: "center"
+              textAlign: "center",
+              transform: i === currentIndex ? "scale(1.02)" : "none",
+              boxShadow: i === currentIndex ? "inset 0 0 15px rgba(201,160,80,0.15)" : "none",
+              zIndex: i === currentIndex ? 1 : 0
             }}>
               <div style={{ fontSize: "1.1rem", fontWeight: "900", color: getElementColor(c.ganji[0]), marginBottom: "2px" }}>{stemsHanja[c.ganji[0]] || c.ganji[0]}</div>
               <div style={{ fontSize: "1.1rem", fontWeight: "900", color: getElementColor(c.ganji[1]) }}>{branchesHanja[c.ganji[1]] || c.ganji[1]}</div>
@@ -693,101 +595,147 @@ const DaeunTable = ({ userName, startAge, cycles, direction, currentIndex }: { u
   );
 };
 
-const StrengthWeaknessMeter = ({ score }: { score: number }) => {
-  const categories = [
-    { label: "극약", min: 0, max: 15 },
-    { label: "태약", min: 15, max: 25 },
-    { label: "신약", min: 25, max: 40 },
-    { label: "중화", min: 40, max: 60 },
-    { label: "신강", min: 60, max: 75 },
-    { label: "태강", min: 75, max: 85 },
-    { label: "극강", min: 85, max: 100 }
+// 신강/신약 지수 그래프 (포스텔러 스타일 고풍격 버전)
+export const StrengthIndexGraph = ({ score, deuk }: { score: number, deuk: any }) => {
+  const categories = ["극약", "태약", "신약", "중화신약", "중화신강", "신강", "태강", "극강"];
+  const checkItems = [
+    { label: "득령", status: deuk?.deuk_ryeong },
+    { label: "득지", status: deuk?.deuk_ji },
+    { label: "득시", status: deuk?.deuk_si },
+    { label: "득세", status: deuk?.deuk_se }
   ];
 
-  const getIdx = (s: number) => {
-    if (s < 15) return 0;
-    if (s < 25) return 1;
-    if (s < 40) return 2;
-    if (s < 60) return 3;
-    if (s < 75) return 4;
-    if (s < 85) return 5;
-    return 6;
-  };
-
-  const activeIdx = getIdx(score);
+  // score: 0-100
+  const normalizedScore = Math.min(Math.max(score, 0), 100);
 
   return (
-    <div style={{ 
-      marginTop: "40px", 
-      padding: "24px", 
-      background: "white", 
-      borderRadius: "28px", 
-      border: "1px solid rgba(201,160,80,0.15)", 
-      boxShadow: "0 15px 45px rgba(0,0,0,0.05)",
-      position: "relative",
-      overflow: "hidden"
-    }}>
-      {/* 배경 장식 */}
-      <div style={{ position: "absolute", bottom: "-20px", right: "-20px", opacity: 0.03 }}>
-          <svg width="120" height="120" viewBox="0 0 100 100" fill="var(--accent-indigo)">
-              <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="1" fill="none" strokeDasharray="5,5" />
-          </svg>
+    <div style={{ background: "white", padding: "28px", borderRadius: "32px", boxShadow: "0 15px 45px rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.04)", marginTop: "24px", position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", top: "-20px", right: "-20px", opacity: 0.03, pointerEvents: "none" }}>
+        <Activity size={120} color="var(--accent-indigo)" />
       </div>
 
-      <h3 style={{ fontSize: "1.1rem", fontWeight: "900", color: "#333", marginBottom: "35px", fontFamily: "'Nanum Myeongjo', serif" }}>신강/신약 분석</h3>
-      
-      <div style={{ position: "relative", paddingBottom: "30px", paddingLeft: "10px", paddingRight: "10px" }}>
-        {/* 점선 가로줄 */}
-        <div style={{ 
-          position: "absolute", 
-          top: "8px", 
-          left: "5%", 
-          right: "5%", 
-          height: "1px", 
-          background: "linear-gradient(to right, transparent, #ddd, transparent)",
-          zIndex: 0 
-        }} />
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+        <div style={{ background: "rgba(42,54,95,0.06)", padding: "10px", borderRadius: "14px" }}>
+          <Activity size={20} color="var(--accent-indigo)" />
+        </div>
+        <h3 style={{ fontSize: "1.15rem", fontWeight: "900", color: "#333", margin: 0, fontFamily: "'Nanum Myeongjo', serif" }}>신강/신약 지수 분석</h3>
+      </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", position: "relative", zIndex: 1 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "32px" }}>
+        {checkItems.map((item, i) => (
+          <div key={i} style={{ 
+            display: "flex", alignItems: "center", gap: "8px", 
+            background: item.status ? "rgba(42,54,95,0.05)" : "rgba(0,0,0,0.02)", 
+            padding: "6px 14px", borderRadius: "12px",
+            border: item.status ? "1px solid rgba(42,54,95,0.1)" : "1px solid transparent",
+            transition: "all 0.3s"
+          }}>
+            <span style={{ fontSize: "0.8rem", fontWeight: "800", color: item.status ? "var(--accent-indigo)" : "#999" }}>{item.label}</span>
+            <div style={{ 
+              width: "18px", height: "18px", borderRadius: "50%", 
+              background: item.status ? "var(--accent-indigo)" : "#ccc", 
+              display: "flex", alignItems: "center", justifyContent: "center", 
+              color: "white", fontSize: "0.65rem", fontWeight: "900",
+              boxShadow: item.status ? "0 2px 5px rgba(42,54,95,0.2)" : "none"
+            }}>
+              {item.status ? "O" : "X"}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+        <div style={{ fontSize: "0.85rem", color: "#888", marginBottom: "8px", fontWeight: "700" }}>에너지 밸런스 지수: <span style={{ color: "#333" }}>{normalizedScore.toFixed(1)}</span></div>
+        <div style={{ fontSize: "1.2rem", color: "#333", fontWeight: "900", wordBreak: "keep-all" }}>
+          님은 <span style={{ color: "var(--accent-indigo)", borderBottom: "3px solid rgba(42,54,95,0.2)", paddingBottom: "2px" }}>
+            {normalizedScore >= 85 ? "태강한" : normalizedScore >= 65 ? "신강한" : normalizedScore >= 55 ? "약신강한" : normalizedScore >= 45 ? "중화된" : normalizedScore >= 35 ? "약신약한" : normalizedScore >= 15 ? "신약한" : "태약한"}
+          </span> 사주입니다.
+        </div>
+      </div>
+
+      <div style={{ position: "relative", height: "140px", width: "100%", padding: "0 10px 40px" }}>
+        <svg width="100%" height="80" viewBox="0 0 400 80" preserveAspectRatio="none" style={{ overflow: "visible" }}>
+          <defs>
+            <linearGradient id="curveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#f8f9fa" />
+              <stop offset="50%" stopColor="rgba(42,54,95,0.1)" />
+              <stop offset="100%" stopColor="#f8f9fa" />
+            </linearGradient>
+          </defs>
+          <path 
+            d="M0,70 Q50,70 100,50 Q150,20 200,10 Q250,20 300,50 Q350,70 400,70" 
+            fill="url(#curveGradient)" stroke="#eee" strokeWidth="2" 
+          />
+          <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+            <line x1={normalizedScore * 4} y1="0" x2={normalizedScore * 4} y2="72" stroke="var(--accent-indigo)" strokeWidth="2.5" strokeDasharray="4 2" />
+            <circle cx={normalizedScore * 4} cy="32" r="7" fill="white" stroke="var(--accent-indigo)" strokeWidth="3" />
+            <text x={normalizedScore * 4} y="55" textAnchor="middle" fontSize="11" fontWeight="900" fill="var(--accent-indigo)">나</text>
+          </motion.g>
+        </svg>
+
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "12px", borderTop: "1px solid #f0f0f0", paddingTop: "8px" }}>
           {categories.map((cat, i) => (
-            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "14px", width: "14%" }}>
-              <motion.div 
-                animate={i === activeIdx ? { scale: [1, 1.2, 1], boxShadow: ["0 0 0px rgba(214,40,40,0)", "0 0 15px rgba(214,40,40,0.4)", "0 0 0px rgba(214,40,40,0)"] } : {}}
-                transition={{ repeat: Infinity, duration: 2 }}
-                style={{ 
-                  width: i === activeIdx ? "16px" : "12px", 
-                  height: i === activeIdx ? "16px" : "12px", 
-                  borderRadius: "50%", 
-                  background: i === activeIdx ? "#d62828" : (i < activeIdx ? "#f8d7da" : "#f1f1f1"),
-                  border: i === activeIdx ? "3px solid white" : "none",
-                  boxShadow: i === activeIdx ? "0 4px 12px rgba(214,40,40,0.3)" : "none",
-                  transition: "all 0.4s ease"
-                }} 
-              />
-              <div style={{ 
-                fontSize: "0.7rem", 
-                fontWeight: i === activeIdx ? "900" : "600", 
-                color: i === activeIdx ? "#333" : "#bbb",
-                whiteSpace: "nowrap",
-                letterSpacing: "-0.02em"
-              }}>
-                {cat.label}
-              </div>
+            <div key={i} style={{ 
+              fontSize: "0.6rem", fontWeight: "800", textAlign: "center", flex: 1,
+              color: (i === Math.floor(normalizedScore / 12.5)) ? "var(--accent-indigo)" : "#999"
+            }}>
+              {cat}
             </div>
           ))}
         </div>
       </div>
+    </div>
+  );
+};
 
-      <div style={{ 
-        marginTop: "10px", 
-        textAlign: "center", 
-        padding: "18px", 
-        background: "rgba(0,0,0,0.01)", 
-        borderRadius: "16px",
-        border: "1px solid rgba(0,0,0,0.03)"
-      }}>
-        <div style={{ fontSize: "1.05rem", fontWeight: "700", color: "#333", marginBottom: "4px" }}>
-          일간 <span style={{ color: "var(--accent-indigo)", borderBottom: "2px solid var(--accent-gold)", paddingBottom: "2px" }}>'{categories[activeIdx].label}'</span>한 사주입니다.
+export const StrengthWeaknessMeter = ({ score }: { score: number }) => {
+  const normalizedScore = Math.min(Math.max(score, 0), 100);
+  return (
+    <div style={{ marginTop: "24px", padding: "20px", background: "white", borderRadius: "24px", border: "1px solid rgba(0,0,0,0.05)" }}>
+      <div style={{ fontSize: "0.9rem", fontWeight: "800", color: "#333", marginBottom: "12px", textAlign: "center" }}>종합 에너지 강약 지수 ({normalizedScore.toFixed(1)})</div>
+      <div style={{ height: "12px", background: "#eee", borderRadius: "6px", position: "relative", overflow: "hidden" }}>
+        <motion.div 
+          initial={{ width: 0 }} 
+          animate={{ width: `${normalizedScore}%` }} 
+          style={{ height: "100%", background: "linear-gradient(to right, #3d5a80, #81b29a, #e07a5f)", borderRadius: "6px" }} 
+        />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px", fontSize: "0.7rem", color: "#999", fontWeight: "700" }}>
+        <span>극약</span>
+        <span>신약</span>
+        <span>중화</span>
+        <span>신강</span>
+        <span>극강</span>
+      </div>
+    </div>
+  );
+};
+
+export const YongsinDisplay = ({ yongsin }: { yongsin: any }) => {
+  if (!yongsin) return null;
+  return (
+    <div style={{ background: "white", padding: "28px", borderRadius: "32px", boxShadow: "0 15px 45px rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.04)", marginTop: "16px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "24px" }}>
+        <div style={{ background: "rgba(201,160,80,0.08)", padding: "10px", borderRadius: "14px" }}>
+          <Target size={20} color="var(--accent-gold)" />
+        </div>
+        <h3 style={{ fontSize: "1.15rem", fontWeight: "900", color: "#333", margin: 0, fontFamily: "'Nanum Myeongjo', serif" }}>나의 용신(用神) 처방</h3>
+      </div>
+      
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div style={{ background: "rgba(224, 122, 95, 0.04)", padding: "20px", borderRadius: "24px", border: "1.5px solid rgba(224, 122, 95, 0.1)", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div style={{ fontSize: "0.75rem", fontWeight: "900", color: "#e07a5f", letterSpacing: "0.05em" }}>조후용신 [기후 조화]</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "1.30rem", fontWeight: "900", color: getElementColor(yongsin.johu) }}>{yongsin.johu}</span>
+            <span style={{ fontSize: "0.75rem", color: "#666", fontWeight: "700" }}>({yongsin.johuNote})</span>
+          </div>
+        </div>
+        <div style={{ background: "rgba(61, 90, 128, 0.04)", padding: "20px", borderRadius: "24px", border: "1.5px solid rgba(61, 90, 128, 0.1)", display: "flex", flexDirection: "column", gap: "10px" }}>
+          <div style={{ fontSize: "0.75rem", fontWeight: "900", color: "#3d5a80", letterSpacing: "0.05em" }}>억부용신 [에너지 균형]</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "1.30rem", fontWeight: "900", color: getElementColor(yongsin.eokbu) }}>{yongsin.eokbu}</span>
+            <span style={{ fontSize: "0.75rem", color: "#666", fontWeight: "700" }}>({yongsin.eokbuNote})</span>
+          </div>
         </div>
       </div>
     </div>
@@ -828,13 +776,13 @@ const cityLmtOffsets: Record<string, number> = {
   "수원": -32, "성남": -32, "고양": -33, "용인": -31, "부천": -33, "안산": -33, "남양주": -31, "안양": -32,
   "화성": -33, "평택": -32, "의정부": -32, "파주": -33, "시흥": -33, "김포": -33, "광명": -32, "광주(경기)": -31,
   "군포": -32, "이천": -30, "오산": -32, "하남": -31, "양주": -32, "구리": -32, "안성": -31, "포천": -31,
-  "의왕": -32, "여주": -30, "동두천": -32, "과천": -32, "가평": -30, "양평": -30, "연천": -32, "강릉": -24, "기타": -30
+  "의왕": -32, "여주": -30, "동두천": -32, "과천": -32, "가평": -30, "양평": -30, "연천": -32, "강릉": -24, "기타": -30,
 };
 
 function PremiumSajuContent() {
   const router = useRouter();
   const [kakaoReady, setKakaoReady] = useState(false);
-  const [step, setStep] = useState(0); // 0: Birth Input, 1: Category Select, 2: User Question, 3: Loading/Result
+  const [step, setStep] = useState(0); // 0: Birth Input, 1: Category Select, 1.5: Confirmation, 2: User Question, 3: Loading/Result
   const [selectedCategory, setSelectedCategory] = useState("");
   const [userQuestion, setUserQuestion] = useState("");
 
@@ -845,6 +793,8 @@ function PremiumSajuContent() {
   const [gender, setGender] = useState("M");
   const [birthCity, setBirthCity] = useState("서울");
   const [userEmail, setUserEmail] = useState("");
+  const [emailId, setEmailId] = useState("");
+  const [emailDomain, setEmailDomain] = useState("naver.com");
   const [deliveryMethod, setDeliveryMethod] = useState<"email" | "kakao">("email");
   const [kakaoToken, setKakaoToken] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -852,6 +802,14 @@ function PremiumSajuContent() {
   const [customerKey] = useState(() => uuidv4());
   const [activeTab, setActiveTab] = useState<'base' | 'corrected'>('corrected');
   const [bazi, setBazi] = useState<any>(null);
+
+  // Reset analysis result when moving back to input steps (0, 1, 1.5, 2)
+  useEffect(() => {
+    if (step < 3) {
+      setReading(null);
+      setDetailedData(null);
+    }
+  }, [step]);
   
   const topRef = useRef<HTMLDivElement>(null);
   const [reading, setReading] = useState<any>(null);
@@ -862,6 +820,14 @@ function PremiumSajuContent() {
 
   const [clickCount, setClickCount] = useState(0);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (emailId) {
+      setUserEmail(`${emailId}@${emailDomain}`);
+    } else {
+      setUserEmail("");
+    }
+  }, [emailId, emailDomain]);
 
   const handleDevReset = () => {
     setClickCount((prev) => {
@@ -894,7 +860,17 @@ function PremiumSajuContent() {
         if (parsed.isLunar !== undefined) setIsLunar(parsed.isLunar);
         if (parsed.gender) setGender(parsed.gender);
         if (parsed.birthCity) setBirthCity(parsed.birthCity);
-        if (parsed.userEmail) setUserEmail(parsed.userEmail);
+        if (parsed.userEmail) {
+          const email = parsed.userEmail as string;
+          setUserEmail(email);
+          if (email.includes("@")) {
+            const [id, domain] = email.split("@");
+            setEmailId(id);
+            if (domain === "naver.com" || domain === "daum.net") {
+              setEmailDomain(domain);
+            }
+          }
+        }
       } catch (e) { console.error("Error loading profile", e); }
     }
   }, []);
@@ -933,9 +909,10 @@ function PremiumSajuContent() {
 
   // Handle Back Navigation
   const handleBack = () => {
-    if (step > 0 && step <= 2) {
-      setStep(step - 1);
-    } else {
+    if (step === 2) setStep(1.5);
+    else if (step === 1.5) setStep(1);
+    else if (step === 1) setStep(0);
+    else {
       router.push("/");
     }
   };
@@ -1093,7 +1070,7 @@ function PremiumSajuContent() {
     return relations[dominant] || { saeng: '-', geuk: '-' };
   };
 
-  const getElementFromChar = (char: string) => {
+  const getElementKeyFromChar = (char: string) => {
     if (['甲', '乙', '寅', '卯', '갑', '을', '인', '묘'].includes(char)) return 'wood';
     if (['丙', '丁', '巳', '午', '병', '정', '사', '오'].includes(char)) return 'fire';
     if (['戊', '己', '辰', '戌', '丑', '未', '무', '기', '진', '술', '축', '미'].includes(char)) return 'earth';
@@ -1102,35 +1079,18 @@ function PremiumSajuContent() {
     return 'earth';
   };
 
-  const calculateStrength = (elementRatios: Record<string, number>, ilganElement: string) => {
-    const categories = [
-      { label: "극약", min: 0, max: 15 },
-      { label: "태약", min: 15, max: 25 },
-      { label: "신약", min: 25, max: 40 },
-      { label: "중화", min: 40, max: 60 },
-      { label: "신강", min: 60, max: 75 },
-      { label: "태강", min: 75, max: 85 },
-      { label: "극강", min: 85, max: 100 }
-    ];
-
-    const ilganKey = ilganElement;
+  const calculateStrengthScore = (elementRatios: any, ilganElement: string) => {
+    // ilganElement is assumed to be Korean or English.
+    const ilganKey = getElementKeyFromChar(ilganElement);
     let supportingKey = '';
 
-    // Determine supporting element based on ilgan
     if (ilganKey === 'wood') supportingKey = 'water';
     else if (ilganKey === 'fire') supportingKey = 'wood';
     else if (ilganKey === 'earth') supportingKey = 'fire';
     else if (ilganKey === 'metal') supportingKey = 'earth';
     else if (ilganKey === 'water') supportingKey = 'metal';
 
-    const score = (elementRatios[ilganKey] || 0) + (elementRatios[supportingKey] || 0);
-
-    for (const cat of categories) {
-      if (score >= cat.min && score < cat.max) {
-        return cat.label;
-      }
-    }
-    return "중화"; // Default if score is outside defined ranges
+    return (elementRatios[ilganKey] || 0) + (elementRatios[supportingKey] || 0);
   };
 
   const calculateWeightedElements = (pillars: any) => {
@@ -1225,10 +1185,12 @@ function PremiumSajuContent() {
       const offsetMin = cityLmtOffsets[birthCity] || -32;
       const lmtTotalMin = ((h * 60 + mi + offsetMin + 1440) % 1440);
 
-      let sajuRes = calculateSaju({
-        year: y, month: m, day: d, hour: h, minute: mi,
-        calendar: isLunar ? "lunar" : "solar",
-        gender: gender === "M" ? "남" : "여"
+      let sajuRes = getUnifiedSaju({
+        date,
+        time,
+        isLunar,
+        gender,
+        birthCity
       });
       if (!sajuRes) throw new Error("사주 산출 실패");
 
@@ -1441,9 +1403,11 @@ function PremiumSajuContent() {
       const aiCorrected = llmResult.corrected_elements || correctedPercentages;
       const aiReason = llmResult.correction_reason || johuNote;
 
-      const ilganEl = getElementFromChar(sajuRes.pillarDetails.day.stemKo);
-      const baseStrength = calculateStrength(aiBasic, ilganEl);
-      const correctedStrength = calculateStrength(aiCorrected, ilganEl);
+      // Global getElementFromChar returns Korean names
+      const ilganKo = (window as any).getElementFromChar ? (window as any).getElementFromChar(sajuRes.pillarDetails.day.stemKo) : getElementFromChar(sajuRes.pillarDetails.day.stemKo);
+      
+      const baseStrength = calculateStrengthScore(aiBasic, ilganKo);
+      const correctedStrength = calculateStrengthScore(aiCorrected, ilganKo);
 
       const correctedKeys = aiCorrected ? Object.keys(aiCorrected) : [];
       const dominantKey = correctedKeys.length > 0 
@@ -1480,6 +1444,81 @@ function PremiumSajuContent() {
         }
       }
 
+      const sipsungCounts: Record<string, number> = {
+        siksin: 0, sanggwan: 0, pyeonja: 0, jeongja: 0, pyeongwan: 0, jeonggwan: 0, pyeonin: 0, jeongin: 0, bigyen: 0, geobjae: 0
+      };
+
+      const mapTenGodToKey = (tg: string) => {
+        if (tg === "비견") return "bigyen";
+        if (tg === "겁재") return "geobjae";
+        if (tg === "식신") return "siksin";
+        if (tg === "상관") return "sanggwan";
+        if (tg === "편재") return "pyeonja";
+        if (tg === "정재") return "jeongja";
+        if (tg === "편관") return "pyeongwan";
+        if (tg === "정관") return "jeonggwan";
+        if (tg === "편인") return "pyeonin";
+        if (tg === "정인") return "jeongin";
+        return "";
+      };
+
+      [sajuRes.pillarDetails.year, sajuRes.pillarDetails.month, sajuRes.pillarDetails.day, sajuRes.pillarDetails.hour].forEach((p, idx) => {
+        const sKey = mapTenGodToKey(p.stemTenGod || (idx === 2 ? "비견" : "-"));
+        const bKey = mapTenGodToKey(p.branchTenGod || "-");
+        if (sKey) sipsungCounts[sKey]++;
+        if (bKey) sipsungCounts[bKey]++;
+      });
+
+      // --- 신규: 득령/득지/득시/득세 및 용신 판별 로직 ---
+      const isSupporting = (iKo: string, tChar: string) => {
+        const tEl = getElementFromChar(tChar); // Global Korean version
+        const supportMap: Record<string, string[]> = {
+          '목': ['수', '목'], '화': ['목', '화'], '토': ['화', '토'], '금': ['토', '금'], '수': ['금', '수']
+        };
+        return supportMap[iKo]?.includes(tEl) || false;
+      };
+
+      const deuk = {
+        deuk_ryeong: isSupporting(ilganKo, sajuRes.pillarDetails.month.branchKo),
+        deuk_ji: isSupporting(ilganKo, sajuRes.pillarDetails.day.branchKo),
+        deuk_si: isSupporting(ilganKo, sajuRes.pillarDetails.hour.branchKo),
+        deuk_se: [
+          sajuRes.pillarDetails.year.stemKo, sajuRes.pillarDetails.year.branchKo,
+          sajuRes.pillarDetails.month.stemKo, sajuRes.pillarDetails.hour.stemKo
+        ].filter(c => isSupporting(ilganKo, c)).length >= 2
+      };
+
+      const calculateYongsin = () => {
+        const mBr = sajuRes.pillarDetails.month.branchKo;
+        let johu = "화";
+        let johuNote = "조후 조율";
+        if (['해', '자', '축'].includes(mBr)) { johu = "화"; johuNote = "한기 해소"; }
+        else if (['사', '오', '미'].includes(mBr)) { johu = "수"; johuNote = "열기 식힘"; }
+        else if (['인', '묘', '진'].includes(mBr)) { johu = "금"; johuNote = "성장 억제"; }
+        else { johu = "목"; johuNote = "생기 보충"; }
+
+        let eokbu = "토";
+        let eokbuNote = "균형 조절";
+        if (correctedStrength > 60) {
+          // Strong -> Control/Drain
+          if (ilganKo === '목') { eokbu = "금"; eokbuNote = "강한 목기 제어"; }
+          else if (ilganKo === '화') { eokbu = "수"; eokbuNote = "넘치는 화기 억제"; }
+          else if (ilganKo === '토') { eokbu = "목"; eokbuNote = "두터운 토기 소통"; }
+          else if (ilganKo === '금') { eokbu = "화"; eokbuNote = "단단한 금기 제련"; }
+          else { eokbu = "토"; eokbuNote = "강한 수기 제방"; }
+        } else {
+          // Weak -> Support
+          if (ilganKo === '목') { eokbu = "수"; eokbuNote = "부족한 수기 보충"; }
+          else if (ilganKo === '화') { eokbu = "목"; eokbuNote = "약한 화기 지원"; }
+          else if (ilganKo === '토') { eokbu = "화"; eokbuNote = "차가운 토기 온난"; }
+          else if (ilganKo === '금') { eokbu = "토"; eokbuNote = "약한 금기 생조"; }
+          else { eokbu = "금"; eokbuNote = "약한 수기 근원"; }
+        }
+        return { johu, johuNote, eokbu, eokbuNote };
+      };
+
+      const yongsin = calculateYongsin();
+
       setBazi(finalizedBazi);
       setReading(llmResult);
       setDetailedData({
@@ -1492,6 +1531,8 @@ function PremiumSajuContent() {
         elements_ratio_base: aiBasic,
         strength_base: baseStrength,
         strength_corrected: correctedStrength,
+        deuk,
+        yongsin,
         johu_correction: aiReason,
         dominant: dominantKo,
         daeunCycles,
@@ -1499,6 +1540,7 @@ function PremiumSajuContent() {
         relation: getElementRelation(dominantKo),
         ilganElement: getElementFromChar(sajuRes.pillarDetails.day.stemKo),
         elementCounts,
+        sipsungCounts,
         advanced: {
           ...sajuRes.advanced,
           daeunNum: (sajuRes.daeun?.list?.[0]?.startAge ?? 0) + 1,
@@ -1560,8 +1602,8 @@ function PremiumSajuContent() {
     const paragraphs = text.replace(/\*\*/g, '').split(/\n\s*\n/); // 마크다운 볼드(**) 기호 사전 제거로 충돌 방지
     return paragraphs.map((para, i) => {
       if (!para.trim()) return null;
-      // <b> 태그를 더 유연하게 캡처 (공백 등 허용)
-      const parts = para.split(/(<\s*b\s*>.*?<\s*\/\s*b\s*>|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
+    // [[단어]] 및 [major]문장[/major] 태그를 더 유연하게 캡처
+    const parts = para.split(/(\[\[.*?\]\]|\[major\].*?\[\/major\]|목\(木\)|화\(火\)|토\(土\)|금\(金\)|수\(水\))/g);
       const isHeader = /^[\d\s]*[📍📅🔍💡🎯🏆💎✨]/.test(para.trim()) || para.trim().startsWith('###') || para.trim().startsWith('##');
       return (
         <div key={i} style={{ 
@@ -1578,16 +1620,33 @@ function PremiumSajuContent() {
           padding: isHeader ? "0" : "0 4px"
         }}>
           {parts.map((part, j) => {
-            // 태그 내부의 공백 등을 정리하여 스타일 적용
-            if (part.trim().startsWith('<b') && part.trim().endsWith('</b>')) {
-                const innerText = part.replace(/<\/?b\s*>/g, '').trim(); 
+            // [[단어]] 태그 처리
+            if (part.startsWith('[[') && part.endsWith(']]')) {
+                const innerText = part.slice(2, -2).trim();
+                return (
+                    <strong key={j} style={{ 
+                        color: isDarkBg ? "var(--accent-gold)" : "var(--accent-indigo)", 
+                        fontWeight: "900", 
+                        fontSize: "1.05rem",
+                        display: "inline",
+                        background: isDarkBg ? "rgba(212,163,115,0.15)" : "rgba(42,54,95,0.05)",
+                        padding: "0 2px",
+                        borderRadius: "4px"
+                    }}>
+                        {innerText}
+                    </strong>
+                );
+            }
+            // [major]문장[/major] 태그 처리
+            if (part.startsWith('[major]') && part.endsWith('[/major]')) {
+                const innerText = part.slice(7, -8).trim();
                 return (
                     <strong key={j} style={{ 
                         color: isDarkBg ? "var(--accent-gold)" : "var(--accent-indigo)", 
                         fontWeight: "900", 
                         fontSize: "1.05rem", 
                         display: "inline",
-                        borderBottom: isDarkBg ? "2px solid rgba(201,160,80,0.4)" : "2px solid rgba(42,54,95,0.2)",
+                        borderBottom: isDarkBg ? "2px solid rgba(212,163,115,0.4)" : "2px solid rgba(42,54,95,0.2)",
                         paddingBottom: "1px"
                     }}>
                         {innerText}
@@ -1664,13 +1723,32 @@ function PremiumSajuContent() {
                     {deliveryMethod === "email" ? (
                       <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "4px" }}>
                         <span style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--accent-indigo)", marginLeft: "4px" }}>결과를 받으실 이메일 (필수)</span>
-                        <input 
-                          type="email" 
-                          value={userEmail} 
-                          onChange={(e) => setUserEmail(e.target.value)} 
-                          placeholder="example@email.com"
-                          style={{ width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", border: "none", fontSize: "0.95rem", fontWeight: "600", outline: "none" }} 
-                        />
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <input 
+                            type="text" 
+                            value={emailId} 
+                            onChange={(e) => setEmailId(e.target.value)} 
+                            placeholder="아이디 입력"
+                            style={{ 
+                              flex: 3, padding: "12px 8px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", 
+                              border: "none", fontSize: "0.95rem", fontWeight: "600", outline: "none",
+                              minWidth: "0" 
+                            }} 
+                          />
+                          <span style={{ fontSize: "1rem", color: "#999", fontWeight: "600" }}>@</span>
+                          <select 
+                            value={emailDomain} 
+                            onChange={(e) => setEmailDomain(e.target.value)}
+                            style={{ 
+                              flex: 2.5, padding: "12px 4px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", 
+                              border: "none", fontSize: "0.9rem", fontWeight: "600", outline: "none", cursor: "pointer",
+                              appearance: "none", textAlign: "center", minWidth: "0"
+                            }}
+                          >
+                            <option value="naver.com">naver.com</option>
+                            <option value="daum.net">daum.net</option>
+                          </select>
+                        </div>
                       </div>
                     ) : (
                       <div style={{ marginBottom: "4px" }}>
@@ -1722,7 +1800,20 @@ function PremiumSajuContent() {
                       </p>
                     </div>
                   </div>
-                <button onClick={() => setStep(1)} className="btn-primary" style={{ width: "100%", marginTop: "16px", padding: "14px", borderRadius: "16px", background: "linear-gradient(135deg, var(--accent-indigo), #1A1C2C)", color: "var(--accent-gold)", fontWeight: "700", fontSize: "1.05rem", border: "none", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", boxShadow: "0 10px 25px rgba(0,0,0,0.15)" }}>
+                <button 
+                  onClick={() => setStep(1)} 
+                  disabled={deliveryMethod === "email" && !emailId}
+                  className="btn-primary" 
+                  style={{ 
+                    width: "100%", marginTop: "16px", padding: "14px", borderRadius: "16px", 
+                    background: deliveryMethod === "email" && !emailId ? "#ccc" : "linear-gradient(135deg, var(--accent-indigo), #1A1C2C)", 
+                    color: deliveryMethod === "email" && !emailId ? "#999" : "var(--accent-gold)", 
+                    fontWeight: "700", fontSize: "1.05rem", border: "none", display: "flex", 
+                    justifyContent: "center", alignItems: "center", gap: "8px", 
+                    boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+                    cursor: deliveryMethod === "email" && !emailId ? "not-allowed" : "pointer"
+                  }}
+                >
                   심층 질문 시작하기 <ArrowRight size={18} />
                 </button>
               </motion.div>
@@ -1733,8 +1824,9 @@ function PremiumSajuContent() {
                 <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
                   <div style={{ height: "4px", flex: 1, borderRadius: "2px", background: "var(--accent-gold)" }} />
                   <div style={{ height: "4px", flex: 1, borderRadius: "2px", background: "rgba(0,0,0,0.1)" }} />
+                  <div style={{ height: "4px", flex: 1, borderRadius: "2px", background: "rgba(0,0,0,0.1)" }} />
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--accent-gold)", fontWeight: "700", marginBottom: "6px" }}>STEP 1 / 2</div>
+                <div style={{ fontSize: "0.75rem", color: "var(--accent-gold)", fontWeight: "700", marginBottom: "6px" }}>STEP 1 / 3</div>
                 <h3 style={{ fontSize: "1.2rem", fontWeight: "800", color: "var(--accent-indigo)", marginBottom: "16px", lineHeight: "1.35", wordBreak: "keep-all" }}>
                   가장 정밀하게 풀이하고 싶은 영역을 선택해주세요.
                 </h3>
@@ -1744,7 +1836,7 @@ function PremiumSajuContent() {
                       key={i} 
                       whileHover={{ scale: 1.02, backgroundColor: "rgba(201, 160, 80, 0.05)" }} 
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => { setSelectedCategory(cat); setStep(2); }}
+                      onClick={() => { setSelectedCategory(cat); setStep(1.5); }}
                       style={{ 
                         padding: "16px 10px", background: "white", border: "1px solid var(--glass-border)", borderRadius: "18px", 
                         textAlign: "center", fontSize: "0.95rem", fontWeight: "700", color: "var(--accent-indigo)", cursor: "pointer", 
@@ -1758,13 +1850,58 @@ function PremiumSajuContent() {
               </motion.div>
             )}
 
+            {step === 1.5 && (
+              <motion.div key="step1.5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
+                  <div style={{ height: "4px", flex: 1, borderRadius: "2px", background: "var(--accent-gold)" }} />
+                  <div style={{ height: "4px", flex: 1, borderRadius: "2px", background: "var(--accent-gold)" }} />
+                  <div style={{ height: "4px", flex: 1, borderRadius: "2px", background: "rgba(0,0,0,0.1)" }} />
+                </div>
+                <div style={{ fontSize: "0.75rem", color: "var(--accent-gold)", fontWeight: "700", marginBottom: "6px" }}>STEP 2 / 3: 정보 확인</div>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: "800", color: "var(--accent-indigo)", marginBottom: "16px", lineHeight: "1.35", wordBreak: "keep-all" }}>
+                  입력하신 정보가 맞는지<br/>확인해주세요.
+                </h3>
+                
+                <div style={{ background: "white", padding: "20px", borderRadius: "20px", border: "1px solid var(--glass-border)", display: "flex", flexDirection: "column", gap: "12px", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0", paddingBottom: "8px" }}>
+                    <span style={{ fontSize: "0.85rem", color: "#999", fontWeight: "600" }}>생년월일</span>
+                    <span style={{ fontSize: "0.95rem", color: "#333", fontWeight: "700" }}>{date} ({isLunar ? "음력" : "양력"})</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0", paddingBottom: "8px" }}>
+                    <span style={{ fontSize: "0.85rem", color: "#999", fontWeight: "600" }}>태어난 시간</span>
+                    <span style={{ fontSize: "0.95rem", color: "#333", fontWeight: "700" }}>{time}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0", paddingBottom: "8px" }}>
+                    <span style={{ fontSize: "0.85rem", color: "#999", fontWeight: "600" }}>성별</span>
+                    <span style={{ fontSize: "0.95rem", color: "#333", fontWeight: "700" }}>{gender === "M" ? "남성" : "여성"}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0", paddingBottom: "8px" }}>
+                    <span style={{ fontSize: "0.85rem", color: "#999", fontWeight: "600" }}>태어난 도시</span>
+                    <span style={{ fontSize: "0.95rem", color: "#333", fontWeight: "700" }}>{birthCity}</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ fontSize: "0.85rem", color: "#999", fontWeight: "600" }}>받으실 곳</span>
+                    <span style={{ fontSize: "0.95rem", color: "var(--accent-indigo)", fontWeight: "700" }}>
+                      {deliveryMethod === "email" ? userEmail : "카카오톡 연동됨"}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
+                  <button onClick={() => setStep(0)} style={{ flex: 1, padding: "14px", borderRadius: "16px", background: "#f8f9fa", color: "#666", fontWeight: "700", border: "1px solid #eee" }}>수정하기</button>
+                  <button onClick={() => setStep(2)} style={{ flex: 2, padding: "14px", borderRadius: "16px", background: "linear-gradient(135deg, var(--accent-indigo), #1A1C2C)", color: "var(--accent-gold)", fontWeight: "800", border: "none" }}>네, 맞습니다</button>
+                </div>
+              </motion.div>
+            )}
+
             {step === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <div style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
                   <div style={{ height: "4px", flex: 1, borderRadius: "2px", background: "var(--accent-gold)" }} />
                   <div style={{ height: "4px", flex: 1, borderRadius: "2px", background: "var(--accent-gold)" }} />
+                  <div style={{ height: "4px", flex: 1, borderRadius: "2px", background: "var(--accent-gold)" }} />
                 </div>
-                <div style={{ fontSize: "0.75rem", color: "var(--accent-gold)", fontWeight: "700", marginBottom: "6px" }}>STEP 2 / 2: {selectedCategory}</div>
+                <div style={{ fontSize: "0.75rem", color: "var(--accent-gold)", fontWeight: "700", marginBottom: "6px" }}>STEP 3 / 3: {selectedCategory}</div>
                 <h3 style={{ fontSize: "1.2rem", fontWeight: "800", color: "var(--accent-indigo)", marginBottom: "16px", lineHeight: "1.35", wordBreak: "keep-all" }}>
                   {selectedCategory}에 대해 궁금한 내용을<br/>작성해주세요. (선택사항)
                 </h3>
@@ -1830,7 +1967,7 @@ function PremiumSajuContent() {
                   <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
                     <div style={{ textAlign: "center", marginBottom: "10px" }}>
                       <div style={{ fontSize: "0.75rem", color: "var(--accent-gold)", fontWeight: "800", letterSpacing: "0.15em", marginBottom: "4px" }}>PREMIUM FULL ANALYSIS</div>
-                      <h2 style={{ fontSize: "1.5rem", color: "var(--accent-indigo)", fontWeight: "900", fontFamily: "'Nanum Myeongjo', serif" }}>정밀 사주 해석</h2>
+                      <h2 style={{ fontSize: "1.5rem", color: "var(--accent-indigo)", fontWeight: "900", fontFamily: "'Nanum Myeongjo', serif" }}>귀하의 운명에 대한 심층 사주풀이</h2>
                     </div>
 
                     <SajuPillarTable 
@@ -1840,16 +1977,7 @@ function PremiumSajuContent() {
                       sals={detailedData.sals} 
                     />
 
-                    {/* 대운 영역 추가 */}
-                    <DaeunTable 
-                      userName="사용자" 
-                      startAge={detailedData.advanced?.daeunNum || 8} 
-                      cycles={detailedData.advanced?.daeunCycles || []} 
-                      direction={detailedData.advanced?.daeunDirection}
-                    />
-
-                    <SinSalTable 
-                      data={detailedData.table} 
+                    <MajorSinsalSummary 
                       sals={detailedData.sals} 
                     />
 
@@ -1899,26 +2027,41 @@ function PremiumSajuContent() {
                         </button>
                       </div>
 
-                      <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                      {/* Chart Rendering */}
-                      <ElementBarChart 
-                        data={activeTab === 'base' ? detailedData.elements_ratio_base : detailedData.elements_ratio} 
-                        strength={activeTab === 'base' ? detailedData.strength_base : detailedData.strength_corrected}
-                      />
-                        <div style={{ padding: "30px 0", borderTop: "1px solid #f5f5f5", borderBottom: "1px solid #f5f5f5" }}>
-                          <div style={{ textAlign: "center", fontSize: "0.9rem", fontWeight: "800", color: "#333", marginBottom: "15px" }}>오행의 상생(生)과 상극(剋)</div>
-                          <ElementalCycleDiagram counts={detailedData.elementCounts} />
+                      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                        {/* 1. Stargate Element Chart (Interactive Star) */}
+                        <div style={{ padding: "10px 0" }}>
+                          <div style={{ textAlign: "center", fontSize: "0.95rem", fontWeight: "900", color: "var(--accent-indigo)", marginBottom: "10px" }}>오행의 상생(生)과 상극(剋) 순환</div>
+                          <StargateElementChart 
+                            percentages={activeTab === 'base' ? detailedData.elements_ratio_base : detailedData.elements_ratio} 
+                          />
                         </div>
-                      </div>
 
-                      {activeTab === 'corrected' && (
-                        <div style={{ marginTop: "24px", padding: "16px", background: "rgba(201,160,80,0.05)", borderRadius: "16px", fontSize: "0.85rem", color: "#666", lineHeight: "1.7", border: "1px solid rgba(201,160,80,0.1)", position: "relative" }}>
-                          <div style={{ position: "absolute", top: "-10px", left: "20px", background: "var(--accent-gold)", color: "white", padding: "2px 10px", borderRadius: "10px", fontSize: "0.7rem", fontWeight: "800" }}>전문가 보정 의견</div>
-                          <p style={{ margin: 0, wordBreak: "keep-all" }}>
-                            {detailedData.johu_correction}
-                          </p>
+                        {/* 2. Sipsung Donut Chart (Breakdown) */}
+                        <SipsungDonutChart data={detailedData.sipsungCounts} />
+
+                        {/* 3. Strength and Yongsin Analysis */}
+                        <StrengthIndexGraph score={detailedData.strength_corrected} deuk={detailedData.deuk} />
+                        <YongsinDisplay yongsin={detailedData.yongsin} />
+
+                        {/* 4. Bar Chart (Strength Comparison) */}
+                        <div style={{ background: "white", padding: "20px", borderRadius: "30px", boxShadow: "0 10px 40px rgba(0,0,0,0.04)" }}>
+                          <div style={{ textAlign: "center", fontSize: "0.95rem", fontWeight: "900", color: "#333", marginBottom: "20px" }}>오행 강약 분석</div>
+                          <ElementBarChart 
+                            data={activeTab === 'base' ? detailedData.elements_ratio_base : detailedData.elements_ratio} 
+                            strength={activeTab === 'base' ? detailedData.strength_base : detailedData.strength_corrected}
+                          />
                         </div>
-                      )}
+
+                        {/* 5. Correction Note */}
+                        {activeTab === 'corrected' && (
+                          <div style={{ padding: "16px", background: "rgba(201,160,80,0.05)", borderRadius: "16px", fontSize: "0.85rem", color: "#666", lineHeight: "1.7", border: "1px solid rgba(201,160,80,0.1)", position: "relative", marginTop: "10px" }}>
+                            <div style={{ position: "absolute", top: "-10px", left: "20px", background: "var(--accent-gold)", color: "white", padding: "2px 10px", borderRadius: "10px", fontSize: "0.7rem", fontWeight: "800" }}>전문가 보정 의견</div>
+                            <p style={{ margin: 0, wordBreak: "keep-all" }}>
+                              {detailedData.johu_correction}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {(() => {
@@ -1977,7 +2120,7 @@ function PremiumSajuContent() {
                               <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
                               <h4 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-gold)", margin: 0 }}>인생의 형상</h4>
                             </div>
-                            <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all" }}>
+                            <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all", textAlign: "left" }}>
                               {renderHighlightedText(reading.analysis?.life_shape, true)}
                             </div>
                           </section>
@@ -1987,7 +2130,7 @@ function PremiumSajuContent() {
                               <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
                               <h4 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-gold)", margin: 0 }}>고민에 대한 해답</h4>
                             </div>
-                            <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all" }}>
+                            <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all", textAlign: "left" }}>
                               {renderHighlightedText(reading.analysis?.solution, true)}
                             </div>
                           </section>
@@ -1997,7 +2140,7 @@ function PremiumSajuContent() {
                               <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
                               <h4 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-gold)", margin: 0 }}>핵심 성패 시기</h4>
                             </div>
-                            <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all" }}>
+                            <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all", textAlign: "left" }}>
                               {renderHighlightedText(reading.analysis?.timing, true)}
                             </div>
                           </section>
@@ -2021,10 +2164,12 @@ function PremiumSajuContent() {
                       </div>
                     </div>
 
-                    <div className="no-print" style={{ display: "flex", gap: "12px", marginTop: "32px", padding: "20px 0", borderTop: "1px solid var(--glass-border)" }}>
-                      <button onClick={handleCopy} style={{ flex: 1, padding: "16px", borderRadius: "16px", background: "white", color: "var(--text-primary)", fontWeight: "700", fontSize: "1rem", border: "1px solid var(--glass-border)", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.02)" }}>
-                        <Copy size={18} /> 분석 결과 전체 복사하기
-                      </button>
+                    <div className="no-print" style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginTop: "32px", padding: "20px 0", borderTop: "1px solid var(--glass-border)" }}>
+                      <Link href="/premium-saju" style={{ flex: 1, textDecoration: "none", minWidth: "200px" }}>
+                        <button style={{ width: "100%", padding: "16px", borderRadius: "16px", background: "linear-gradient(135deg, var(--accent-indigo), #1A1C2C)", color: "var(--accent-gold)", fontWeight: "800", fontSize: "1rem", border: "1px solid var(--accent-gold)", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", cursor: "pointer", boxShadow: "0 8px 25px rgba(0,0,0,0.2)" }}>
+                          명리 대가의 다른 조언 더 듣기 ➔
+                        </button>
+                      </Link>
                     </div>
 
                     <div style={{ display: "flex", gap: "12px", marginTop: "12px", paddingBottom: "40px" }}>

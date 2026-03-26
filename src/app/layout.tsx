@@ -38,7 +38,7 @@ export default function RootLayout({
           </div>
           
           <footer style={{ 
-            padding: "4px 20px 6px 20px", 
+            padding: "8px 16px 12px 16px", 
             textAlign: "center", 
             background: "rgba(255, 255, 255, 0.4)", 
             backdropFilter: "blur(8px)",
@@ -52,30 +52,31 @@ export default function RootLayout({
                 display: "flex", 
                 justifyContent: "center", 
                 alignItems: "center",
-                gap: "6px", 
+                gap: "8px", 
                 fontSize: "0.55rem", 
                 color: "var(--accent-indigo)",
                 fontWeight: "600",
-                marginBottom: "2px",
-                opacity: 0.7
+                marginBottom: "4px",
+                opacity: 0.5
               }}>
-                <Link href="/terms" style={{ textDecoration: "none", color: "inherit", padding: "1px" }} className="footer-link">이용약관</Link>
-                <span style={{ fontSize: "0.4rem", opacity: 0.2 }}>|</span>
-                <Link href="/privacy" style={{ textDecoration: "none", color: "inherit", padding: "1px" }} className="footer-link">개인정보처리방침</Link>
+                <Link href="/terms" style={{ textDecoration: "none", color: "inherit" }} className="footer-link">이용약관</Link>
+                <span style={{ fontSize: "0.4rem", opacity: 0.3 }}>|</span>
+                <Link href="/privacy" style={{ textDecoration: "none", color: "inherit" }} className="footer-link">개인정보처리방침</Link>
               </div>
               
               <div style={{ 
                 maxWidth: "600px", 
                 margin: "0 auto", 
-                fontSize: "0.5rem", 
+                fontSize: "0.38rem", 
                 color: "var(--accent-indigo)", 
-                opacity: 0.4, 
-                lineHeight: "1.1",
-                fontWeight: "400"
+                opacity: 0.3, 
+                lineHeight: "1.3",
+                fontWeight: "400",
+                letterSpacing: "-0.01em"
               }}>
-                <p style={{ marginBottom: "1px" }}>사업자번호: 170-53-00867 | 통신판매업: 2026-인천계양-0283</p>
-                <p style={{ marginBottom: "1px" }}>풀이 및 감명 결과에 대한 최종 책임은 사용자에게 있습니다.</p>
-                <p>© {new Date().getFullYear()} 청아매당. All rights reserved.</p>
+                <p style={{ marginBottom: "1px" }}>대표: 박성철 | 주소: 인천시 계양구 용종로 124 134-1402</p>
+                <p style={{ marginBottom: "1px" }}>사업자번호: 170-53-00867 | 전화: 010-8243-7516</p>
+                <p style={{ marginBottom: "0px" }}>© {new Date().getFullYear()} 청아매당. All rights reserved.</p>
               </div>
             </div>
           </footer>

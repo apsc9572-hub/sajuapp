@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     console.log("[Confirm API] Full Body Keys:", Object.keys(body));
-    const { paymentKey, orderId, amount, skip, userEmail, kakaoToken, sajuData, deliveryMethod } = body;
+    const { paymentKey, orderId, amount, skip, userEmail, kakaoToken, sajuData, deliveryMethod, images } = body;
     
     console.log("[Confirm API] Parameters check:", { 
       hasEmail: !!userEmail, 
@@ -58,22 +58,29 @@ export async function POST(request: Request) {
       // Trigger background analysis
       if (sajuData && userEmail) {
         const actualOrigin = new URL(request.url).origin;
-        const isLocal = actualOrigin.includes("localhost") || actualOrigin.includes("127.0.0.1") || actualOrigin.includes("::1");
+        const isDevelopment = process.env.NODE_ENV === 'development';
+        const isLocalHost = actualOrigin.includes("localhost") || actualOrigin.includes("127.0.0.1") || actualOrigin.includes("::1");
+        // Also check for private IP ranges (192.168.x.x, 10.x.x.x, 172.16.x.x)
+        const isPrivateIp = /^(http|https):\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(actualOrigin);
+        
+        const isLocal = isDevelopment || isLocalHost || isPrivateIp;
         const webhookBaseUrl = process.env.NEXT_PUBLIC_SITE_URL || actualOrigin;
 
         console.log("[Confirm API] Origin:", actualOrigin, "Is it Local?", isLocal);
 
         // LOCAL BYPASS: QStash cannot hit localhost. 
         if (isLocal) {
-          console.log("[Confirm API] Local mode: Bypassing QStash and running delivery directly.");
-          // No await required if we want it to be "pseudo-background", 
-          // but since it's local, awaiting is safer for logs.
-          await processAndDeliverPremiumSaju({
+          console.log("[Confirm API] Local mode: Bypassing QStash and running delivery directly (Background).");
+          // Non-blocking call to avoid browser timeout
+          processAndDeliverPremiumSaju({
             userEmail,
             kakaoToken,
             sajuData,
             orderId,
-            deliveryMethod
+            deliveryMethod,
+            images
+          }).catch(err => {
+            console.error("[Confirm API] Background Delivery Error:", err.message);
           });
         } else {
           console.log("[Confirm API] Production mode: Triggering QStash for Order:", orderId);
@@ -85,7 +92,8 @@ export async function POST(request: Request) {
                 kakaoToken,
                 sajuData,
                 orderId,
-                deliveryMethod
+                deliveryMethod,
+                images
               },
             });
             console.log(`[QStash] Published task for Order: ${orderId}`);
@@ -114,3 +122,6 @@ export async function POST(request: Request) {
     );
   }
 }
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300;

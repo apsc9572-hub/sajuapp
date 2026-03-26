@@ -4,8 +4,19 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import TraditionalBackground from "@/components/TraditionalBackground";
-import { Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Sparkles, AlertCircle, CheckCircle2, Copy } from "lucide-react";
 import { prepareAnalysisData } from "@/lib/premium-saju-utils";
+import html2canvas from "html2canvas";
+import { 
+  SajuPillarTable, 
+  StargateElementChart, 
+  SipsungDonutChart, 
+  StrengthIndexGraph, 
+  YongsinDisplay,
+  ElementBarChart,
+  DaeunTable
+} from "@/app/premium-saju/page";
+import { useRef } from "react";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -14,6 +25,18 @@ function SuccessContent() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isEmailSubmitted, setIsEmailSubmitted] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [isCopying, setIsCopying] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [sajuDataForCapture, setSajuDataForCapture] = useState<any>(null);
+  
+  const capturePillarRef = useRef<HTMLDivElement>(null);
+  const captureStarBaseRef = useRef<HTMLDivElement>(null);
+  const captureStarCorrRef = useRef<HTMLDivElement>(null);
+  const captureDonutBaseRef = useRef<HTMLDivElement>(null);
+  const captureDonutCorrRef = useRef<HTMLDivElement>(null);
+  const captureStrengthBaseRef = useRef<HTMLDivElement>(null);
+  const captureStrengthCorrRef = useRef<HTMLDivElement>(null);
+  const captureDaeunRef = useRef<HTMLDivElement>(null);
 
   const paymentKey = searchParams.get("paymentKey");
   const orderId = searchParams.get("orderId");
@@ -24,8 +47,6 @@ function SuccessContent() {
     const kakaoToken = sessionStorage.getItem("kakao_access_token");
 
     if (!savedData) {
-      // If no data in localStorage, maybe it's already a completed order and user is just revisiting
-      // But for a fresh payment redirect, this is an error.
       setStatus("error");
       setErrorMessage("입력된 사주 정보가 없습니다. 세션이 만료되었을 수 있습니다.");
       return;
@@ -34,33 +55,63 @@ function SuccessContent() {
     try {
       const data = JSON.parse(savedData);
       setUserEmail(data.userEmail || "");
-      
-      // 1. Prepare data for server (Bazi calculation) - FAST
       const analysisData = await prepareAnalysisData(data);
+      setSajuDataForCapture(analysisData);
 
-      const skip = searchParams.get("skip");
+      // Wait for DOM to render hidden components
+      await new Promise(r => setTimeout(r, 1000));
 
-      // 2. Trigger Payment Confirmation & Background Delivery
-      console.log("[CLIENT] Sending confirm-payment request...");
-      alert("분석 요청을 서버로 보냅니다...");
+      const capturedImages: Record<string, string> = {};
+      const capture = async (ref: React.RefObject<HTMLDivElement | null>, key: string) => {
+        if (ref.current) {
+          try {
+            const canvas = await html2canvas(ref.current, { 
+              backgroundColor: "#ffffff",
+              scale: 1.5, // 1.5 scale as requested for better mobile readability
+              useCORS: true,
+              logging: false
+            });
+            capturedImages[key] = canvas.toDataURL("image/png", 0.7); // 0.7 quality (if browser supports for png)
+          } catch (e) {
+            console.error(`Capture failed for ${key}`, e);
+          }
+        }
+      };
+
+      console.log("[Success] Capturing UI components as PNGs...");
+      await Promise.all([
+        capture(capturePillarRef, "pillar"),
+        capture(captureStarBaseRef, "star_base"),
+        capture(captureStarCorrRef, "star_corrected"),
+        capture(captureDonutBaseRef, "donut_base"),
+        capture(captureDonutCorrRef, "donut_corrected"),
+        capture(captureStrengthBaseRef, "strength_base"),
+        capture(captureStrengthCorrRef, "strength_corrected"),
+        capture(captureDaeunRef, "daeun")
+      ]);
+
+      const payload = { 
+        paymentKey, 
+        orderId, 
+        amount,
+        skip: searchParams.get("skip"),
+        userEmail: data.userEmail, 
+        deliveryMethod: data.deliveryMethod,
+        kakaoToken,
+        sajuData: analysisData,
+        images: capturedImages 
+      };
+
+      const payloadSize = JSON.stringify(payload).length;
+      console.log(`[Success] Payload size: ${(payloadSize / 1024 / 1024).toFixed(2)} MB`);
+
       const res = await fetch("/api/confirm-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          paymentKey, 
-          orderId, 
-          amount,
-          skip, // Added
-          userEmail: data.userEmail, 
-          deliveryMethod: data.deliveryMethod,
-          kakaoToken,
-          sajuData: analysisData
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        alert("분석 요청 접수 성공! 이제 약 1~2분 뒤 메일이 도착합니다.");
-        // Already shown as completed, but we can do final cleanup here
         localStorage.removeItem("premium_saju_data");
         console.log("[Success] Payment confirmed and background tasks triggered.");
       } else {
@@ -75,8 +126,68 @@ function SuccessContent() {
     }
   };
 
+  const fetchAnalysisForCopy = async () => {
+    const savedData = localStorage.getItem("premium_saju_data");
+    // Even if no localStorage, we can still show a generic success message if show=true
+    if (!savedData) {
+      setStatus("completed");
+      return;
+    }
+    
+    try {
+      setStatus("verifying");
+      const data = JSON.parse(savedData);
+      const res = await fetch("/api/premium-saju", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        setAnalysisResult(result.analysis);
+        setStatus("completed");
+      } else {
+        setStatus("completed"); // Fallback to normal success state
+      }
+    } catch (e) {
+      console.error(e);
+      setStatus("completed");
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!analysisResult) return;
+    setIsCopying(true);
+    const fullText = `
+[청아매당 프리미엄 사주 분석 결과]
+
+1. 인생의 전체적인 형상 분석
+${analysisResult.life_shape?.replace(/<[^>]*>?/gm, '')}
+
+2. 고민에 대한 대가의 해답
+${analysisResult.solution?.replace(/<[^>]*>?/gm, '')}
+
+3. 성패의 시기 (2026-2028)
+${analysisResult.timing?.replace(/<[^>]*>?/gm, '')}
+
+4. 개운(開運)의 비책
+${analysisResult.luck_advice?.replace(/<[^>]*>?/gm, '')}
+
+© 2026 청아매당. 본 결과지의 무단 전재 및 배포를 금합니다.
+    `.trim();
+
+    try {
+      await navigator.clipboard.writeText(fullText);
+      alert("전체 분석 결과가 클립보드에 복사되었습니다.");
+    } catch (err) {
+      console.error("Copy failed", err);
+      alert("복사에 실패했습니다. 직접 선택하여 복사해 주세요.");
+    } finally {
+      setIsCopying(false);
+    }
+  };
+
   useEffect(() => {
-    // Read email immediately for UI
     const savedData = localStorage.getItem("premium_saju_data");
     if (savedData) {
       try {
@@ -86,16 +197,15 @@ function SuccessContent() {
     }
 
     if (paymentKey && orderId && amount) {
-      // For immediate satisfaction, show completed UI right away
       setStatus("completed");
       confirmPayment();
+    } else if (searchParams.get("result") === "true") {
+      fetchAnalysisForCopy();
+    } else if (searchParams.get("show") === "true" || searchParams.get("skip") === "true") {
+      setStatus("completed");
     } else {
-      if (searchParams.get("show") !== "true") {
-        setStatus("error");
-        setErrorMessage("잘못된 접근입니다.");
-      } else {
-        setStatus("completed");
-      }
+      setStatus("error");
+      setErrorMessage("잘못된 접근입니다.");
     }
   }, [paymentKey, orderId, amount, searchParams]);
 
@@ -103,108 +213,222 @@ function SuccessContent() {
     e.preventDefault();
     if (!userEmail) return;
     setIsEmailSubmitted(true);
-    // Logic to report error to admin could go here
     alert("접수되었습니다. 확인 후 메일로 보내드리겠습니다.");
   };
 
   return (
     <main style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
       <TraditionalBackground />
-      <div style={{ maxWidth: "520px", margin: "0 auto", minHeight: "100vh", background: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(20px)", padding: "40px 20px" }}>
+      <div style={{ maxWidth: "520px", margin: "0 auto", minHeight: "100vh", background: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(20px)", padding: "20px 15px" }}>
         
         {status === "verifying" && (
           <div style={{ textAlign: "center", paddingTop: "120px" }}>
             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
-              <Sparkles size={48} color="var(--accent-gold)" />
+              <Sparkles size={40} color="var(--accent-gold)" />
             </motion.div>
-            <h2 style={{ marginTop: "24px", color: "var(--accent-indigo)", fontFamily: "'Nanum Myeongjo', serif" }}>결제를 확인하고 있습니다...</h2>
-            <p style={{ color: "#777", marginTop: "12px" }}>잠시만 기다려 주십시오.</p>
+            <h2 style={{ marginTop: "20px", fontSize: "1.2rem", color: "var(--accent-indigo)", fontFamily: "'Nanum Myeongjo', serif" }}>분석 내용을 불러오고 있습니다...</h2>
+            <p style={{ color: "#777", marginTop: "10px", fontSize: "0.9rem" }}>잠시만 기다려 주십시오.</p>
           </div>
         )}
 
         {status === "error" && (
           <div style={{ textAlign: "center", paddingTop: "60px" }}>
-            <AlertCircle size={64} color="#ef4444" style={{ margin: "0 auto 24px" }} />
-            <h2 style={{ fontSize: "1.5rem", fontWeight: "800", color: "#333", marginBottom: "16px" }}>안내 말씀 드립니다</h2>
+            <AlertCircle size={48} color="#ef4444" style={{ margin: "0 auto 20px" }} />
+            <h2 style={{ fontSize: "1.3rem", fontWeight: "800", color: "#333", marginBottom: "16px" }}>안내 말씀 드립니다</h2>
             
-            <div style={{ background: "#fff5f5", padding: "20px", borderRadius: "16px", border: "1px solid #fed7d7", marginBottom: "32px", textAlign: "left" }}>
-              <p style={{ color: "#c53030", fontWeight: "700", marginBottom: "12px" }}>결제 과정 혹은 정보 확인 중 문제가 발생했습니다.</p>
-              <p style={{ color: "#4a5568", fontSize: "0.95rem", lineHeight: "1.6" }}>
+            <div style={{ background: "#fff5f5", padding: "15px", borderRadius: "12px", border: "1px solid #fed7d7", marginBottom: "24px", textAlign: "left" }}>
+              <p style={{ color: "#c53030", fontWeight: "700", marginBottom: "8px", fontSize: "0.95rem" }}>결제 과정 혹은 정보 확인 중 문제가 발생했습니다.</p>
+              <p style={{ color: "#4a5568", fontSize: "0.85rem", lineHeight: "1.6" }}>
                 {errorMessage}
-                <br/><br/>
-                이미 결제가 완료되었다면, 아래 이메일 주소를 확인해 주세요. 담당자가 확인 후 24시간 이내에 직접 결과를 발송해 드립니다.
               </p>
             </div>
-
-            {!isEmailSubmitted ? (
-              <form onSubmit={handleEmailReportSubmit} style={{ width: "100%" }}>
-                <input 
-                  type="email" 
-                  value={userEmail}
-                  onChange={(e) => setUserEmail(e.target.value)}
-                  placeholder="결과를 받으실 이메일 주소"
-                  required
-                  style={{ width: "100%", padding: "16px", borderRadius: "14px", border: "2px solid #e2e8f0", marginBottom: "16px", fontSize: "1rem" }}
-                />
-                <button type="submit" style={{ width: "100%", padding: "16px", borderRadius: "14px", background: "var(--accent-indigo)", color: "white", border: "none", fontWeight: "700" }}>
-                  정보 재전송 및 문의 접수
-                </button>
-              </form>
-            ) : (
-              <div style={{ padding: "30px", background: "#f0fff4", borderRadius: "16px", border: "1px solid #c6f6d5" }}>
-                <p style={{ color: "#2f855a", fontWeight: "800" }}>접수가 완료되었습니다.</p>
-                <button onClick={() => router.push("/")} style={{ width: "100%", marginTop: "20px", padding: "14px", borderRadius: "12px", background: "var(--accent-indigo)", color: "white", border: "none" }}>홈으로 가기</button>
-              </div>
-            )}
           </div>
         )}
 
         {status === "completed" && (
-          <div style={{ padding: "60px 0" }}>
+          <div style={{ padding: "30px 0" }}>
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               style={{ 
-                background: "white", padding: "40px 24px", borderRadius: "32px", 
-                boxShadow: "0 20px 40px rgba(0,0,0,0.1)", textAlign: "center",
-                border: "1px solid rgba(212, 163, 115, 0.3)"
+                background: "white", padding: "30px 20px", borderRadius: "24px", 
+                boxShadow: "0 15px 35px rgba(0,0,0,0.08)", textAlign: "center",
+                border: "1px solid rgba(212, 163, 115, 0.2)"
               }}
             >
-              <div style={{ width: "80px", height: "80px", background: "#f0fdf4", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
-                <CheckCircle2 size={48} color="#22c55e" />
+              <div style={{ width: "60px", height: "60px", background: "#f0fdf4", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+                <CheckCircle2 size={36} color="#22c55e" />
               </div>
 
-               <h2 style={{ fontSize: "1.6rem", fontWeight: "900", color: "var(--accent-indigo)", marginBottom: "16px", fontFamily: "'Nanum Myeongjo', serif" }}>
-                정성이 담긴 분석이 시작되었습니다
-              </h2>
-              
-              <div style={{ background: "rgba(212, 163, 115, 0.1)", color: "#8a6d3b", padding: "12px", borderRadius: "12px", fontSize: "0.9rem", fontWeight: "700", marginBottom: "24px" }}>
-                대가의 지혜를 담은 정밀 명리 처방전 작성 중
-              </div>
+              {analysisResult ? (
+                <>
+                  <h2 style={{ fontSize: "1.4rem", fontWeight: "900", color: "var(--accent-indigo)", marginBottom: "12px", fontFamily: "'Nanum Myeongjo', serif" }}>사주 분석 결과가 준비되었습니다</h2>
+                  <p style={{ fontSize: "0.9rem", color: "#666", marginBottom: "24px", wordBreak: "keep-all" }}>아래 버튼을 눌러 전체 분석 내용을 복사할 수 있습니다.</p>
+                  
+                  <button 
+                    onClick={handleCopy}
+                    disabled={isCopying}
+                    style={{ 
+                      width: "100%", padding: "18px", borderRadius: "16px", background: "var(--accent-indigo)", 
+                      color: "white", border: "none", fontWeight: "700", fontSize: "1.1rem",
+                      boxShadow: "0 10px 20px rgba(42, 54, 95, 0.2)",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "10px"
+                    }}
+                  >
+                    <Copy size={20} />
+                    {isCopying ? "복사 중..." : "결과 전체 복사하기"}
+                  </button>
 
-              <p style={{ color: "#555", lineHeight: "1.8", marginBottom: "32px", wordBreak: "keep-all" }}>
-                귀하의 타고난 운명과 흐름기운을 면밀히 분석하여 가장 명확한 답을 도출하고 있습니다.<br/><br/>
-                정밀한 분석 과정을 거쳐 <b>약 1~5분 이내</b>에 귀하의 <b>카카오톡과 이메일</b>로 소중히 전달해 드립니다.<br/><br/>
-                <b>지금 브라우저를 닫거나 앱을 종료하셔도 결과지는 안전하게 발송되오니 안심하고 기다려 주십시오.</b>
-              </p>
+                  <div style={{ marginTop: "24px", textAlign: "left" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                      <div style={{ width: "4px", height: "16px", background: "var(--accent-indigo)", borderRadius: "2px" }} />
+                      <h4 style={{ fontSize: "1rem", fontWeight: "800", color: "var(--accent-indigo)", margin: 0 }}>귀하의 대운 흐름</h4>
+                    </div>
+                    {sajuDataForCapture && (
+                      <DaeunTable 
+                        userName="" 
+                        startAge={sajuDataForCapture.daeunNum || 1} 
+                        cycles={sajuDataForCapture.daeunCycles || []} 
+                        currentIndex={sajuDataForCapture.currentDaeunIdx}
+                        direction={sajuDataForCapture.daeunDirection}
+                      />
+                    )}
+                  </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div style={{ padding: "16px", background: "#f8fafc", borderRadius: "16px", border: "1px solid #f1f5f9", fontSize: "0.9rem", color: "#64748b", textAlign: "left" }}>
-                  <div style={{ fontWeight: "700", marginBottom: "4px", color: "var(--accent-indigo)" }}>보내드리는 곳:</div>
-                  • 카카오톡: 나에게 보내기 (기본)<br/>
-                  • 이메일: {userEmail || "결제 시 입력하신 주소"}
-                </div>
-                
-                <button 
-                  onClick={() => router.push("/")}
-                  style={{ width: "100%", padding: "16px", borderRadius: "16px", background: "var(--accent-indigo)", color: "white", border: "none", fontWeight: "700", fontSize: "1rem", marginTop: "12px" }}
-                >
-                  홈으로 이동하기
-                </button>
-              </div>
+                  {/* Bottom Convenience Buttons */}
+                  <div style={{ marginTop: "32px", borderTop: "1px solid #eee", paddingTop: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <button 
+                      onClick={handleCopy}
+                      disabled={isCopying}
+                      style={{
+                        width: "100%",
+                        padding: "16px",
+                        background: "var(--accent-indigo)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "14px",
+                        fontSize: "1rem",
+                        fontWeight: "800",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "8px",
+                        boxShadow: "0 4px 15px rgba(42,54,95,0.2)"
+                      }}
+                    >
+                      <Copy size={20} />
+                      {isCopying ? "복사 중..." : "전체 결과 복사하기"}
+                    </button>
+                    
+                    <button 
+                      onClick={() => router.push('/premium-saju')}
+                      style={{
+                        width: "100%",
+                        padding: "16px",
+                        background: "white",
+                        color: "var(--accent-indigo)",
+                        border: "1.5px solid var(--accent-indigo)",
+                        borderRadius: "14px",
+                        fontSize: "0.95rem",
+                        fontWeight: "800",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "8px"
+                      }}
+                    >
+                      <Sparkles size={18} />
+                      프리미엄 사주 다시 이용하기
+                    </button>
+                    <p style={{ textAlign: "center", fontSize: "0.85rem", color: "#666", marginTop: "4px" }}>
+                      운명의 문은 언제나 열려 있습니다. 다른 고민이 있다면 다시 찾아주세요.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h2 style={{ fontSize: "1.4rem", fontWeight: "900", color: "var(--accent-indigo)", marginBottom: "12px", fontFamily: "'Nanum Myeongjo', serif" }}>분석이 시작되었습니다</h2>
+                  <p style={{ color: "#555", fontSize: "0.9rem", lineHeight: "1.7", marginBottom: "25px", wordBreak: "keep-all" }}>
+                    귀하의 사주 기운을 세밀히 분석하여 명확한 답을 도출 중입니다.<br/><br/>
+                    약 <b>1~5분 이내</b>에 귀하의 <b>카카오톡과 이메일</b>로 소중히 전달해 드립니다.<br/><br/>
+                    메일 하단의 버튼을 통해 전체 내용을 복사하실 수 있습니다.
+                  </p>
+                </>
+              )}
+
+              <button 
+                onClick={() => router.push("/")}
+                style={{ width: "100%", padding: "14px", borderRadius: "14px", background: "#f8fafc", color: "#64748b", border: "1px solid #e2e8f0", fontWeight: "600", fontSize: "0.9rem", marginTop: "12px" }}
+              >
+                홈으로 이동하기
+              </button>
             </motion.div>
           </div>
         )}
+
+        {/* Hidden Capture Area */}
+        <div style={{ position: "absolute", left: "-9999px", top: 0, width: "500px" }}>
+          {sajuDataForCapture && (
+            <>
+              {/* 1. Pillar Table */}
+              <div ref={capturePillarRef} style={{ padding: "20px", background: "white" }}>
+                <h3 style={{ textAlign: "center", color: "#2A365F", marginBottom: "15px" }}>사주 명식표</h3>
+                <SajuPillarTable 
+                  data={sajuDataForCapture.sajuRes} 
+                  tenGods={sajuDataForCapture.correctedSipsungCounts} 
+                  stages12={sajuDataForCapture.stages12} 
+                  sals={sajuDataForCapture.sinsals} 
+                />
+              </div>
+
+              {/* 2. Star Chart (Base vs Corrected) */}
+              <div ref={captureStarBaseRef} style={{ padding: "20px", background: "white" }}>
+                <h3 style={{ textAlign: "center", color: "#666", marginBottom: "15px" }}>오행 에너지 (보정 전)</h3>
+                <StargateElementChart percentages={sajuDataForCapture.basePercentages} />
+              </div>
+              <div ref={captureStarCorrRef} style={{ padding: "20px", background: "white" }}>
+                <h3 style={{ textAlign: "center", color: "#2A365F", marginBottom: "15px" }}>오행 에너지 (보정 후)</h3>
+                <StargateElementChart percentages={sajuDataForCapture.correctedPercentages} />
+              </div>
+
+              {/* 3. Donut Chart (Base vs Corrected) */}
+              <div ref={captureDonutBaseRef} style={{ padding: "20px", background: "white" }}>
+                <h3 style={{ textAlign: "center", color: "#666", marginBottom: "15px" }}>십성 분포 (보정 전)</h3>
+                <SipsungDonutChart data={sajuDataForCapture.baseSipsungCounts} />
+              </div>
+              <div ref={captureDonutCorrRef} style={{ padding: "20px", background: "white" }}>
+                <h3 style={{ textAlign: "center", color: "#2A365F", marginBottom: "15px" }}>십성 분포 (보정 후)</h3>
+                <SipsungDonutChart data={sajuDataForCapture.correctedSipsungCounts} />
+              </div>
+
+              {/* 4. Strength Index (Base vs Corrected) */}
+              <div ref={captureStrengthBaseRef} style={{ padding: "20px", background: "white" }}>
+                <h3 style={{ textAlign: "center", color: "#666", marginBottom: "15px" }}>신강/신약 지수 (보정 전)</h3>
+                <StrengthIndexGraph score={sajuDataForCapture.baseStrength.score} deuk={sajuDataForCapture.deuk} />
+              </div>
+              <div ref={captureStrengthCorrRef} style={{ padding: "20px", background: "white" }}>
+                <h3 style={{ textAlign: "center", color: "#2A365F", marginBottom: "15px" }}>신강/신약 지수 (보정 후)</h3>
+                <StrengthIndexGraph score={sajuDataForCapture.correctedStrength.score} deuk={sajuDataForCapture.deuk} />
+                <div style={{ marginTop: "20px" }}>
+                  <YongsinDisplay yongsin={sajuDataForCapture.yongsin} />
+                </div>
+              </div>
+
+              {/* 5. Daeun Table */}
+              <div ref={captureDaeunRef} style={{ padding: "20px", background: "white" }}>
+                <DaeunTable 
+                  userName="" 
+                  startAge={sajuDataForCapture.daeunNum || 1} 
+                  cycles={sajuDataForCapture.daeunCycles || []} 
+                  currentIndex={sajuDataForCapture.currentDaeunIdx}
+                  direction={sajuDataForCapture.daeunDirection}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </main>
   );

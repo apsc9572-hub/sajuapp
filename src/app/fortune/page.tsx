@@ -5,11 +5,12 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowLeft, ArrowUp, BookOpen, Clock, CalendarDays, Sparkles, MoonStar, Scroll, Coins, Briefcase, Activity, Heart, Target, Users, Wallet, ShieldAlert, Download, Share2, Calculator, Calendar, Copy, Check } from "lucide-react";
-import { calculateSaju } from "ssaju";
+import { getUnifiedSaju } from "@/lib/unified-saju";
 import TraditionalBackground from "@/components/TraditionalBackground";
 import Disclaimer from "@/components/Disclaimer";
 import WheelDatePicker from "@/components/WheelDatePicker";
 import dynamic from "next/dynamic";
+import PremiumPromo from "@/components/PremiumPromo";
 
 const TraditionalBackgroundSafe = dynamic(() => import("@/components/TraditionalBackground"), { ssr: false });
 
@@ -203,8 +204,8 @@ function FortuneContent() {
       title: "월간 운세",
       desc: "이달의 방향성과 삶의 변화",
       icon: <MoonStar className="w-6 h-6" />,
-      tabs: ["종합", "1주차", "2주차", "3주차", "4주차"],
-      keys: ["this_month", "week1", "week2", "week3", "week4"]
+      tabs: ["종합", "1주차", "2주차", "3주차", "4주차", "5주차"],
+      keys: ["this_month", "week1", "week2", "week3", "week4", "week5"]
     },
     yearly: {
       title: "연간 운세",
@@ -509,23 +510,12 @@ function FortuneContent() {
 
       if (!year || !month || !day) throw new Error("유효한 날짜가 아닙니다.");
 
-      const cityData = cityDataMap[birthCity] || cityDataMap["기타"];
-      const offsetMin = cityData.lmtOffset;
-      const totalMinutes = hour * 60 + min + offsetMin;
-
-      let correctedDay = day;
-      let correctedHour = Math.floor(((totalMinutes % 1440) + 1440) % 1440 / 60);
-      let correctedMin = ((totalMinutes % 60) + 60) % 60;
-      if (totalMinutes < 0) correctedDay = day - 1;
-      if (totalMinutes >= 1440) correctedDay = day + 1;
-
-      const sajuRes = calculateSaju({
-        year,
-        month,
-        day: correctedDay,
-        hour: correctedHour,
-        minute: correctedMin,
-        calendar: isLunar ? "lunar" : "solar"
+      const sajuRes = getUnifiedSaju({
+        date,
+        time,
+        isLunar,
+        gender,
+        birthCity
       });
 
       if (!sajuRes) throw new Error("사주 산출에 실패했습니다.");
@@ -622,10 +612,16 @@ function FortuneContent() {
       
       const getPillars = (d: Date) => {
         try {
-          const res = calculateSaju({ year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), hour: 12, minute: 0, calendar: "solar" });
-          const yStr = toKr(res.pillarDetails.year.stem + res.pillarDetails.year.branch);
-          const mStr = toKr(res.pillarDetails.month.stem + res.pillarDetails.month.branch);
-          const dStr = toKr(res.pillarDetails.day.stem + res.pillarDetails.day.branch);
+          const res = getUnifiedSaju({
+              date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+              time: "12:00",
+              isLunar: false,
+              gender: "M",
+              birthCity: "서울"
+          });
+          const yStr = res.year.stemKo + res.year.branchKo;
+          const mStr = res.month.stemKo + res.month.branchKo;
+          const dStr = res.day.stemKo + res.day.branchKo;
           return { yStr, mStr, dStr };
         } catch {
           return { yStr: "", mStr: "", dStr: "" };
@@ -649,15 +645,16 @@ function FortuneContent() {
 {
   "this_month": {
     "content": "이번 달(${tm}월) 전체 종합 운세 (인사말 없이 바로 풀이 시작. 가독성을 위해 5문장마다 반드시 줄바꿈(\\n\\n)을 2번 사용하여 문단을 나눌 것. 반드시 포함: 이번 달 핵심 키워드 3개, 전체 기운 흐름, 좋은 점, 주의할 점을 구체적으로 명시)",
-    "score": 85,
-    "last_month_score": 78,
-    "next_month_score": 82,
-    "scores": {"wealth":80,"love":75,"career":85,"health":70}
+    "score": 85, (0-100 사이 숫자로 응답)
+    "last_month_score": 78, (0-100 사이 숫자로 응답)
+    "next_month_score": 82, (0-100 사이 숫자로 응답)
+    "scores": {"wealth":80,"love":75,"career":85,"health":70} (각 0-100 사이 숫자로 응답)
   },
   "week1": { "content": "1주차 흐름 (숫자 날짜 표기 절대 금지, '1주차'로만 명시)" },
   "week2": { "content": "2주차 흐름 (숫자 날짜 표기 절대 금지, '2주차'로만 명시)" },
   "week3": { "content": "3주차 흐름 (숫자 날짜 표기 절대 금지, '3주차'로만 명시)" },
   "week4": { "content": "4주차 흐름 (숫자 날짜 표기 절대 금지, '4주차'로만 명시)" },
+  "week5": { "content": "5주차 흐름 (숫자가 있는 경우에만 상세 서술, 없는 달이라도 빈칸이 아닌 자연스럽게 '마무리 시기' 혹은 '기운의 전환'으로 풀어주세요)" },
   "wealth": { "content": "이번 달(${tm}월) 재산의 흐름 (일간과 ${tm}월 기운의 상호작용 기반 분석)" },
   "love": { "content": "이번 달(${tm}월) 인연의 흐름 (남녀 공통 배우자 및 연인운 분석)" },
   "health": { "content": "이번 달(${tm}월) 기력의 조절 (오행의 조화를 살핀 건강 조언)" },
@@ -683,11 +680,11 @@ function FortuneContent() {
 {
   "this_year": {
     "content": "올해 전체 종합운 (핵심만 공백 포함 150~200자로 매우 간결하게 서술). 인사말 없이 바로 풀이 시작. 반드시 포함: 핵심 키워드 3개, 올해의 흐름, 좋은 점, 주의할 점, 길월과 흉월 명시",
-    "score": 85,
-    "last_year_score": 75,
-    "next_year_score": 82,
-    "monthlyEnergies": [80,75,82,88,90,85,78,72,80,85,88,82],
-    "scores": {"wealth":80,"love":75,"career":85,"health":70}
+    "score": 85, (0-100 사이 숫자로 응답)
+    "last_year_score": 75, (0-100 사이 숫자로 응답)
+    "next_year_score": 82, (0-100 사이 숫자로 응답)
+    "monthlyEnergies": [80,75,82,88,90,85,78,72,80,85,88,82], (각 0-100 사이 숫자로 응답)
+    "scores": {"wealth":80,"love":75,"career":85,"health":70} (각 0-100 사이 숫자로 응답)
   },
   "m1": { "content": "1월의 기운 (일간과의 조화 및 핵심 포인트)" },
   "m2": { "content": "2월의 기운" },
@@ -727,9 +724,15 @@ function FortuneContent() {
         
         const getIljin = (d: Date) => {
           try {
-            const res = calculateSaju({ year: d.getFullYear(), month: d.getMonth() + 1, day: d.getDate(), hour: 12, minute: 0, calendar: "solar" });
+            const res = getUnifiedSaju({
+              date: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+              time: "12:00",
+              isLunar: false,
+              gender: "M",
+              birthCity: "서울"
+            });
             return toKr(res.pillarDetails.day.stem + res.pillarDetails.day.branch);
-          } catch {
+          } catch (err) {
             return "";
           }
         };
@@ -742,11 +745,11 @@ function FortuneContent() {
 
 반드시 아래 JSON 객체로 응답하세요:
 {
-  "yesterday": { "score": 85 },
+  "yesterday": { "score": 85 }, (0-100 사이 숫자로 응답)
   "today": { 
     "content": "오늘 종합운 핵심 풀이 (반드시 공백 포함 150~200자 이내로 매우 간결하게 서술. 200자 초과 절대 금지. 만세력 일진 설명 포함)", 
-    "score": 88, 
-    "scores": {"wealth":80,"love":75,"career":85,"health":70},
+    "score": 88, (0-100 사이 숫자로 응답)
+    "scores": {"wealth":80,"love":75,"career":85,"health":70}, (각 0-100 사이 숫자로 응답)
     "gaewun": {"color":"색상","item":"행운의 물건(행동 불가)","numbers":"1~99숫자5개 쉼표구분","direction":"방향"}
   },
   "tomorrow": { "score": 90 },
@@ -780,7 +783,7 @@ function FortuneContent() {
 흉운이나 약점을 숨기지 말고 솔직하게 조언하되, 극복할 수 있는 실질적인 행동 지침을 함께 제시하세요.
 반드시 JSON 형식으로 응답하며,
 - daily: 'yesterday', 'today', 'tomorrow', 'wealth', 'love', 'health', 'business'
-- monthly: 'this_month', 'week1'~'week4', 'wealth', 'love', 'health', 'career', 'lucky_days', 'unlucky_days', 'gaewun'
+- monthly: 'this_month', 'week1'~'week5', 'wealth', 'love', 'health', 'career', 'lucky_days', 'unlucky_days', 'gaewun'
 - yearly: 'this_year', 'm1'~'m12', 'wealth', 'love', 'health', 'career', 'lucky_months', 'unlucky_months', 'gaewun'
 - 기타: ${currentType.keys[0]}
 - 용어 설명 방식: 십신, 합/충 등 전문 용어만 최초 1회 문맥 속에 자연스럽게 풀어서(기계적인 괄호 사용 자제) 사람이 말하듯 서술. '배우자', '건강', '재물' 등 일반 단어는 절대 부연 설명 금지.
@@ -1150,63 +1153,53 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
   return (
     <main ref={topRef} style={{ minHeight: "100vh", position: "relative", background: "var(--bg-primary)", padding: "0 0 80px" }}>
       <div className="max-w-xl mx-auto px-4 relative" style={{ zIndex: 10 }}>
-        {/* Compact Header */}
-        <header style={{ display: "flex", alignItems: "center", gap: "12px", padding: "16px 0 12px" }}>
-          <Link href="/">
-            <motion.div whileTap={{ scale: 0.95 }} style={{ width: "36px", height: "36px", borderRadius: "12px", background: "white", border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent-indigo)" }}>
-              <ArrowLeft size={18} />
-            </motion.div>
-          </Link>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-indigo)", letterSpacing: "-0.02em" }}>{currentType.title}</div>
-            <div style={{ fontSize: "0.72rem", color: "var(--text-secondary)", fontWeight: "400", marginTop: "1px" }}>{currentType.desc}</div>
-          </div>
-          <span style={{ fontSize: "0.6rem", fontWeight: "700", color: "var(--accent-gold)", letterSpacing: "0.06em", background: "rgba(201,160,80,0.08)", padding: "3px 8px", borderRadius: "6px" }}>PREMIUM</span>
-        </header>
+        
+        <Link href="/" style={{ textDecoration: "none", display: "inline-block", marginBottom: "8px", marginTop: "12px" }}>
+          <button style={{ background: "rgba(42, 54, 95, 0.05)", border: "none", color: "var(--accent-indigo)", cursor: "pointer", width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <ArrowLeft size={18} />
+          </button>
+        </Link>
+
+        {/* Centered Header (Matching Saju style) */}
+        <div style={{ textAlign: "center", marginBottom: "32px", paddingTop: "0px" }}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: "inline-block", background: "var(--accent-cherry)", color: "var(--accent-indigo)", padding: "1px 6px", borderRadius: "8px", fontSize: "0.45rem", fontWeight: "700", marginBottom: "4px" }}>CHEONG-A MAE-DANG</motion.div>
+            <h1 onClick={handleDevReset} style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)" }}>{currentType.title}</h1>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>{currentType.desc}</p>
+        </div>
 
         {!bazi && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ background: "white", padding: "20px", borderRadius: "20px", border: "1px solid rgba(0,0,0,0.06)", boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {/* 생년월일 */}
-              <div onClick={() => setIsDatePickerOpen(true)} style={{ background: "var(--bg-primary)", padding: "12px 14px", borderRadius: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px" }}>
-                <CalendarDays className="text-[#C9A050]" size={16} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", marginBottom: "1px" }}>생년월일</div>
-                  <div style={{ fontSize: "0.9rem", fontWeight: "700" }}>{date.replace(/-/g, ". ")} {isLunar ? "(음력)" : "(양력)"}</div>
+          <section style={{ padding: "0 8px" }}>
+            <h2 style={{ fontSize: "0.9rem", marginBottom: "16px", borderBottom: "1px solid var(--glass-border)", paddingBottom: "10px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <CalendarDays className="w-4 h-4" /> 나의 사주 정보
+            </h2>
+            <div style={{ display: "grid", gap: "12px" }}>
+              <div onClick={() => setIsDatePickerOpen(true)} style={{ cursor: "pointer", padding: "12px", borderRadius: "10px", background: "rgba(0,0,0,0.03)", fontSize: "0.9rem" }}>{date}</div>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <input type="time" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(0,0,0,0.03)", border: "none", fontSize: "0.9rem" }} />
+                <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
+                  <button onClick={() => setIsLunar(false)} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: !isLunar ? "white" : "transparent", fontSize: "0.8rem" }}>양력</button>
+                  <button onClick={() => setIsLunar(true)} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: isLunar ? "white" : "transparent", fontSize: "0.8rem" }}>음력</button>
                 </div>
               </div>
-
-              {/* 시간 + 성별 한 줄 */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px" }}>
-                <div style={{ background: "var(--bg-primary)", padding: "12px 14px", borderRadius: "14px", display: "flex", alignItems: "center", gap: "10px" }}>
-                  <Clock className="text-[#C9A050]" size={16} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", marginBottom: "1px" }}>시간</div>
-                    <input type="time" value={time} onChange={(e) => setTime(e.target.value)} style={{ border: "none", fontSize: "0.9rem", fontWeight: "700", outline: "none", background: "transparent", width: "100%", padding: 0 }} />
-                  </div>
-                </div>
-                <div style={{ background: "var(--bg-primary)", padding: "4px", borderRadius: "14px", display: "flex", alignItems: "center" }}>
-                  <button onClick={() => setGender("M")} style={{ flex: 1, padding: "10px 0", borderRadius: "11px", border: "none", background: gender === "M" ? "var(--accent-indigo)" : "transparent", color: gender === "M" ? "white" : "var(--text-secondary)", fontWeight: "700", fontSize: "0.82rem", transition: "all 0.2s", cursor: "pointer" }}>남</button>
-                  <button onClick={() => setGender("F")} style={{ flex: 1, padding: "10px 0", borderRadius: "11px", border: "none", background: gender === "F" ? "var(--accent-indigo)" : "transparent", color: gender === "F" ? "white" : "var(--text-secondary)", fontWeight: "700", fontSize: "0.82rem", transition: "all 0.2s", cursor: "pointer" }}>여</button>
-                </div>
-              </div>
-
-              {/* 도시 선택 */}
-              <div style={{ background: "var(--bg-primary)", padding: "12px 14px", borderRadius: "14px", display: "flex", alignItems: "center", gap: "10px" }}>
-                <Target className="text-[#C9A050]" size={16} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "0.65rem", color: "var(--text-secondary)", marginBottom: "1px" }}>태어난 도시 <span style={{ opacity: 0.6 }}>· 경도 보정용</span></div>
-                  <select value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ border: "none", fontSize: "0.9rem", fontWeight: "700", outline: "none", background: "transparent", cursor: "pointer", width: "100%", padding: 0 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <select value={birthCity} onChange={(e) => setBirthCity(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "10px", background: "rgba(0,0,0,0.03)", border: "none", fontSize: "0.9rem" }}>
                     {Object.keys(cityDataMap).map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
+                  <div style={{ display: "flex", background: "rgba(0,0,0,0.05)", borderRadius: "10px", padding: "3px" }}>
+                    <button onClick={() => setGender("M")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "M" ? "white" : "transparent", fontSize: "0.8rem" }}>남</button>
+                    <button onClick={() => setGender("F")} style={{ padding: "5px 10px", borderRadius: "7px", border: "none", background: gender === "F" ? "white" : "transparent", fontSize: "0.8rem" }}>여</button>
+                  </div>
+                </div>
+                <div style={{ fontSize: "0.7rem", color: "var(--text-secondary)", paddingLeft: "4px" }}>
+                  태어난 지역에 따라 정밀한 시간 보정이 이루어집니다.
                 </div>
               </div>
             </div>
-
-            <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.97 }} onClick={calculateFortune} disabled={isLoading} style={{ width: "100%", marginTop: "16px", padding: "16px", borderRadius: "14px", background: "linear-gradient(135deg, #2A365F 0%, #1A1C2C 100%)", color: "white", fontSize: "0.95rem", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", cursor: isLoading ? "not-allowed" : "pointer", boxShadow: "0 8px 24px rgba(42, 54, 95, 0.18)", border: "none", letterSpacing: "-0.01em" }}>
-              {isLoading ? "기운을 읽는 중..." : <><Sparkles size={16} /> 나의 운세 확인하기</>}
+            <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.97 }} onClick={calculateFortune} disabled={isLoading} style={{ width: "100%", marginTop: "24px", padding: "16px", borderRadius: "16px", background: "var(--accent-indigo)", color: "white", border: "none", fontSize: "1rem", fontWeight: "600", cursor: isLoading ? "not-allowed" : "pointer" }}>
+              {isLoading ? "기운을 읽는 중..." : "나의 운세 확인하기"}
             </motion.button>
-          </motion.div>
+          </section>
         )}
 
 
@@ -1248,6 +1241,10 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                   {wisdomQuotes[wisdomIdx]}
                 </motion.p>
               </AnimatePresence>
+
+              <div style={{ marginTop: "24px", fontSize: "0.75rem", color: "var(--text-secondary)", opacity: 0.7, fontWeight: "500" }}>
+                분석 완료까지 1~2분 정도 소요될 수 있습니다.
+              </div>
             </motion.div>
           )}
 
@@ -1369,12 +1366,12 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                       {/* 주차별/월별 운세 */}
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}><div style={{ width: "4px", height: "18px", background: "#81b29a", borderRadius: "2px" }} /><h3 style={{ fontSize: "1.15rem", fontWeight: "700" }}>{typeParam === "monthly" ? "📆 주차별 운세" : "📆 월별 운세"}</h3></div>
-                        {(typeParam === "monthly" ? ["week1","week2","week3","week4"] : ["m1","m2","m3","m4","m5","m6","m7","m8","m9","m10","m11","m12"]).map((key, idx) => {
+                        {(typeParam === "monthly" ? ["week1","week2","week3","week4","week5"] : ["m1","m2","m3","m4","m5","m6","m7","m8","m9","m10","m11","m12"]).map((key, idx) => {
                           const now = new Date();
                           const curDate = now.getDate();
-                          const curWeekIdx = Math.min(3, Math.floor((curDate - 1) / 7));
+                          const curWeekIdx = Math.min(4, Math.floor((curDate - 1) / 7));
                           const isCurWeek = typeParam === "monthly" && idx === curWeekIdx;
-                          const weekEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣"];
+                          const weekEmojis = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"];
                           
                           return reading[key]?.content && (
                             <div key={key} style={{ 
@@ -1446,6 +1443,9 @@ ${cuspScript ? `특이사항: ${cuspScript}` : ""}
                   )}
                 </div>
               )}
+
+              <PremiumPromo />
+
               <div style={{ marginTop: "60px", display: "flex", justifyContent: "center", gap: "16px" }}>
                 <button onClick={() => topRef.current?.scrollIntoView({ behavior: 'smooth' })} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 24px", borderRadius: "30px", background: "rgba(42, 54, 95, 0.05)", border: "1px solid var(--glass-border)", fontWeight: "600" }}><ArrowUp size={18} /> 맨 위로</button>
                 <Link href="/"><button style={{ display: "flex", alignItems: "center", gap: "8px", padding: "14px 24px", borderRadius: "30px", background: "white", border: "1px solid var(--glass-border)", fontWeight: "600" }}><ArrowLeft size={18} /> 홈으로</button></Link>
