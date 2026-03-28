@@ -249,6 +249,7 @@ function FortuneContent() {
   const [date, setDate] = useState("1991-01-13");
   const [time, setTime] = useState("03:10");
   const [isLunar, setIsLunar] = useState(false);
+  const [isLeap, setIsLeap] = useState(false);
   const [gender, setGender] = useState("M");
   const [birthCity, setBirthCity] = useState("서울");
 
@@ -261,6 +262,7 @@ function FortuneContent() {
         if (parsed.date) setDate(parsed.date);
         if (parsed.time) setTime(parsed.time);
         if (parsed.isLunar !== undefined) setIsLunar(parsed.isLunar);
+        if (parsed.isLeap !== undefined) setIsLeap(parsed.isLeap);
         if (parsed.gender) setGender(parsed.gender);
         if (parsed.birthCity) setBirthCity(parsed.birthCity);
       } catch (e) { console.error("Error loading profile", e); }
@@ -268,9 +270,9 @@ function FortuneContent() {
   }, []);
 
   useEffect(() => {
-    const profile = { date, time, isLunar, gender, birthCity };
+    const profile = { date, time, isLunar, isLeap, gender, birthCity };
     localStorage.setItem("user_birth_profile", JSON.stringify(profile));
-  }, [date, time, isLunar, gender, birthCity]);
+  }, [date, time, isLunar, isLeap, gender, birthCity]);
 
   // 도시별 경도/LMT 보정 데이터베이스
   const cityDataMap: Record<string, { region: string; energy: string; longitude: number; lmtOffset: number }> = {
@@ -443,7 +445,7 @@ function FortuneContent() {
     } else if (typeParam === "yearly") {
       timeModifier = `${now.getFullYear()}`;
     }
-    return `fortune_v33_${date}_${time}_${isLunar}_${gender}_${typeParam}_${timeModifier}`;
+    return `fortune_v33_${date}_${time}_${isLunar}_${isLeap}_${gender}_${typeParam}_${timeModifier}`;
   };
 
   // 자동 캐시 로드 제거: 사용자가 직접 버튼을 눌러야만 넘어감 (다른 날짜 선택 가능하도록)
@@ -514,6 +516,7 @@ function FortuneContent() {
         date,
         time,
         isLunar,
+        isLeap,
         gender,
         birthCity
       });

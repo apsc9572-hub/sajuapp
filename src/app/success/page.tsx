@@ -170,7 +170,7 @@ ${analysisResult.solution?.replace(/<[^>]*>?/gm, '')}
 3. 성패의 시기 (2026-2028)
 ${analysisResult.timing?.replace(/<[^>]*>?/gm, '')}
 
-4. 개운(開運)의 비책
+4. 개운의 비책
 ${analysisResult.luck_advice?.replace(/<[^>]*>?/gm, '')}
 
 © 2026 청아매당. 본 결과지의 무단 전재 및 배포를 금합니다.

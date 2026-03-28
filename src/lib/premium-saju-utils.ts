@@ -277,19 +277,44 @@ export const prepareAnalysisData = async (data: any) => {
 
     const yongsin = calculateYongsin();
     const pillarDetails = { year: sajuRes.year, month: sajuRes.month, day: sajuRes.day, hour: sajuRes.hour };
+    
+    // Current Transit Data (2026-03-27 standard)
+    const now = new Date();
+    const currentTransit = calculateHighPrecisionSaju({
+        year: 2026, month: 3, day: 27, hour: now.getHours(), minute: now.getMinutes(),
+        latitude: 37.5, longitude: 127.0, isLunar: false, gender: gender === "M" ? "M" : "F"
+    });
+
     return {
         sajuJson: {
             user_info: { gender: gender === "M" ? "남성" : "여성", day_master: sajuRes.ilgan },
             elements_ratio: correctedPercentages,
             strength_analysis: { base: baseStrength, corrected: correctedStrength },
-            pillar_details: pillarDetails
+            pillar_details: pillarDetails,
+            yongsin: calculateYongsin(),
+            daeun: {
+                direction: sajuRes.daeun.direction === "Forward" ? "순행" : "역행",
+                start_age: sajuRes.daeun.startAge,
+                current_cycle: daeunCycles[currentDaeunIdx] || null,
+                all_cycles: daeunCycles
+            },
+            current_transit: {
+                year_pillar: currentTransit.year.stemKo + currentTransit.year.branchKo,
+                month_pillar: currentTransit.month.stemKo + currentTransit.month.branchKo,
+                day_pillar: currentTransit.day.stemKo + currentTransit.day.branchKo
+            }
         },
         systemPrompt: "### 전문가 리포트",
         userAnswers: [`${selectedCategory}: ${userQuestion}`],
         sajuRes, basePercentages, correctedPercentages, baseStrength, correctedStrength, elementalLabels, y,
         yongsin, baseSipsungCounts: calculateSipsungDist(false), correctedSipsungCounts: calculateSipsungDist(true),
         stages12: { year: sajuRes.year.stage12, month: sajuRes.month.stage12, day: sajuRes.day.stage12, hour: sajuRes.hour.stage12 },
-        sinsals: { year: sajuRes.year.sinsals, month: sajuRes.month.sinsals, day: sajuRes.day.sinsals, hour: sajuRes.hour.sinsals },
+        sinsals: { 
+            year: { merged: sajuRes.year.sinsals, stem: sajuRes.year.stemSinsals, branch: sajuRes.year.branchSinsals, twelveSal: sajuRes.year.branchSinsals.find(s => ["겁살", "재살", "천살", "지살", "년살", "월살", "망신살", "장성살", "반안살", "역마살", "육해살", "화개살"].includes(s)) || "" }, 
+            month: { merged: sajuRes.month.sinsals, stem: sajuRes.month.stemSinsals, branch: sajuRes.month.branchSinsals, twelveSal: sajuRes.month.branchSinsals.find(s => ["겁살", "재살", "천살", "지살", "년살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살"].includes(s)) || "" }, 
+            day: { merged: sajuRes.day.sinsals, stem: sajuRes.day.stemSinsals, branch: sajuRes.day.branchSinsals, twelveSal: sajuRes.day.branchSinsals.find(s => ["겁살", "재살", "천살", "지살", "년살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살"].includes(s)) || "" }, 
+            hour: { merged: sajuRes.hour.sinsals, stem: sajuRes.hour.stemSinsals, branch: sajuRes.hour.branchSinsals, twelveSal: sajuRes.hour.branchSinsals.find(s => ["겁살", "재살", "천살", "지살", "년살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살"].includes(s)) || "" } 
+        },
         pillarDetails,
         userInput: { birthDate: date, birthTime: time, gender: gender === "M" ? "남성" : "여성" },
         daeunCycles,
@@ -297,6 +322,50 @@ export const prepareAnalysisData = async (data: any) => {
         daeunNum: sajuRes.daeun.startAge + 1,
         daeunDirection: sajuRes.daeun.direction === "Forward" ? "forward" : "reverse"
     };
+};
+
+export const SAJU_DICTIONARY: Record<string, string> = {
+    // 1. 기초 오행 (Elements)
+    "목(木)": "성장과 추진력, 새로운 시작과 어진 마음을 상징하는 나무의 기운입니다.",
+    "화(火)": "열정과 확산, 예의와 화려한 표현력을 의미하는 불의 기운입니다.",
+    "토(土)": "안정과 중재, 신용과 포용력을 상징하는 대지의 기운입니다.",
+    "금(金)": "결단과 의리, 냉철한 판단력과 변치 않는 단단함을 뜻하는 금속의 기운입니다.",
+    "수(水)": "지혜와 유연함, 직관력과 끊임없이 흐르는 생명력을 의미하는 물의 기운입니다.",
+
+    // 2. 십성 (Ten Gods)
+    "비견": "나 자신과 같은 기운으로, 주체성과 독립심, 강한 자아를 의미합니다.",
+    "겁재": "나와 오행은 같으나 음양이 다른 기운으로, 경쟁심, 투지, 재물을 나누는 힘을 뜻합니다.",
+    "식신": "창의성과 표현력의 기운이며, 풍요로운 의식주와 건강, 수명을 상징합니다.",
+    "상관": "재치와 순발력, 뛰어난 화술을 의미하며 기존의 틀을 깨는 혁신적인 기운입니다.",
+    "편재": "내가 통제하는 유동적인 큰 재물을 의미하며, 모험심과 기획력, 사업적 수완을 뜻합니다.",
+    "정재": "정직하게 노력하여 얻는 안정적인 재물이며, 성실함과 꼼꼼한 관리력을 상징합니다.",
+    "편관": "자신을 엄격히 통제하는 기운으로, 명예와 권위, 강한 책임감과 인내심을 의미합니다.",
+    "정관": "안정적인 직위와 명예를 의미하며, 규칙 준수와 합리적인 행정력을 상징합니다.",
+    "편인": "독창적인 지혜와 통찰력, 예술적인 재능을 뜻하며 신비로운 지적 호기심을 의미합니다.",
+    "정인": "학문과 지적 수용력, 인덕과 후원자의 복을 의미하는 자비로운 성분의 기운입니다.",
+
+    // 3. 운성 및 신강약 (Energy & Strength)
+    "신강": "본인의 자아 기운이 넘치고 강하여, 삶을 주도적으로 이끌어가는 힘이 큼을 의미합니다.",
+    "신약": "주변의 기운을 수용하고 조율하며, 협력과 상생을 통해 내실을 다지는 기운입니다.",
+    "중화": "기운이 한쪽으로 치우치지 않고 균형이 잘 잡힌 상태로, 원만한 삶의 흐름을 상징합니다.",
+    "용신": "사주 전체의 균형과 조화를 맞춰주는 가장 핵심적인 행운의 기운이자 삶의 무기입니다.",
+    "12운성": "인생의 기운이 생겨나서 왕성해졌다가 소멸하기까지의 12단계 순환 과정을 뜻합니다.",
+    "지장간": "지지의 기운 속에 숨겨진 천간의 기운으로, 내면의 잠재력과 은밀한 변수를 의미합니다.",
+
+    // 4. 길성과 신살 (Stars & Sinsals)
+    "천을귀인": "위기를 기회로 바꿔주는 최고의 길성으로, 인복과 귀인의 도움을 상징합니다.",
+    "문곡귀인": "학문과 예술적 재능이 뛰어나며, 지혜로운 판단력으로 명성을 얻는 기운입니다.",
+    "정록": "성실한 노력으로 얻는 정당한 녹봉과 관직의 복을 의미합니다.",
+    "양인살": "강력한 추진력과 카리스마를 상징하며, 결단력이 필요한 분야에서 대성하는 기운입니다.",
+    "백호대살": "강한 기운과 폭발적인 에너지를 의미하며, 전문분야에서 압도적인 성과를 내는 힘입니다.",
+    "괴강살": "우두머리의 기운으로 총명하고 강직하며, 대중을 이끄는 카리스마를 뜻합니다.",
+    "도화살": "타인에게 매력을 발산하고 주목받는 기운으로, 현대 사주에서는 높은 인기를 의미합니다.",
+    "역마살": "활동 범위가 넓고 이동이 잦음을 의미하며, 국제적인 활동이나 변화를 통한 발전을 뜻합니다.",
+    "화개살": "예술성과 종교성, 깊은 사색을 의미하며 반복을 통해 전문성을 갖추는 기운입니다.",
+    "암록": "보이지 않는 곳에서 돕는 귀인의 손길과 예상치 못한 재물 복을 상징합니다.",
+    "홍염살": "다정다감하고 사람을 끄는 매력이 있어 대인관계에서 이점을 얻는 기운입니다.",
+    "천문성": "영적 직관력과 지혜가 뛰어나 학문이나 종교, 상담 분야에서 두각을 나타냅니다.",
+    "황은대사": "황제의 은혜를 입듯 예기치 못한 행운과 국가적 보상, 큰 도움을 받는 길성입니다."
 };
 
 export const performPremiumAnalysis = async (data: any) => {

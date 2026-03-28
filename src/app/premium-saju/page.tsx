@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,8 +13,8 @@ import PaymentModal from "@/components/PaymentModal";
 import KoreanLunarCalendar from "korean-lunar-calendar";
 import { v4 as uuidv4 } from "uuid";
 import Script from "next/script";
-import { Suspense } from "react";
-import { prepareAnalysisData, getElementFromChar } from "@/lib/premium-saju-utils";
+import { prepareAnalysisData, getElementFromChar, SAJU_DICTIONARY } from "@/lib/premium-saju-utils";
+import SinsalGrid from "@/components/SinsalGrid";
 
 const NEW_CATEGORIES = ["재물운", "사업운", "애정운", "직장운", "학업운", "인생총운"];
 
@@ -82,6 +82,57 @@ const getElementHanja = (element: string) => {
   return "";
 };
 
+// 용어 가이드 툴팁 컴포넌트
+const TermTooltip = ({ term, children }: { term: string, children: React.ReactNode }) => {
+  const [show, setShow] = React.useState(false);
+  const description = SAJU_DICTIONARY[term] || SAJU_DICTIONARY[term.replace(/Yang|Eum/g, '')];
+
+  if (!description) return <>{children}</>;
+
+  return (
+    <div 
+      style={{ position: 'relative', display: 'inline-block', cursor: 'help' }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+      onClick={() => setShow(!show)}
+    >
+      {children}
+      {show && (
+        <div style={{
+          position: 'absolute',
+          bottom: '120%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '200px',
+          background: 'rgba(42, 54, 95, 0.95)',
+          color: 'white',
+          padding: '8px 12px',
+          borderRadius: '8px',
+          fontSize: '0.75rem',
+          fontWeight: '400',
+          lineHeight: '1.4',
+          zIndex: 1000,
+          boxShadow: '0 4px 15px rgba(0,0,0,0.15)',
+          pointerEvents: 'none',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '2px' }}>{term}</div>
+          {description}
+          <div style={{
+            position: 'absolute',
+            top: '100%',
+            left: '50%',
+            marginLeft: '-5px',
+            borderWidth: '5px',
+            borderStyle: 'solid',
+            borderColor: 'rgba(42, 54, 95, 0.95) transparent transparent transparent'
+          }} />
+        </div>
+      )}
+    </div>
+  );
+};
+
 // 프리미엄 8단 명식표 (포스텔러 스타일 고도화)
 export const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, tenGods: any, stages12: any, sals: any }) => {
   if (!data) return null;
@@ -94,18 +145,18 @@ export const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, 
       topTen: data.hour.stemTenGod || data.hour.tenGodStem || tenGods?.hour?.stem || "-",
       bottomTen: data.hour.branchTenGod || data.hour.tenGodBranch || tenGods?.hour?.branch || "-",
       hidden: data.hour.hidden || data.hour.hiddenText || "-",
-      sinsal: data.hour.sinsals?.find((s: string) => ["천살", "반안살", "육해살", "지살", "연살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살", "겁살", "재살"].some(name => s.includes(name))) || sals?.hour?.twelveSal || "-",
-      gwiin: data.hour.sinsals?.filter((s: string) => s.includes("귀인")).join(" ") || sals?.hour?.specialSals?.filter((s: string) => s.includes("귀인")).join(" ") || "-"
+      stemSals: sals?.hour?.stem || [],
+      branchSals: sals?.hour?.branch || []
     },
     { 
       label: "생일", 
       data: data.day, 
       stage: data.day.stage12 || stages12?.day || "-", 
-      topTen: "일간", 
+      topTen: "비견", 
       bottomTen: data.day.branchTenGod || data.day.tenGodBranch || tenGods?.day?.branch || "-",
       hidden: data.day.hidden || data.day.hiddenText || "-",
-      sinsal: data.day.sinsals?.find((s: string) => ["천살", "반안살", "육해살", "지살", "연살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살", "겁살", "재살"].some(name => s.includes(name))) || sals?.day?.twelveSal || "-",
-      gwiin: data.day.sinsals?.filter((s: string) => s.includes("귀인")).join(" ") || sals?.day?.specialSals?.filter((s: string) => s.includes("귀인")).join(" ") || "-"
+      stemSals: sals?.day?.stem || [],
+      branchSals: sals?.day?.branch || []
     },
     { 
       label: "생월", 
@@ -114,8 +165,8 @@ export const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, 
       topTen: data.month.stemTenGod || data.month.tenGodStem || tenGods?.month?.stem || "-",
       bottomTen: data.month.branchTenGod || data.month.tenGodBranch || tenGods?.month?.branch || "-",
       hidden: data.month.hidden || data.month.hiddenText || "-",
-      sinsal: data.month.sinsals?.find((s: string) => ["천살", "반안살", "육해살", "지살", "연살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살", "겁살", "재살"].some(name => s.includes(name))) || sals?.month?.twelveSal || "-",
-      gwiin: data.month.sinsals?.filter((s: string) => s.includes("귀인")).join(" ") || sals?.month?.specialSals?.filter((s: string) => s.includes("귀인")).join(" ") || "-"
+      stemSals: sals?.month?.stem || [],
+      branchSals: sals?.month?.branch || []
     },
     { 
       label: "생년", 
@@ -124,8 +175,8 @@ export const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, 
       topTen: data.year.stemTenGod || data.year.tenGodStem || tenGods?.year?.stem || "-",
       bottomTen: data.year.branchTenGod || data.year.tenGodBranch || tenGods?.year?.branch || "-",
       hidden: data.year.hidden || data.year.hiddenText || "-",
-      sinsal: data.year.sinsals?.find((s: string) => ["천살", "반안살", "육해살", "지살", "연살", "월살", "망신살", "장성살", "역마살", "육해살", "화개살", "겁살", "재살"].some(name => s.includes(name))) || sals?.year?.twelveSal || "-",
-      gwiin: data.year.sinsals?.filter((s: string) => s.includes("귀인")).join(" ") || sals?.year?.specialSals?.filter((s: string) => s.includes("귀인")).join(" ") || "-"
+      stemSals: sals?.year?.stem || [],
+      branchSals: sals?.year?.branch || []
     }
   ];
 
@@ -146,8 +197,8 @@ export const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, 
         <div style={{ background: "#fcfcfc", padding: "10px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.75rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>천간</div>
         {pillars.map((p, i) => (
           <div key={i} style={{ padding: "12px 0", borderBottom: "1px solid #eee", textAlign: "center", position: "relative" }}>
-            <div style={{ fontSize: "2.2rem", fontWeight: "900", color: getElementColor(p.data.element.stem), lineHeight: "1" }}>
-              {stemsHanja[p.data.stemKo]}
+            <div style={{ fontSize: '1.4rem', fontWeight: "900", color: getElementColor(p.data.element.stem), lineHeight: "1.2" }}>
+              {p.data.stemKo}({stemsHanja[p.data.stemKo]})
             </div>
             <div style={{ position: "absolute", bottom: "4px", right: "4px", fontSize: "0.65rem", fontWeight: "700", opacity: 0.7, color: getElementColor(p.data.element.stem) }}>
               {p.data.element.stem.includes("Yang") ? "+" : "-"}{getElementHanja(p.data.element.stem)}
@@ -156,10 +207,12 @@ export const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, 
         ))}
 
         {/* 2. 십성 (천간) */}
-        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.75rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>십성</div>
+        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.75rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <TermTooltip term="십성">십성</TermTooltip>
+        </div>
         {pillars.map((p, i) => (
-          <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "1rem", fontWeight: "800", color: p.topTen === "일간" ? "#333" : getElementColor(p.data.element.stem) }}>
-            {p.topTen}
+          <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "1rem", fontWeight: "800", color: getElementColor(p.data.element.stem) }}>
+            <TermTooltip term={p.topTen}>{p.topTen}</TermTooltip>
           </div>
         ))}
 
@@ -167,8 +220,8 @@ export const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, 
         <div style={{ background: "#fcfcfc", padding: "10px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.75rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>지지</div>
         {pillars.map((p, i) => (
           <div key={i} style={{ padding: "12px 0", borderBottom: "1px solid #eee", textAlign: "center", position: "relative" }}>
-            <div style={{ fontSize: "2.2rem", fontWeight: "900", color: getElementColor(p.data.element.branch), lineHeight: "1" }}>
-              {branchesHanja[p.data.branchKo]}
+            <div style={{ fontSize: '1.4rem', fontWeight: "900", color: getElementColor(p.data.element.branch), lineHeight: "1.2" }}>
+              {p.data.branchKo}({branchesHanja[p.data.branchKo]})
             </div>
             <div style={{ position: "absolute", bottom: "4px", right: "4px", fontSize: "0.65rem", fontWeight: "700", opacity: 0.7, color: getElementColor(p.data.element.branch) }}>
               {p.data.element.branch.includes("Yang") ? "+" : "-"}{getElementHanja(p.data.element.branch)}
@@ -177,15 +230,19 @@ export const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, 
         ))}
 
         {/* 4. 십성 (지지) */}
-        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.75rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>십성</div>
+        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.75rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <TermTooltip term="십성">십성</TermTooltip>
+        </div>
         {pillars.map((p, i) => (
           <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "1rem", fontWeight: "800", color: getElementColor(p.data.element.branch) }}>
-            {p.bottomTen}
+            <TermTooltip term={p.bottomTen}>{p.bottomTen}</TermTooltip>
           </div>
         ))}
 
         {/* 5. 지장간 */}
-        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.7rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>지장간</div>
+        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.7rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <TermTooltip term="지장간">지장간</TermTooltip>
+        </div>
         {pillars.map((p, i) => (
           <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.85rem", color: "#666", fontWeight: "600" }}>
             {p.hidden}
@@ -193,18 +250,12 @@ export const SajuPillarTable = ({ data, tenGods, stages12, sals }: { data: any, 
         ))}
 
         {/* 6. 12운성 */}
-        <div style={{ background: "#fcfcfc", padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.7rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>12운성</div>
+        <div style={{ background: "#fcfcfc", padding: "8px 0", textAlign: "center", fontSize: "0.7rem", fontWeight: "800", color: "#999", borderBottom: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <TermTooltip term="12운성">12운성</TermTooltip>
+        </div>
         {pillars.map((p, i) => (
-          <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #eee", textAlign: "center", fontSize: "0.95rem", color: "#333", fontWeight: "700" }}>
+          <div key={i} style={{ padding: "8px 0", textAlign: "center", fontSize: "0.95rem", color: "#333", fontWeight: "700", borderBottom: "none" }}>
             {p.stage}
-          </div>
-        ))}
-
-        {/* 7. 12신살 */}
-        <div style={{ background: "#fcfcfc", padding: "8px 0", textAlign: "center", fontSize: "0.7rem", fontWeight: "800", color: "#999", display: "flex", alignItems: "center", justifyContent: "center" }}>12신살</div>
-        {pillars.map((p, i) => (
-          <div key={i} style={{ padding: "8px 0", textAlign: "center", fontSize: "0.85rem", color: "#666", fontWeight: "600" }}>
-            {p.sinsal}
           </div>
         ))}
       </div>
@@ -429,7 +480,9 @@ export const SipsungDonutChart = ({ data }: { data: any }) => {
             <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: item.color }} />
-                <span style={{ fontSize: "0.85rem", fontWeight: "700", color: "#666" }}>{item.label}</span>
+                <TermTooltip term={item.label}>
+                  <span style={{ fontSize: "0.85rem", fontWeight: "700", color: "#666" }}>{item.label}</span>
+                </TermTooltip>
               </div>
               <span style={{ fontSize: "0.85rem", fontWeight: "900", color: "#333" }}>{((item.value/total)*100).toFixed(1)}%</span>
             </div>
@@ -466,7 +519,9 @@ export const MajorSinsalSummary = ({ sals }: { sals: any }) => {
           <div style={{ fontSize: "0.75rem", fontWeight: "800", color: "#ec4899", marginBottom: "8px" }}>핵심 신살(神殺)</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {majorSinsals.length > 0 ? majorSinsals.map((s, i) => (
-              <span key={i} style={{ background: "white", color: "#ec4899", padding: "4px 10px", borderRadius: "10px", fontSize: "0.8rem", fontWeight: "700", border: "1px solid rgba(236,72,153,0.2)" }}>{s}</span>
+              <TermTooltip key={i} term={s}>
+                <span style={{ background: "white", color: "#ec4899", padding: "4px 10px", borderRadius: "10px", fontSize: "0.8rem", fontWeight: "700", border: "1px solid rgba(236,72,153,0.2)" }}>{s}</span>
+              </TermTooltip>
             )) : <span style={{ color: "#ccc", fontSize: "0.8rem" }}>특이 신살 없음</span>}
           </div>
         </div>
@@ -474,7 +529,9 @@ export const MajorSinsalSummary = ({ sals }: { sals: any }) => {
           <div style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--accent-gold)", marginBottom: "8px" }}>핵심 길성(吉星)</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {majorGilsungs.length > 0 ? majorGilsungs.map((s, i) => (
-              <span key={i} style={{ background: "white", color: "var(--accent-gold)", padding: "4px 10px", borderRadius: "10px", fontSize: "0.8rem", fontWeight: "700", border: "1px solid rgba(201,160,80,0.2)" }}>{s}</span>
+              <TermTooltip key={i} term={s}>
+                <span style={{ background: "white", color: "var(--accent-gold)", padding: "4px 10px", borderRadius: "10px", fontSize: "0.8rem", fontWeight: "700", border: "1px solid rgba(201,160,80,0.2)" }}>{s}</span>
+              </TermTooltip>
             )) : <span style={{ color: "#ccc", fontSize: "0.8rem" }}>특이 길성 없음</span>}
           </div>
         </div>
@@ -584,8 +641,12 @@ export const DaeunTable = ({ userName, startAge, cycles, direction, currentIndex
               boxShadow: i === currentIndex ? "inset 0 0 15px rgba(201,160,80,0.15)" : "none",
               zIndex: i === currentIndex ? 1 : 0
             }}>
-              <div style={{ fontSize: "1.1rem", fontWeight: "900", color: getElementColor(c.ganji[0]), marginBottom: "2px" }}>{stemsHanja[c.ganji[0]] || c.ganji[0]}</div>
-              <div style={{ fontSize: "1.1rem", fontWeight: "900", color: getElementColor(c.ganji[1]) }}>{branchesHanja[c.ganji[1]] || c.ganji[1]}</div>
+              <div style={{ fontSize: "1rem", fontWeight: "900", color: getElementColor(c.ganji[0]), marginBottom: "2px" }}>
+                {c.ganji[0]}({stemsHanja[c.ganji[0]] || ""})
+              </div>
+              <div style={{ fontSize: "1rem", fontWeight: "900", color: getElementColor(c.ganji[1]) }}>
+                {c.ganji[1]}({branchesHanja[c.ganji[1]] || ""})
+              </div>
               <div style={{ fontSize: "0.65rem", color: i === currentIndex ? "var(--accent-indigo)" : "#999", marginTop: "2px", fontWeight: "800" }}>{c.ganjiKo}</div>
             </div>
           ))}
@@ -618,7 +679,9 @@ export const StrengthIndexGraph = ({ score, deuk }: { score: number, deuk: any }
         <div style={{ background: "rgba(42,54,95,0.06)", padding: "10px", borderRadius: "14px" }}>
           <Activity size={20} color="var(--accent-indigo)" />
         </div>
-        <h3 style={{ fontSize: "1.15rem", fontWeight: "900", color: "#333", margin: 0, fontFamily: "'Nanum Myeongjo', serif" }}>신강/신약 지수 분석</h3>
+        <TermTooltip term="신강">
+          <h3 style={{ fontSize: "1.15rem", fontWeight: "900", color: "#333", margin: 0, fontFamily: "'Nanum Myeongjo', serif" }}>신강/신약 지수 분석</h3>
+        </TermTooltip>
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "32px" }}>
@@ -647,9 +710,13 @@ export const StrengthIndexGraph = ({ score, deuk }: { score: number, deuk: any }
       <div style={{ textAlign: "center", marginBottom: "40px" }}>
         <div style={{ fontSize: "0.85rem", color: "#888", marginBottom: "8px", fontWeight: "700" }}>에너지 밸런스 지수: <span style={{ color: "#333" }}>{normalizedScore.toFixed(1)}</span></div>
         <div style={{ fontSize: "1.2rem", color: "#333", fontWeight: "900", wordBreak: "keep-all" }}>
-          님은 <span style={{ color: "var(--accent-indigo)", borderBottom: "3px solid rgba(42,54,95,0.2)", paddingBottom: "2px" }}>
-            {normalizedScore >= 85 ? "태강한" : normalizedScore >= 65 ? "신강한" : normalizedScore >= 55 ? "약신강한" : normalizedScore >= 45 ? "중화된" : normalizedScore >= 35 ? "약신약한" : normalizedScore >= 15 ? "신약한" : "태약한"}
-          </span> 사주입니다.
+          님은 
+          <TermTooltip term={normalizedScore >= 45 ? "신강" : "신약"}>
+            <span style={{ color: "var(--accent-indigo)", borderBottom: "3px solid rgba(42,54,95,0.2)", paddingBottom: "2px", margin: "0 4px" }}>
+              {normalizedScore >= 85 ? "태강한" : normalizedScore >= 65 ? "신강한" : normalizedScore >= 55 ? "약신강한" : normalizedScore >= 45 ? "중화된" : normalizedScore >= 35 ? "약신약한" : normalizedScore >= 15 ? "신약한" : "태약한"}
+            </span>
+          </TermTooltip>
+          사주입니다.
         </div>
       </div>
 
@@ -719,21 +786,27 @@ export const YongsinDisplay = ({ yongsin }: { yongsin: any }) => {
         <div style={{ background: "rgba(201,160,80,0.08)", padding: "10px", borderRadius: "14px" }}>
           <Target size={20} color="var(--accent-gold)" />
         </div>
-        <h3 style={{ fontSize: "1.15rem", fontWeight: "900", color: "#333", margin: 0, fontFamily: "'Nanum Myeongjo', serif" }}>나의 용신(用神) 처방</h3>
+        <TermTooltip term="용신">
+          <h3 style={{ fontSize: "1.15rem", fontWeight: "900", color: "#333", margin: 0, fontFamily: "'Nanum Myeongjo', serif" }}>나의 용신(用神) 처방</h3>
+        </TermTooltip>
       </div>
       
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
         <div style={{ background: "rgba(224, 122, 95, 0.04)", padding: "20px", borderRadius: "24px", border: "1.5px solid rgba(224, 122, 95, 0.1)", display: "flex", flexDirection: "column", gap: "10px" }}>
           <div style={{ fontSize: "0.75rem", fontWeight: "900", color: "#e07a5f", letterSpacing: "0.05em" }}>조후용신 [기후 조화]</div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "1.30rem", fontWeight: "900", color: getElementColor(yongsin.johu) }}>{yongsin.johu}</span>
+            <span style={{ fontSize: "1.30rem", fontWeight: "900", color: getElementColor(yongsin.johu) }}>
+              {yongsin.johu}{yongsin.johu === '목' ? '(木)' : yongsin.johu === '화' ? '(火)' : yongsin.johu === '토' ? '(土)' : yongsin.johu === '금' ? '(金)' : '(水)'}
+            </span>
             <span style={{ fontSize: "0.75rem", color: "#666", fontWeight: "700" }}>({yongsin.johuNote})</span>
           </div>
         </div>
         <div style={{ background: "rgba(61, 90, 128, 0.04)", padding: "20px", borderRadius: "24px", border: "1.5px solid rgba(61, 90, 128, 0.1)", display: "flex", flexDirection: "column", gap: "10px" }}>
           <div style={{ fontSize: "0.75rem", fontWeight: "900", color: "#3d5a80", letterSpacing: "0.05em" }}>억부용신 [에너지 균형]</div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "1.30rem", fontWeight: "900", color: getElementColor(yongsin.eokbu) }}>{yongsin.eokbu}</span>
+            <span style={{ fontSize: "1.30rem", fontWeight: "900", color: getElementColor(yongsin.eokbu) }}>
+              {yongsin.eokbu}{yongsin.eokbu === '목' ? '(木)' : yongsin.eokbu === '화' ? '(火)' : yongsin.eokbu === '토' ? '(土)' : yongsin.eokbu === '금' ? '(金)' : '(水)'}
+            </span>
             <span style={{ fontSize: "0.75rem", color: "#666", fontWeight: "700" }}>({yongsin.eokbuNote})</span>
           </div>
         </div>
@@ -755,19 +828,20 @@ const cleanAstrologyTerms = (text: any): any => {
     return text;
   }
   
-  // High quality cleaning: remove ALL Hanja within parentheses and redundant Hanja
+  // High quality cleaning
   return text
-    .replace(/\*\*/g, '')
-    .replace(/^#+\s*/gm, '') 
-    .replace(/\([\u4E00-\u9FFF]+\)/g, '') // Remove (Hanja)
-    .replace(/[\u4E00-\u9FFF]/g, '')     // Remove standalone Hanja
-    .replace(/\(\s*\)/g, '')             // 빈 괄호 제거
-    .replace(/\b(Metal|Wood|Water|Fire|Earth)\b/g, (match: string) => {
+    .replace(/\b(Metal|Wood|Water|Fire|Earth|Yin|Yang)\b/gi, (match: string) => {
       const elementMap: Record<string, string> = {
-        'Metal': '금', 'Wood': '목', 'Water': '수', 'Fire': '화', 'Earth': '토'
+        'Metal': '금(金)', 'Wood': '목(木)', 'Water': '수(水)', 'Fire': '화(火)', 'Earth': '토(土)',
+        'Yin': '음(陰)', 'Yang': '양(陽)'
       };
-      return elementMap[match] || match;
+      const normalized = match.charAt(0).toUpperCase() + match.slice(1).toLowerCase();
+      return elementMap[normalized] || match;
     })
+    .replace(/\*\*/g, '') 
+    .replace(/^#+\s*/gm, '') 
+    .replace(/\s올해\s/g, ' 2026년 ')
+    .replace(/\(올해\)/g, '(2026년)')
     .trim();
 };
 
@@ -790,6 +864,7 @@ function PremiumSajuContent() {
   const [date, setDate] = useState("1995-05-15");
   const [time, setTime] = useState("14:30");
   const [isLunar, setIsLunar] = useState(false);
+  const [isLeap, setIsLeap] = useState(false);
   const [gender, setGender] = useState("M");
   const [birthCity, setBirthCity] = useState("서울");
   const [userEmail, setUserEmail] = useState("");
@@ -1189,6 +1264,7 @@ function PremiumSajuContent() {
         date,
         time,
         isLunar,
+        isLeap,
         gender,
         birthCity
       });
@@ -1341,24 +1417,29 @@ function PremiumSajuContent() {
 현재 연도는 **2026년 병오년(丙午年)**이며, 내담자의 현재 나이는 **${koreanAge}세**입니다. 모든 감명은 반드시 2026년을 "올해"로 기준 삼아야 합니다.
 
 ### [Phase 2: 심층 작문 가이드 및 섹션별 지침]
-각 섹션은 전문가의 품격이 느껴지는 유려한 문체로 **매우 길고 상세하게(총합 6,500자 목표)** 작성하십시오.
+각 섹션은 전문가의 품격이 느껴지는 유려한 문체로 **매우 길고 상세하게(총합 6,500자 목표)** 작성하십시오. 특히, **"길흉화복의 가감 없는 전달"**을 원칙으로 삼아 좋은 점뿐만 아니라 **사용자가 직면할 수 있는 위험, 성격적 단점, 주의해야 할 흉운(凶運)**을 매우 구체적으로 경고하십시오.
 
 1. **[인생의 형상: 귀하의 타고난 에너지 지도]** (분량: **1,200자 내외**)
    - "사방의 강력한 편관(土)이라는 사회적 규율과 압박을, 내면의 거대한 지하 수맥(水)의 힘으로 뚫고 나가는 위대한 혁신가"의 서술 기조를 유지하십시오.
-   - 당신의 일간 '계수(癸水)'가 지닌 영성, 직관, 생존 본능을 3개 이상의 긴 단락으로 나누어 서술하십시오.
+   - 당신의 일간 '계수(癸水)'가 지닌 성격적 강점과 더불어, **내재된 예민함, 고립될 위험성, 감정적 기복 등 취약점**도 가감 없이 서술하십시오.
 
 2. **[심층 솔루션: 운명의 처방전]** (분량: **2,800자 내외**)
    - 해당 카테고리 기운의 **생애 6단계 흐름(유년, 초년, 청년, 중년, 장년, 말년)**을 극도로 상세하게 분석하십시오.
-   - **[유년 / 초년 / 청년 / 중년 / 장년 / 말년]** 각 단계별로 시기(나이대)를 명확히 하고, 각 단계마다 최소 450자 이상의 독립된 문단을 구성하십시오.
+   - **[유년 / 초년 / 청년 / 중년 / 장년 / 말년]** 각 단계별 시기(나이대)를 명확히 하고, **각 단계마다 성공의 기회뿐만 아니라 반드시 겪게 될 고난이나 실패의 위험 요소**를 상세히 문단화하십시오.
 
 3. **[운명의 타이밍: 2026-2028 3개년 및 월별 정밀 분석]** (분량: **1,500자 내외**)
-   - 2026년 1월부터 12월까지의 월별 흐름을 한 달도 빠짐없이 매우 정밀하게 예견하고 조언하십시오. 12월까지의 모든 흐름이 반드시 포함되어야 합니다.
+   - 2026년, 2027년, 2028년의 흐름을 **연도별로 명확히 구분하여 전개**하십시오. 
+   - **【매우 중요】 특정 개월수(예: 4월~6월)나 문구를 섹션 내에서 3회 이상 반복 언급하는 것을 엄격히 금지합니다.** 한 번 언급한 시기적 특징은 다음 문단에서 다른 관점이나 다른 시기(다음 달 등)로 자연스럽게 넘어가야 합니다.
+   - 2026년의 12개월 흐름을 모두 포함하되, 각 달의 특이사항을 중복 없이 서술하십시오.
 
-4. **[개운법: 운명을 바꾸는 고품격 시크릿]** (분량: **500자 이상**)
-   - 부족한 기운을 보강해 줄 아이템, 풍수, 행동 비책을 구체적으로 정리하십시오.
+4. **[개운의 비책: 운명을 바꾸는 고품격 시크릿]** (분량: **500자 이상**)
+   - 부족한 기운을 보강하고 위험 요소를 완화할 수 있는 처방을 **"반드시 ~하십시오", "~를 착용하십시오"** 와 같은 **명확한 명령형(Imperative)** 문장으로 작성하십시오.
+   - 무엇을 하지 말아야 할지에 대한 **'금기 사항'**도 명확히 포함하십시오.
 
 ### [Phase 3: 가독성 제약 및 금기 사항]
-- **[핵심 규칙]** 단순히 사주 용어(편관 등)만 굵게 표시하지 마십시오. 사용자에게 울림을 주는 **"인사이트가 담긴 문장 전체"**를 반드시 <b> 태그를 사용하여 과감하게 강조하십시오. (강조 비중 30% 이상)
+- **[태그 제약]**: **[major]...[/major]** 태그 외에 임의의 태그(예: [단호], [/단호], [속보] 등)를 생성하거나 본문에 포함하는 것을 **절대 금지**합니다.
+- **[반복 금지]**: 동일한 단어나 문장 구조를 2회 이상 연속해서 사용하지 마십시오. 풍성한 어휘를 사용하여 독창적인 문장을 구성하십시오.
+- **[메타 정보 금지]**: 결과 하단이나 본문에 "총 글자 수", "공백 포함" 등의 통계 정보나 인공지능의 코멘트를 절대 포함하지 마십시오.
 - 문장 중간에 'ㅡ' 또는 '—' 기호를 절대 사용하지 마십시오.
 - 정보가 없는 경우 '정재 ()' 처럼 비어있는 괄호를 남기지 마십시오.
 - **[매우 중요 - 십신 매핑]**: 천간 매핑 - ${sajuAnalysisJson.tenGod_lookup.stems_mapping} / 지지 매핑 - ${sajuAnalysisJson.tenGod_lookup.branches_mapping}.
@@ -1374,7 +1455,7 @@ function PremiumSajuContent() {
     "solution": "2,800자 내외의 6단계 생애 주기별 상세 분석 문구들...",
     "timing": "1,500자 내외의 2026년 월별 정밀 분석 문구들 (12월까지 반드시 포함)"
   },
-  "luck_advice": "개운법과 최종 조언 (500자 내외 상세히)"
+  "luck_advice": "개운의 비책과 최종 조언 (500자 내외로 무엇을 해야 할지 단호하고 상세하게)"
 }
 `;
 
@@ -1625,7 +1706,7 @@ function PremiumSajuContent() {
                 const innerText = part.slice(2, -2).trim();
                 return (
                     <strong key={j} style={{ 
-                        color: isDarkBg ? "var(--accent-gold)" : "var(--accent-indigo)", 
+                        color: "var(--accent-gold)", 
                         fontWeight: "900", 
                         fontSize: "1.05rem",
                         display: "inline",
@@ -1642,11 +1723,11 @@ function PremiumSajuContent() {
                 const innerText = part.slice(7, -8).trim();
                 return (
                     <strong key={j} style={{ 
-                        color: isDarkBg ? "var(--accent-gold)" : "var(--accent-indigo)", 
+                        color: "var(--accent-gold)", 
                         fontWeight: "900", 
                         fontSize: "1.05rem", 
                         display: "inline",
-                        borderBottom: isDarkBg ? "2px solid rgba(212,163,115,0.4)" : "2px solid rgba(42,54,95,0.2)",
+                        borderBottom: isDarkBg ? "2px solid rgba(212,163,115,0.4)" : "2px solid rgba(212,163,115,0.2)",
                         paddingBottom: "1px"
                     }}>
                         {innerText}
@@ -1670,7 +1751,7 @@ function PremiumSajuContent() {
       <main ref={topRef} style={{ width: "100%", minHeight: "100vh", position: "relative", background: "var(--bg-primary)" }}>
       <Disclaimer />
       <TraditionalBackground />
-      <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={typeof date === 'string' ? date : "1991-01-13"} onConfirm={(y, m, d, lunar) => { setDate(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`); setIsLunar(lunar); setIsDatePickerOpen(false); }} />
+      <WheelDatePicker isOpen={isDatePickerOpen} onClose={() => setIsDatePickerOpen(false)} initialDate={typeof date === 'string' ? date : "1991-01-13"} onConfirm={(y, m, d, lunar, leap) => { setDate(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`); setIsLunar(lunar); setIsLeap(leap); setIsDatePickerOpen(false); }} />
       
       <div style={{
         maxWidth: "520px", margin: "0 auto", minHeight: "100vh",
@@ -1772,9 +1853,12 @@ function PremiumSajuContent() {
                     <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", fontSize: "0.95rem", textAlign: "center", fontWeight: "600" }}>{date}</div>
                     <div style={{ display: "flex", gap: "10px" }}>
                       <input type="time" value={time} onChange={(e) => setTime(e.target.value)} style={{ flex: 1, padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", border: "none", fontSize: "0.95rem", fontWeight: "600", outline: "none", textAlign: "center" }} />
-                      <div style={{ display: "flex", background: "rgba(0,0,0,0.04)", borderRadius: "12px", padding: "4px" }}>
+                      <div style={{ display: "flex", background: "rgba(0,0,0,0.04)", borderRadius: "12px", padding: "4px", gap: "4px" }}>
                         <button onClick={() => setIsLunar(false)} style={{ padding: "0 12px", borderRadius: "8px", border: "none", background: !isLunar ? "var(--accent-indigo)" : "transparent", fontWeight: "600", fontSize: "0.9rem", color: !isLunar ? "white" : "var(--text-secondary)", transition: "all 0.2s" }}>양력</button>
                         <button onClick={() => setIsLunar(true)} style={{ padding: "0 12px", borderRadius: "8px", border: "none", background: isLunar ? "var(--accent-indigo)" : "transparent", fontWeight: "600", fontSize: "0.9rem", color: isLunar ? "white" : "var(--text-secondary)", transition: "all 0.2s" }}>음력</button>
+                        {isLunar && (
+                          <button onClick={() => setIsLeap(!isLeap)} style={{ padding: "0 12px", borderRadius: "8px", border: "none", background: isLeap ? "var(--accent-indigo)" : "rgba(0,0,0,0.05)", fontWeight: "600", fontSize: "0.9rem", color: isLeap ? "white" : "#999", transition: "all 0.2s" }}>윤달</button>
+                        )}
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: "6px", flexDirection: "column" }}>
@@ -1865,7 +1949,7 @@ function PremiumSajuContent() {
                 <div style={{ background: "white", padding: "20px", borderRadius: "20px", border: "1px solid var(--glass-border)", display: "flex", flexDirection: "column", gap: "12px", boxShadow: "0 10px 30px rgba(0,0,0,0.03)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0", paddingBottom: "8px" }}>
                     <span style={{ fontSize: "0.85rem", color: "#999", fontWeight: "600" }}>생년월일</span>
-                    <span style={{ fontSize: "0.95rem", color: "#333", fontWeight: "700" }}>{date} ({isLunar ? "음력" : "양력"})</span>
+                    <span style={{ fontSize: "0.95rem", color: "#333", fontWeight: "700" }}>{date} ({isLunar ? (isLeap ? "음력 윤달" : "음력") : "양력"})</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0", paddingBottom: "8px" }}>
                     <span style={{ fontSize: "0.85rem", color: "#999", fontWeight: "600" }}>태어난 시간</span>
@@ -1923,7 +2007,7 @@ function PremiumSajuContent() {
                 <button 
                   onClick={() => {
                     const paymentData = {
-                      date, time, isLunar, birthCity, gender, 
+                      date, time, isLunar, isLeap, birthCity, gender, 
                       selectedCategory, userQuestion, userEmail,
                       deliveryMethod // Added
                     };
@@ -1976,6 +2060,8 @@ function PremiumSajuContent() {
                       stages12={detailedData.stages12} 
                       sals={detailedData.sals} 
                     />
+
+                    <SinsalGrid data={detailedData.table} />
 
                     <MajorSinsalSummary 
                       sals={detailedData.sals} 

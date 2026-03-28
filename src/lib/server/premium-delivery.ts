@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { fetchWithRetry, callGPTLatest, callClaudeLatest } from "../api-utils";
+import { SAJU_DICTIONARY } from "../premium-saju-utils";
 
 // AI helper functions
 async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswers: any, section: 'strategy' | 'life_shape' | 'solution' | 'timing' | 'luck_advice') {
@@ -23,10 +24,14 @@ async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswe
 - 내담자의 구체적인 고민("${userAnswers[0]}")에 대해 직접적이고 명쾌한 해답을 제시하십시오.
 - 시기는 간략히만 언급하고, 구체적인 3개년 분석은 섹션 3으로 양보하십시오.`,
     timing: `[섹션 3: 성패의 시기 (2026-2028)]
-- 반드시 공백 포함 **1,800자 ~ 2,200자** 범위로 작성하십시오.
+- 반드시 공백 포함 **2,100자 ~ 2,300자** 범위로 작성하십시오.
 - ${strategyContext}
-- **이 리포트에서 2026, 2027, 2028년의 연도별 흐름을 가장 상세히 다루는 유일한 섹션입니다.**
-- 앞선 섹션들의 내용을 반복하여 분량을 채우지 말고, 오직 '운의 타이밍' 분석에만 집중하십시오.`,
+- **연도별 대중소(大中小) 구성 (필수)**: 
+  1. 가장 중요한 **2026년**의 상반기/하반기 흐름을 **3개 문단**으로 매우 상세히 분석하십시오. (월별 고비와 승부처 명시)
+  2. **2027년**의 조율 과정을 **1개 문단**으로 분석하십시오.
+  3. **2028년**의 안착 상황을 **1개 문단**으로 마무리하십시오.
+- **중복 언급 금지**: 2026년 내에서도 앞 단락에서 다룬 달(Month)을 다음 단락에서 다시 언급하며 내용을 중복하지 마십시오. 시간의 전진을 멈추지 마십시오.
+- 앞선 섹션들의 내용을 절대로 반복하지 말고, 오직 '운의 타이밍' 분석에만 집중하십시오.`,
     luck_advice: `[섹션 4: 개운(開運)의 비책]
 - 반드시 공백 포함 **1,000자 ~ 1,200자** 범위로 작성하십시오.
 - ${strategyContext}
@@ -38,13 +43,28 @@ async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswe
 ### [전문가 정체성: 정통 명리학의 거장]
 당신은 수십 년간 수만 명의 운명을 감명해 온 **정통 명리학의 거장**입니다. AI가 아닌, 내담자의 고독과 희망을 깊이 공감하는 **'살아있는 스승'**의 관점에서 서술하십시오.
 
+[분석의 핵심 및 필수 포함 요소]
+당신은 제공된 [sajuJson] 데이터를 기반으로 다음의 **14가지 핵심 요소**를 모두 입체적으로 분석하여 해답을 도출해야 합니다:
+1. **천간/지지**: 원국의 구성과 합(合), 충(沖)의 작용 분석.
+2. **십성(Ten Gods)**: 사회적 관계와 심리적 성향, 재능의 방향성 분석.
+3. **지장간**: 내면에 숨겨진 잠재력과 결정적 순간의 변수 파악.
+4. **12운성**: 기운의 성쇠와 활동성의 강도 분석.
+5. **12신살 & 20종 길성**: 천을귀인, 문곡귀인, 백호대살 등 특수 기운이 인생 경로에 미치는 영향.
+6. **오행 분포**: 에너지의 과다/부족에 따른 건강 및 성격적 균형 분석.
+7. **신강/신약 지수**: 자아의 힘과 외부 환경에 대한 대응력 판단.
+8. **용신(Yongsin)**: 삶의 균형을 잡아주는 핵심 기운과 개운(開運) 방법.
+9. **대운(Daeun)**: 현재 머물고 있는 10년 주기의 거대한 환경 변화와 기회.
+10. **연운/월운/일진**: 현재 시점(2026년 3월 27일 기준)의 구체적인 운의 흐름과 타이밍 분석.
+
 [작성 지침]
-1. **명쾌한 해답 도출 (최우선)**: 내담자의 구체적인 질문([Answers])에 대해 모호한 태도를 버리고, 수십 년 경력의 대가로서 **확신에 찬 해답**을 제시하십시오. "관찰됩니다", "가능성이 있습니다"와 같은 표현보다는 "~이(가) 분명합니다", "~해야만 합니다"와 같은 단호한 어조를 사용하십시오.
-2. **시기 분석의 정밀성**: 질문에 "언제", "어느 때", "시기" 등의 단어가 포함된 경우, 제공된 사주 데이터(대운/세운 등)를 기반으로 **"2026년 늦가을", "2026년 9월에서 11월 사이"**와 같이 구체적인 시점을 명확히 짚어주십시오. 근거 없는 희망 고문이 아닌, 기운의 흐름에 근거한 실질적 타이밍을 제시하십시오. 이때 '올해'라는 단어 대신 반드시 '2026년'이라고 쓰십시오.
-3. **용어 통일 (올해 -> 2026년)**: '올해', '금년'이라는 모호한 표현은 절대 사용하지 마십시오. 모든 시점 언급은 반드시 **'2026년'** 또는 **'2026'**으로 명시하십시오.
-4. **특수 기호 절대 사용 금지**: ** 기호(bold)를 포함한 모든 마크다운 강조 기호나 특수 기호를 절대 사용하지 마십시오. 강조는 지정된 커스텀 태그([[단어]], [major]문장[/major])로만 수행하십시오.
-5. **[핵심] 전격 존댓말 고정**: 모든 문장은 **'하십시오체' 또는 '해요체' 등 정중한 존댓말**로 통일하십시오. 반말이나 불완전한 문장 종결을 절대 금지합니다.
-6. **부드럽고 품격 있는 말투**: 대가의 무게감이 느껴지도록 격식 있고 통찰력 있는 표현을 사용하십시오.
+1. **100% 한글 서술 (매우 중요)**: **절대로 영어를 사용하지 마십시오.** (예: Wood, Fire, Earth, Metal, Water, Yin, Yang 등 영문 오행/음양 용어 사용 엄금). 모든 명리 용어는 한글 또는 한글(한자) 병기 형태로만 작성하십시오.
+2. **입체적 합성 분석**: 각 데이터를 단편적으로 설명하지 마십시오. 예를 들어, "현재의 대운이 용신운이며, 올해의 세운에서 천을귀인이 작용하므로 큰 재물적 성취가 예상됩니다"와 같이 요소 간의 상호작용을 논리적으로 융합하십시오.
+3. **명쾌한 해답 도출 (최우선)**: 내담자의 구체적인 질문([Answers])에 대해 수십 년 경력의 대가로서 **확신에 찬 해답**을 제시하십시오. 단호하고 권위 있는 어조(~이(가) 분명합니다, ~하십시오)를 유지하십시오.
+4. **시기 분석의 정밀성**: "시기" 질문 시 각 명식의 용신과 세운/월운 데이터를 대조하여 개별적으로 도출하십시오. '9~11월'과 같은 특정 예시에 얽매이지 말고 데이터에 근거한 독자적 시점을 명시하십시오.
+5. **포맷 준수**: '올해' 대신 '2026년'을 사용하고, 마크다운 강조 기호(**) 대신 지정된 태그([[단어]], [major]문장[/major])만 사용하십시오.
+6. **[핵심] 전격 존댓말 고정**: 모든 문장은 정중한 존댓말로 통일하십시오.
+7. **표현의 다양성 및 시점 중복 배제 (매우 중요)**: 동일한 단어나 문장 구조, 혹은 **이미 설명한 특정 시기(예: 2026년 상반기)**를 반복하여 분량을 채우지 마십시오. 매 단락마다 분석의 시점을 뒤로 전진시키거나 새로운 관점의 정보를 제공해야 합니다. 앞서 언급한 비유나 날짜를 재사용하지 마십시오.
+8. **부드럽고 품격 있는 말투**: 대가의 무게감이 느껴지도록 격식 있고 통찰력 있는 표현을 사용하십시오.
 
 [Data] ${JSON.stringify(sajuJson)}
 [Answers] ${JSON.stringify(userAnswers)}
@@ -57,6 +77,7 @@ ${instructions[section]}
 3. '올해' 대신 반드시 '2026년'으로 표기하십시오.
 4. 기계적인 서론/본론/결론 구분 없이 유려한 산문 형태로 작성하십시오.
 5. 첫 마디부터 본론의 후킹으로 시작하며 "안녕하세요" 등의 인사말은 일절 생략하십시오.
+6. **연대기적 전개 (Strict Chronology)**: 한 섹션 안에서 이미 다룬 연도나 월을 다음 단락에서 다시 언급하며 내용을 중복시키는 행위를 엄격히 금지합니다. 분석을 뒤로 전진시키십시오.
 `;
 
   try {
@@ -84,11 +105,19 @@ const stripAIMarkers = (text: string) => {
     .replace(/"\s*\}$/, '')
     .replace(/\*{1,3}/g, '') // Remove all types of asterisk formatting (*, **, ***)
     .replace(/---|###|```json|```/g, '')
+    // 영문 오행/용어 제거 및 한글 변환 (보험용)
+    .replace(/\bWood\b/gi, '목(木)')
+    .replace(/\bFire\b/gi, '화(火)')
+    .replace(/\bEarth\b/gi, '토(土)')
+    .replace(/\bMetal\b/gi, '금(金)')
+    .replace(/\bWater\b/gi, '수(水)')
+    .replace(/\bYin\b/gi, '음(陰)')
+    .replace(/\bYang\b/gi, '양(陽)')
     .replace(/\(올해\)/g, '(2026년)')
     .replace(/\s올해\s/g, ' 2026년 ')
     .replace(/\\n/g, '\n')
     .replace(/\[\[(.*?)\]\]/g, '<span style="color: #D4AF37; font-weight: bold;">$1</span>')
-    .replace(/\[major\](.*?)\[\/major\]/g, '<span style="color: #D4AF37; font-weight: bold; border-bottom: 2px solid rgba(212,163,115,0.3); padding-bottom: 1px;">$1</span>')
+    .replace(/\[major\](.*?)\[\/major\]/g, '<span style="color: #D4AF37; font-weight: bold; border-bottom: 2px solid rgba(212,163,115,0.4); padding-bottom: 1px;">$1</span>')
     .replace(/★/g, ''); 
 
   processed = processed
@@ -206,7 +235,6 @@ export async function processAndDeliverPremiumSaju(params: {
                     if (field === "tenGod") val = col === 'day' ? "일간" : (pDet.stemTenGod || "-");
                     if (field === "branchTenGod") val = pDet.branchTenGod || "-";
                     if (field === "stage") val = s12[col] || "-";
-                    if (field === "sinsal") val = (majorSals[col] || []).filter((s: string) => !s.includes("귀인") && s !== "공망")[0] || "-";
                     if (field === "hidden") val = pDet.hiddenText || "-";
 
                     const color = (field === "stem" || field === "branch") ? getElColor(pDet[field + "Ko"]) : "#333";
@@ -221,6 +249,67 @@ export async function processAndDeliverPremiumSaju(params: {
                     `;
                 }).join("")}
             </tr>
+        `;
+    };
+
+    const renderSinsalGridHtml = () => {
+        const cols = ["hour", "day", "month", "year"];
+        const labels = ["생시", "생일", "생월", "생년"];
+        const elementColors: any = { wood: '#81b29a', fire: '#e07a5f', earth: '#D4A373', metal: '#6d6875', water: '#3d5a80' };
+
+        const renderCellList = (list: string[]) => {
+            if (!list || list.length === 0) return `<span style="color: #ccc; font-size: 11px;">✕</span>`;
+            return list.map(s => `
+                <div style="font-size: 11px; font-weight: bold; color: ${s.includes('귀인') ? '#D4A373' : '#555'}; line-height: 1.2; margin: 2px 0;">
+                    ${s}
+                </div>
+            `).join("");
+        };
+
+        return `
+            <div style="background: #fff; border: 1px solid rgba(212,163,115,0.2); border-radius: 15px; padding: 15px 10px; margin-bottom: 25px;">
+                <div style="text-align: center; margin-bottom: 12px; font-weight: bold; color: #2A365F; font-size: 14px;">[신살과 길성 상세]</div>
+                <table style="width: 100%; border-collapse: collapse; text-align: center; border: 1px solid #efefef;">
+                    <tr style="background: #f8f9fa;">
+                        <td style="width: 45px; border: 1px solid #efefef; height: 30px;"></td>
+                        ${labels.map(l => `<td style="border: 1px solid #efefef; font-size: 11px; font-weight: bold; color: #666;">${l}</td>`).join("")}
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #efefef; font-size: 10px; color: #999; vertical-align: middle;">천간</td>
+                        ${cols.map(col => {
+                            const pDet = p[col] || {};
+                            const el = getElementFromChar(pDet.stemKo);
+                            return `
+                                <td style="border: 1px solid #efefef; padding: 8px 0;">
+                                    <div style="font-size: 18px; font-weight: bold; color: ${elementColors[el] || '#333'};">${pDet.stem || "-"}</div>
+                                    <div style="font-size: 10px; color: #999;">${pDet.stemKo}</div>
+                                </td>
+                            `;
+                        }).join("")}
+                    </tr>
+                    <tr style="background: #fafafa;">
+                        <td style="border: 1px solid #efefef; font-size: 10px; color: #999; vertical-align: middle;">길성</td>
+                        ${cols.map(col => `<td style="border: 1px solid #efefef; padding: 8px 2px;">${renderCellList(p[col]?.stemSinsals || [])}</td>`).join("")}
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #efefef; font-size: 10px; color: #999; vertical-align: middle;">지지</td>
+                        ${cols.map(col => {
+                            const pDet = p[col] || {};
+                            const el = getElementFromChar(pDet.branchKo);
+                            return `
+                                <td style="border: 1px solid #efefef; padding: 8px 0;">
+                                    <div style="font-size: 18px; font-weight: bold; color: ${elementColors[el] || '#333'};">${pDet.branch || "-"}</div>
+                                    <div style="font-size: 10px; color: #999;">${pDet.branchKo}</div>
+                                </td>
+                            `;
+                        }).join("")}
+                    </tr>
+                    <tr style="background: #fafafa;">
+                        <td style="border: 1px solid #efefef; font-size: 10px; color: #999; vertical-align: middle;">길성</td>
+                        ${cols.map(col => `<td style="border: 1px solid #efefef; padding: 8px 2px; min-height: 40px;">${renderCellList(p[col]?.branchSinsals || [])}</td>`).join("")}
+                    </tr>
+                </table>
+            </div>
         `;
     };
 
@@ -240,7 +329,6 @@ export async function processAndDeliverPremiumSaju(params: {
                 ${renderPillarRow("십성", "branchTenGod", true)}
                 ${renderPillarRow("지장간", "hidden", true)}
                 ${renderPillarRow("12운성", "stage", true)}
-                ${renderPillarRow("12신살", "sinsal", true)}
             </table>
         </div>
     `;
@@ -333,6 +421,8 @@ export async function processAndDeliverPremiumSaju(params: {
                             <img src="${images.pillar}" alt="Premium Saju Pillar Table" style="max-width: 100%; height: auto; border: 1.5px solid #2A365F; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
                         </div>` : pillarTable}
 
+                    ${renderSinsalGridHtml()}
+
                 <div style="margin-bottom: 25px;">
                     <h2 style="color: #2A365F; font-size: 16px; margin-bottom: 12px; border-bottom: 1px solid #D4A373; padding-bottom: 6px;">오행 및 십성 에너지 분석</h2>
                     <p style="font-size: 11px; color: #666; margin-bottom: 15px; line-height: 1.6; word-break: keep-all;">* 원국(보정 전)은 타고난 에너지의 그릇이나, 실제 운명은 태어난 계절적 환경에 의해 크게 조율됩니다. 청아매당은 이를 정밀하게 보정하여 귀하의 <b>'실질적인 진짜 기운(보정 후)'</b>을 찾아 드립니다.</p>
@@ -406,7 +496,7 @@ export async function processAndDeliverPremiumSaju(params: {
                 </div>
 
                 <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
-                    <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">4. 개운(開운)의 비책</h2>
+                    <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">4. 개운의 비책</h2>
                     <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.luck_advice}</div>
                 </div>
 
@@ -421,6 +511,8 @@ export async function processAndDeliverPremiumSaju(params: {
                             명리 대가의 다른 조언 더 듣기 ➔
                         </a>
                     </div>
+
+                    ${renderDictionaryHtml()}
 
                     <p style="margin-top: 30px; font-size: 11px; color: #bbb;">본 리포트는 데이터 보안을 위해 암호화되어 전송되었습니다.</p>
                     <p style="margin-top: 10px; font-size: 9px; color: #ccc;">© 2026 청아매당. All Rights Reserved.</p>
@@ -510,4 +602,85 @@ export async function processAndDeliverPremiumSaju(params: {
   } catch (error) {
     console.error(`[Background] Error:`, error);
   }
+}
+
+function renderDictionaryHtml() {
+    const categories = [
+        {
+            name: "1. 기초 오행 (Energy)",
+            terms: ["목(木)", "화(火)", "토(土)", "금(金)", "수(水)"]
+        },
+        {
+            name: "2. 십성 (Social & Mind)",
+            terms: ["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"]
+        },
+        {
+            name: "3. 에너지와 신강약 (Power)",
+            terms: ["신강", "신약", "중화", "용신", "12운성", "지장간"]
+        },
+        {
+            name: "4. 길성과 신살 (Stars & Sinsal)",
+            terms: ["천을귀인", "문곡귀인", "정록", "암록", "홍염살", "천문성", "황은대사", "양인살", "백호대살", "괴강살", "도화살", "역마살", "화개살"]
+        }
+    ];
+    
+    let html = `
+    <div style="margin-top: 40px; padding: 30px 20px; background-color: #fff; border: 1.5px solid #e9e0d2; border-radius: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.03);">
+        <div style="text-align: center; margin-bottom: 25px;">
+            <h3 style="margin: 0; color: #2A365F; font-size: 18px; display: inline-block; position: relative; padding-bottom: 10px;">
+                📚 명리학 핵심 용어 사전
+                <div style="position: absolute; bottom: 0; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, transparent, #C9A050, transparent);"></div>
+            </h3>
+            <p style="font-size: 11px; color: #999; margin-top: 8px;">리포트의 깊은 이해를 돕기 위한 주요 용어 설명입니다.</p>
+        </div>
+    `;
+
+    categories.forEach((cat) => {
+        html += `
+        <div style="margin-bottom: 25px;">
+            <div style="background: #fdfbf7; padding: 6px 12px; border-radius: 8px; color: #C9A050; font-size: 13px; font-weight: bold; margin-bottom: 12px; border-left: 3px solid #C9A050;">
+                ${cat.name}
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+        `;
+
+        for (let i = 0; i < cat.terms.length; i += 2) {
+            const term1 = cat.terms[i];
+            const term2 = cat.terms[i+1];
+
+            html += `<tr>`;
+            if (term1) {
+                html += `
+                <td style="width: 50%; padding: 10px; border-bottom: 1px solid #f9f9f9; vertical-align: top;">
+                    <div style="font-weight: bold; color: #2A365F; font-size: 12px; margin-bottom: 4px;">${term1}</div>
+                    <div style="font-size: 10px; color: #666; line-height: 1.6; word-break: keep-all;">${SAJU_DICTIONARY[term1] || ""}</div>
+                </td>
+                `;
+            }
+            if (term2) {
+                html += `
+                <td style="width: 50%; padding: 10px; border-bottom: 1px solid #f9f9f9; vertical-align: top;">
+                    <div style="font-weight: bold; color: #2A365F; font-size: 12px; margin-bottom: 4px;">${term2}</div>
+                    <div style="font-size: 10px; color: #666; line-height: 1.6; word-break: keep-all;">${SAJU_DICTIONARY[term2] || ""}</div>
+                </td>
+                `;
+            } else {
+                html += `<td style="width: 50%; border-bottom: 1px solid #f9f9f9;"></td>`;
+            }
+            html += `</tr>`;
+        }
+
+        html += `
+            </table>
+        </div>
+        `;
+    });
+
+    html += `
+        <p style="margin-top: 5px; font-size: 10px; color: #bbb; text-align: center; font-style: italic;">
+            * 위 용어들은 보편적인 명리학적 해석을 바탕으로 하며, 개인의 사주 명식에 따라 그 작용력은 달라질 수 있습니다.
+        </p>
+    </div>
+    `;
+    return html;
 }

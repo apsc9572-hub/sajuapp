@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { loadPaymentWidget, PaymentWidgetInstance } from "@tosspayments/payment-widget-sdk";
+import { loadTossPayments, TossPaymentsWidgets } from "@tosspayments/tosspayments-sdk";
 import { v4 as uuidv4 } from "uuid";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShieldCheck, CreditCard } from "lucide-react";
@@ -15,9 +15,7 @@ interface PaymentModalProps {
 }
 
 export default function PaymentModal({ isOpen, onClose, amount, orderName, customerKey }: PaymentModalProps) {
-  const paymentWidgetRef = useRef<PaymentWidgetInstance | null>(null);
-  const paymentMethodsWidgetRef = useRef<any>(null);
-  const agreementsWidgetRef = useRef<any>(null);
+  const widgetsRef = useRef<TossPaymentsWidgets | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [devClicks, setDevClicks] = useState(0);
   const devTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -30,35 +28,47 @@ export default function PaymentModal({ isOpen, onClose, amount, orderName, custo
 
     (async () => {
       try {
-        const paymentWidget = await loadPaymentWidget(clientKey, customerKey);
+        const tossPayments = await loadTossPayments(clientKey);
+        
+        // Initialize widgets
+        const widgets = tossPayments.widgets({ customerKey });
+        
+        // Set the amount
+        await widgets.setAmount({
+          currency: "KRW",
+          value: amount,
+        });
 
-        const paymentMethodsWidget = paymentWidget.renderPaymentMethods(
-          "#payment-method",
-          { value: amount },
-          { variantKey: "DEFAULT" }
-        );
+        // Render payment methods and agreement
+        await Promise.all([
+          widgets.renderPaymentMethods({
+            selector: "#payment-method",
+            variantKey: "DEFAULT",
+          }),
+          widgets.renderAgreement({
+            selector: "#agreement",
+            variantKey: "AGREEMENT",
+          })
+        ]);
 
-        paymentWidget.renderAgreement("#agreement", { variantKey: "AGREEMENT" });
-
-        paymentWidgetRef.current = paymentWidget;
-        paymentMethodsWidgetRef.current = paymentMethodsWidget;
+        widgetsRef.current = widgets;
         setIsLoading(false);
       } catch (error) {
-        console.error("Error loading payment widget:", error);
+        console.error("Error loading payment widget v2:", error);
       }
     })();
   }, [isOpen, amount, clientKey, customerKey]);
 
   const handlePaymentRequest = async () => {
-    const paymentWidget = paymentWidgetRef.current;
-    if (!paymentWidget) return;
+    const widgets = widgetsRef.current;
+    if (!widgets) return;
 
     try {
       // Create a unique order ID
       const orderId = uuidv4();
       
       // Request payment
-      await paymentWidget.requestPayment({
+      await widgets.requestPayment({
         orderId: orderId,
         orderName: orderName,
         customerName: "청아매당 사용자",

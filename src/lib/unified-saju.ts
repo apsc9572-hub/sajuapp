@@ -27,7 +27,7 @@ export const getPillarsForDate = (date: Date) => {
         day: date.getDate(),
         hour: 12, minute: 0,
         latitude: 37.5, longitude: 127.0,
-        isLunar: false, gender: "M"
+        isLunar: false, isIntercalation: false, gender: "M"
     });
 };
 
@@ -35,6 +35,7 @@ export const getUnifiedSaju = (data: {
     date: string;
     time: string;
     isLunar: boolean;
+    isLeap?: boolean;
     gender: string;
     birthCity: string;
 }) => {
@@ -45,7 +46,7 @@ export const getUnifiedSaju = (data: {
     const sajuRes = calculateHighPrecisionSaju({
         year: y, month: m, day: d, hour: h, minute: mi,
         latitude: coord.lat, longitude: coord.lon,
-        isLunar: data.isLunar, gender: data.gender === "M" ? "M" : "F"
+        isLunar: data.isLunar, isIntercalation: data.isLeap || false, gender: data.gender === "M" ? "M" : "F"
     });
 
     // Helper for Pillar Mapping
