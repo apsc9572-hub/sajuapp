@@ -158,7 +158,9 @@ export const prepareAnalysisData = async (data: any) => {
     };
 
     const calculateSipsungDist = (isCorrected: boolean) => {
-        const counts: Record<string, number> = { bikyeop: 0, siksang: 0, jaeseong: 0, gwanseong: 0, inseong: 0 };
+        const counts: Record<string, number> = { 
+            bigyeon: 0, geobjae: 0, siksin: 0, sanggwan: 0, pyeonja: 0, jeongja: 0, pyeongwan: 0, jeonggwan: 0, pyeonin: 0, jeongin: 0 
+        };
         const ilganEl = getElementFromChar(sajuRes.ilgan);
         const ilganYY = sajuRes.day.yinYang.stem;
         const positions: ("year" | "month" | "day" | "hour")[] = ["year", "month", "day", "hour"];
@@ -169,18 +171,21 @@ export const prepareAnalysisData = async (data: any) => {
         const isSummer = ['사', '오', '미'].includes(monthBr);
         const isAutumn = ['신', '유', '술'].includes(monthBr);
 
-        const getTenGodGroup = (targetEl: string) => {
+        const getTenGodKey = (targetEl: string, targetYY: string) => {
             const elOrder = ["wood", "fire", "earth", "metal", "water"];
             const iIdx = elOrder.indexOf(ilganEl);
             const tIdx = elOrder.indexOf(targetEl);
             const diff = (tIdx - iIdx + 5) % 5;
-            const map: Record<number, string> = {
-                0: "bikyeop", 1: "siksang", 2: "jaeseong", 3: "gwanseong", 4: "inseong"
+            const sameYY = ilganYY === targetYY;
+            const map: Record<number, string[]> = {
+                0: ["bigyeon", "geobjae"], 1: ["siksin", "sanggwan"], 2: ["pyeonja", "jeongja"], 3: ["pyeongwan", "jeonggwan"], 4: ["pyeonin", "jeongin"]
             };
-            return map[diff];
+            return sameYY ? map[diff][0] : map[diff][1];
         };
 
         const getFunctionalYY = (b: string) => {
+            // Forceteller Yin-Yang conversion logic: 
+            // Ja(子)=Eum, Chook(丑)=Eum, Myo(卯)=Eum, Oh(午)=Eum, Mi(未)=Eum, Yu(酉)=Eum
             return ['자', '축', '묘', '오', '미', '유'].includes(b) ? "음" : "양";
         };
 
@@ -191,17 +196,18 @@ export const prepareAnalysisData = async (data: any) => {
 
             // 1. Stem
             const sEl = getElementFromChar(p.stemKo);
-            counts[getTenGodGroup(sEl)] += Sw;
+            const sYY = p.yinYang.stem;
+            counts[getTenGodKey(sEl, sYY)] += Sw;
 
             // 2. Branch with Seasonal Shift & Split
             if (isCorrected && pos === 'month') {
                 if (isWinter && p.branchKo === '축') {
-                    counts[getTenGodGroup('water')] += Bw;
+                    counts[getTenGodKey('water', getFunctionalYY(p.branchKo))] += Bw;
                 } else if (isSpring && p.branchKo === '진') {
-                    counts[getTenGodGroup('fire')] += (Bw * 0.67);
-                    counts[getTenGodGroup('earth')] += (Bw * 0.33);
+                    counts[getTenGodKey('fire', getFunctionalYY(p.branchKo))] += (Bw * 0.67);
+                    counts[getTenGodKey('earth', getFunctionalYY(p.branchKo))] += (Bw * 0.33);
                 } else {
-                    counts[getTenGodGroup(getElementFromChar(p.branchKo))] += Bw;
+                    counts[getTenGodKey(getElementFromChar(p.branchKo), getFunctionalYY(p.branchKo))] += Bw;
                 }
             } else {
                 let bEl = getElementFromChar(p.branchKo);
@@ -211,7 +217,7 @@ export const prepareAnalysisData = async (data: any) => {
                     else if (isSummer && (p.branchKo === '미' || p.branchKo === '술')) bEl = 'fire';
                     else if (isAutumn && (p.branchKo === '술' || p.branchKo === '축')) bEl = 'metal';
                 }
-                counts[getTenGodGroup(bEl)] += Bw;
+                counts[getTenGodKey(bEl, getFunctionalYY(p.branchKo))] += Bw;
             }
         });
 

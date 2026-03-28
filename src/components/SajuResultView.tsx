@@ -293,11 +293,16 @@ const SipsungDistributionTable = ({ tenGods, ilgan, type }: { tenGods: any, ilga
     if (!tenGods || !ilgan) return null;
 
     const categories = [
-        { key: "bikyeop", label: "비겁", sub: "비견·겁재" },
-        { key: "siksnagal", label: "식상", sub: "식신·상관" },
-        { key: "jaeseong", label: "재성", sub: "편재·정재" },
-        { key: "gwanseong", label: "관성", sub: "편관·정관" },
-        { key: "inseong", label: "인성", sub: "편인·정인" }
+        { key: "bigyeon", label: "비견", sub: "比肩", index: 0 },
+        { key: "geobjae", label: "겁재", sub: "劫財", index: 0 },
+        { key: "siksin", label: "식신", sub: "食神", index: 1 },
+        { key: "sanggwan", label: "상관", sub: "傷官", index: 1 },
+        { key: "pyeonja", label: "편재", sub: "偏財", index: 2 },
+        { key: "jeongja", label: "정재", sub: "正財", index: 2 },
+        { key: "pyeongwan", label: "편관", sub: "偏官", index: 3 },
+        { key: "jeonggwan", label: "정관", sub: "正官", index: 3 },
+        { key: "pyeonin", label: "편인", sub: "偏印", index: 4 },
+        { key: "jeongin", label: "정인", sub: "正印", index: 4 }
     ];
 
     const ilganEl = ['갑', '을'].includes(ilgan) ? 'wood' : 
@@ -310,8 +315,14 @@ const SipsungDistributionTable = ({ tenGods, ilgan, type }: { tenGods: any, ilga
     
     // Sipsung cycle: Me (Bikyeop) -> Output (Siksnagal) -> Result (Jaeseong) -> Control (Gwanseong) -> Input (Inseong)
     const getCategoryColor = (index: number) => {
+        // me (bikyeop=0), output (siksang=1), wealth (jaeseong=2), control (gwanseong=3), input (inseong=4)
         const el = cycle[(startIdx + index) % 5];
-        return getElementColor(el);
+        if (el === 'wood') return '#81b29a';
+        if (el === 'fire') return '#e07a5f';
+        if (el === 'earth') return '#D4A373';
+        if (el === 'metal') return '#FFD700';
+        if (el === 'water') return '#3d5a80';
+        return '#333';
     };
 
     return (
@@ -327,9 +338,11 @@ const SipsungDistributionTable = ({ tenGods, ilgan, type }: { tenGods: any, ilga
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-                {categories.map((cat, idx) => {
+                {categories
+                    .filter(cat => (tenGods[cat.key] || 0) > 0)
+                    .map((cat, idx) => {
                     const percent = tenGods[cat.key] || 0;
-                    const color = getCategoryColor(idx);
+                    const color = getCategoryColor(cat.index);
                     
                     return (
                         <div key={cat.key} style={{ display: "flex", alignItems: "center", gap: "16px" }}>

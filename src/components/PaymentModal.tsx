@@ -102,14 +102,14 @@ export default function PaymentModal({ isOpen, onClose, amount, orderName, custo
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 20 }}
           style={{
-            background: "white", width: "100%", maxWidth: "480px",
+            background: "white", width: "100%", maxWidth: "420px",
             borderRadius: "24px", overflow: "hidden", position: "relative",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
           }}
         >
           {/* Header */}
           <div style={{ 
-            padding: "20px 24px", borderBottom: "1px solid #f0f0f0",
+            padding: "14px 20px", borderBottom: "1px solid #f0f0f0",
             display: "flex", justifyContent: "space-between", alignItems: "center",
             background: "linear-gradient(135deg, var(--accent-indigo), #1A1C2C)"
           }}>
@@ -128,52 +128,52 @@ export default function PaymentModal({ isOpen, onClose, amount, orderName, custo
               }}
               style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "default", userSelect: "none" }}
             >
-              <CreditCard size={20} color="var(--accent-gold)" />
-              <h3 style={{ fontSize: "1.1rem", fontWeight: "800", color: "white", margin: 0 }}>프리미엄 결제</h3>
+              <CreditCard size={18} color="var(--accent-gold)" />
+              <h3 style={{ fontSize: "1rem", fontWeight: "800", color: "white", margin: 0 }}>프리미엄 결제</h3>
             </div>
             <button onClick={onClose} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "white", borderRadius: "50%", width: "28px", height: "28px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <X size={16} />
             </button>
           </div>
 
-          <div style={{ padding: "24px", maxHeight: "80vh", overflowY: "auto" }}>
-            <div style={{ marginBottom: "20px", textAlign: "center" }}>
-              <div style={{ fontSize: "0.85rem", color: "#666", marginBottom: "8px" }}>결제 금액</div>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "10px" }}>
-                <span style={{ fontSize: "1.1rem", color: "#999", textDecoration: "line-through" }}>10,000원</span>
-                <span style={{ fontSize: "2rem", fontWeight: "900", color: "#e63946" }}>5,000원</span>
+          <div style={{ padding: "16px 20px", maxHeight: "80vh", overflowY: "auto" }}>
+            <div style={{ marginBottom: "16px", textAlign: "center" }}>
+              <div style={{ fontSize: "0.8rem", color: "#666", marginBottom: "4px" }}>결제 금액</div>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "8px" }}>
+                <span style={{ fontSize: "1rem", color: "#999", textDecoration: "line-through" }}>10,000원</span>
+                <span style={{ fontSize: "1.75rem", fontWeight: "900", color: "#e63946" }}>5,000원</span>
               </div>
-              <div style={{ fontSize: "0.9rem", color: "var(--accent-gold)", fontWeight: "600", marginTop: "8px" }}>{orderName}</div>
-              <div style={{ fontSize: "0.8rem", color: "#5ea582", fontWeight: "700", marginTop: "4px" }}>오픈 기념 50% 할인 중!</div>
+              <div style={{ fontSize: "0.85rem", color: "var(--accent-gold)", fontWeight: "700", marginTop: "4px" }}>{orderName}</div>
+              <div style={{ fontSize: "0.75rem", color: "#5ea582", fontWeight: "700", marginTop: "2px" }}>오픈 기념 50% 할인 중!</div>
             </div>
 
-            <div id="payment-method" style={{ marginBottom: "12px" }} />
+            <div id="payment-method" style={{ marginBottom: "8px" }} />
             <div id="agreement" />
 
             {isLoading && (
-              <div style={{ padding: "40px 0", textAlign: "center", color: "#999" }}>
+              <div style={{ padding: "20px 0", textAlign: "center", color: "#999", fontSize: "0.85rem" }}>
                 {!clientKey ? "환경 변수 설정이 필요합니다." : "결제 창을 불러오는 중입니다..."}
               </div>
             )}
           </div>
 
-          <div style={{ padding: "20px 24px", background: "#fcfcfc" }}>
+          <div style={{ padding: "16px 20px", background: "#fcfcfc" }}>
             <button
               onClick={handlePaymentRequest}
               disabled={isLoading}
               style={{
-                width: "100%", padding: "16px", borderRadius: "16px",
+                width: "100%", padding: "14px", borderRadius: "16px",
                 background: isLoading ? "#ccc" : "linear-gradient(135deg, var(--accent-indigo), #1A1C2C)",
-                color: "var(--accent-gold)", fontWeight: "800", fontSize: "1.1rem",
+                color: "var(--accent-gold)", fontWeight: "800", fontSize: "1.05rem",
                 border: "none", cursor: isLoading ? "not-allowed" : "pointer",
                 display: "flex", justifyContent: "center", alignItems: "center", gap: "8px",
                 boxShadow: "0 10px 20px rgba(0,0,0,0.1)"
               }}
             >
-              <ShieldCheck size={20} /> 결제하기
+              <ShieldCheck size={18} /> 결제하기
             </button>
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "20px", marginTop: "12px" }}>
-              <p style={{ fontSize: "0.75rem", color: "#999", margin: 0 }}>
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "20px", marginTop: "10px" }}>
+              <p style={{ fontSize: "0.7rem", color: "#999", margin: 0 }}>
                 본 결제는 안전한 토스페이먼츠 시스템을 통해 처리됩니다.
               </p>
             </div>
