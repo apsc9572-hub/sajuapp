@@ -1,6 +1,7 @@
 import { Resend } from "resend";
-import { fetchWithRetry, callGPTLatest, callClaudeLatest } from "../api-utils";
+import { fetchWithRetry, callGPTLatest, callClaudeLatest, sendAlimTalk } from "../api-utils";
 import { SAJU_DICTIONARY } from "../premium-saju-utils";
+import { saveResult } from "./result-store";
 
 // AI helper functions
 async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswers: any, section: 'strategy' | 'life_shape' | 'solution' | 'timing' | 'luck_advice') {
@@ -135,17 +136,18 @@ const stripAIMarkers = (text: string) => {
 };
 
 export async function processAndDeliverPremiumSaju(params: {
-  userEmail: string;
+  userEmail?: string;
   kakaoToken?: string;
   sajuData: any;
   orderId: string;
   deliveryMethod?: "email" | "kakao";
   images?: Record<string, string>;
+  phoneNumber?: string;
 }) {
-  const { userEmail, kakaoToken, sajuData, orderId, deliveryMethod = "email", images } = params;
+  const { userEmail, kakaoToken, sajuData, orderId, deliveryMethod = "email", images, phoneNumber } = params;
 
   try {
-    console.log(`[Background] Starting analysis for Order: ${orderId}, Email: ${userEmail}`);
+    console.log(`[Background] Starting analysis for Order: ${orderId}${userEmail ? `, Email: ${userEmail}` : ""}${phoneNumber ? `, Phone: ${phoneNumber}` : ""}`);
 
     const apiKeyGemini = process.env.GEMINI_API_KEY;
     console.log(`[Background] Gemini Key presence: ${!!apiKeyGemini}, Resend Key presence: ${!!process.env.RESEND_API_KEY}`);
@@ -522,8 +524,8 @@ export async function processAndDeliverPremiumSaju(params: {
         </div>
     `;
 
-    // 3. Email Delivery
-    if (deliveryMethod === "email") {
+    // 3. Email Delivery (if email provided)
+    if (deliveryMethod === "email" && userEmail) {
       console.log(`[Email] Sending to ${userEmail}...`);
       
       const attachments = [];
@@ -543,7 +545,7 @@ export async function processAndDeliverPremiumSaju(params: {
       try {
         const sendResult = await resend.emails.send({
           from: "청아매당 <info@cheongamaedang.com>", 
-          to: [userEmail],
+          to: [userEmail!],
           subject: `[청아매당] 프리미엄 사주 감명 결과지가 도착했습니다.`,
           html: htmlContent,
           attachments: attachments.length > 0 ? attachments : undefined
@@ -558,7 +560,7 @@ export async function processAndDeliverPremiumSaju(params: {
              console.log("[Premium Delivery] Retrying with fallback 'from' address...");
              await resend.emails.send({
                 from: process.env.RESEND_FALLBACK_FROM,
-                to: [userEmail],
+                to: [userEmail!],
                 subject: `[RETRY] [청아매당] 프리미엄 사주 감명 결과지가 도착했습니다.`,
                 html: htmlContent,
                 attachments: attachments.length > 0 ? attachments : undefined
@@ -572,30 +574,97 @@ export async function processAndDeliverPremiumSaju(params: {
       }
     }
 
-    // 4. Kakao Memo Delivery (Optional)
-    if (deliveryMethod === "kakao" && kakaoToken) {
-      await fetch('https://kapi.kakao.com/v2/api/talk/memo/default/send', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${kakaoToken}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
+    // 4. Save result to Redis for AlimTalk link delivery
+    let resultId = orderId; // fallback to orderId
+    try {
+      const userInput = sajuData.userInput || {};
+      // Build detailed data for SajuResultView
+      const sajuRes = sajuData.sajuRes;
+      const elementCounts: Record<string, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+      if (sajuRes) {
+        ['year', 'month', 'day', 'hour'].forEach(p => {
+          const stemEl = getElementFromChar(sajuRes[p].stemKo);
+          const branchEl = getElementFromChar(sajuRes[p].branchKo);
+          elementCounts[stemEl]++;
+          elementCounts[branchEl]++;
+        });
+      }
+
+      const flatSinsals = sajuData.sinsals ? {
+        year: sajuData.sinsals.year?.branch || [],
+        year_stem: sajuData.sinsals.year?.stem || [],
+        month: sajuData.sinsals.month?.branch || [],
+        month_stem: sajuData.sinsals.month?.stem || [],
+        day: sajuData.sinsals.day?.branch || [],
+        day_stem: sajuData.sinsals.day?.stem || [],
+        hour: sajuData.sinsals.hour?.branch || [],
+        hour_stem: sajuData.sinsals.hour?.stem || []
+      } : {};
+
+      const detailedData = {
+        ...sajuData,
+        table: sajuRes,
+        tenGods: sajuData.correctedSipsungCounts,
+        baseTenGods: sajuData.baseSipsungCounts,
+        elements_ratio: sajuData.correctedPercentages,
+        elements_ratio_base: sajuData.basePercentages,
+        elementCounts: ['wood', 'fire', 'earth', 'metal', 'water'].reduce((acc: any, k) => { acc[k] = Math.round((sajuData.correctedPercentages[k] || 0) * 0.11); return acc; }, {}),
+        elementCounts_base: ['wood', 'fire', 'earth', 'metal', 'water'].reduce((acc: any, k) => { acc[k] = Math.round((sajuData.basePercentages[k] || 0) * 0.08); return acc; }, {}),
+        element_labels: sajuData.elementalLabels,
+        strength: { 
+          base: sajuData.baseStrength, 
+          corrected: sajuData.correctedStrength 
         },
-        body: new URLSearchParams({
-          template_object: JSON.stringify({
-            object_type: 'feed',
-            content: {
-              title: '청아매당 PREMIUM 명리 기록서 도착',
-              description: '귀하만을 위한 정밀 분석 기록서가 완성되었습니다.',
-              image_url: 'https://www.cheongamaedang.com/cheong_a_mae_dang_final_logo.png',
-              link: { mobile_web_url: `https://www.cheongamaedang.com/success?orderId=${orderId}&show=true`, web_url: `https://www.cheongamaedang.com/success?orderId=${orderId}&show=true` },
+        sinsals: flatSinsals,
+        yongsin: sajuData.yongsin?.eokbu || "",
+        yongsin_desc: "인생의 균형을 잡아주는 핵심 기운입니다." // fallback or derived
+      };
+
+      resultId = await saveResult(orderId, {
+        orderId,
+        userInput: {
+          name: userInput.name,
+          birthDate: userInput.birthDate,
+          birthTime: userInput.birthTime,
+          gender: userInput.gender,
+          question: userInput.userAnswers?.[0] || userInput.question,
+        },
+        analysis: reading.analysis,
+        detailedData, // Pass all visual data
+        images, // Pass captured PNGs as fallback
+        yongsin: sajuData.yongsin, // Full object {johu, eokbu}
+        yongsin_desc: detailedData.yongsin_desc
+      });
+      console.log(`[ResultStore] Result saved with resultId: ${resultId}`);
+    } catch (storeError: any) {
+      console.error("[ResultStore] Failed to save result:", storeError.message);
+    }
+
+    // 5. Aligo AlimTalk Delivery (Professional)
+    if (deliveryMethod === "kakao" && phoneNumber) {
+      console.log(`[Kakao] Sending AlimTalk via Aligo to ${phoneNumber}...`);
+      try {
+        await sendAlimTalk({
+          receiver: phoneNumber,
+          // IMPORTANT: This message MUST match the approved Aligo template UG_5237 exactly
+          message: `청아매당에 귀한 발걸음 해주셔서 감사합니다. 귀하의 사주에 대한 질문의 답변이 도착 하였습니다. 감사합니다.`,
+          buttons: [
+            {
+              name: "채널추가",
+              linkType: "AC"
             },
-            buttons: [{ 
-              title: '기록서 보기', 
-              link: { mobile_web_url: `https://www.cheongamaedang.com/success?orderId=${orderId}&show=true`, web_url: `https://www.cheongamaedang.com/success?orderId=${orderId}&show=true` } 
-            }],
-          })
-        })
-      }).catch(e => console.error("Kakao error:", e));
+            {
+              name: "사주풀이 결과 보기",
+              linkType: "WL",
+              linkMo: `https://www.cheongamaedang.com/result/${resultId}`,
+              linkPc: `https://www.cheongamaedang.com/result/${resultId}`
+            }
+          ]
+        });
+        console.log("[Kakao] AlimTalk sent successfully.");
+      } catch (alimError: any) {
+        console.error("[Kakao] AlimTalk failed:", alimError.message);
+      }
     }
 
     console.log(`[Background] Completed for Order: ${orderId}`);

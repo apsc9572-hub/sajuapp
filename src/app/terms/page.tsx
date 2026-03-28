@@ -60,15 +60,22 @@ export default function TermsPage() {
             </section>
 
             <section>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>제3조 (서비스의 성격 및 책임의 제한)</h2>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>제3조 (서비스의 성격 및 제공 방식)</h2>
               <p style={{ opacity: 0.8, marginBottom: "8px" }}>1. 본 서비스가 제공하는 모든 분석 결과는 명리학적 알고리즘에 기반한 추정치이며, 이는 과학적 사실이나 확정적 미래를 보장하지 않는 엔터테인먼트 및 참고용 정보입니다.</p>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>2. 프리미엄 사주 서비스는 분석 완료 후 이용자가 입력한 <strong>이메일 전송 또는 카카오 알림톡</strong>을 통해 결과지에 접근할 수 있는 링크를 제공하는 방식으로 전달됩니다.</p>
               <p style={{ opacity: 0.8, background: "rgba(212, 175, 55, 0.05)", padding: "16px", borderRadius: "12px", border: "1px dashed var(--accent-gold)", fontWeight: "600" }}>
                 본 사주 결과는 단순 참고용이며, 어떠한 경우에도 법적·의학적 효력이 없습니다. 사용자가 본 서비스의 결과를 바탕으로 내린 결정에 대한 모든 책임은 사용자 본인에게 있습니다.
               </p>
             </section>
 
             <section>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>제4조 (환불 정책)</h2>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>제4조 (결제 및 보안)</h2>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>1. 본 서비스의 모든 유료 결제는 <strong>토스페이먼츠(Toss Payments)</strong>의 전자결제 시스템을 통해 안전하게 처리됩니다.</p>
+              <p style={{ opacity: 0.8 }}>2. 회사는 이용자의 신용카드 번호, 계좌번호 등 민감한 결제 정보를 직접 수집하거나 저장하지 않으며, 토스페이먼츠의 보안 가이드를 준수합니다.</p>
+            </section>
+
+            <section>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>제5조 (환불 정책)</h2>
               <p style={{ opacity: 0.8, marginBottom: "8px" }}>1. 본 서비스의 프리미엄 사주 및 운세 결과는 결제와 동시에 생성이 시작되어 즉시 제공되는 <strong>디지털 맞춤형 콘텐츠</strong>입니다.</p>
               <p style={{ opacity: 0.8, marginBottom: "8px" }}>2. 전자상거래법 제17조 제2항 제5호에 의거하여, 디지털 콘텐츠의 제공이 개시된 이후에는 단순 변심으로 인한 환불이 불가능합니다.</p>
               <p style={{ opacity: 0.8, marginBottom: "8px" }}>3. 단, 아래와 같은 사유에 해당할 경우 회사는 환불 조치를 진행할 수 있습니다.</p>
@@ -79,8 +86,14 @@ export default function TermsPage() {
             </section>
 
             <section>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>제5조 (저작권)</h2>
-              <p style={{ opacity: 0.8 }}>본 서비스에서 제공하는 모든 텍스트, 이미지, 분석 알고리즘의 저작권은 회사에 있으며, 무단 복제 및 상업적 이용을 금합니다.</p>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>제6조 (이용자의 의무)</h2>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>1. 이용자는 서비스 이용 시 정확한 생년월일, 태어난 시간, 성별 및 전송받을 연락처(이메일, 휴대폰 번호)를 입력해야 합니다.</p>
+              <p style={{ opacity: 0.8 }}>2. 오기입으로 인한 분석 오류나 발송 실패에 대한 책임은 이용자 본인에게 있으며, 이로 인한 재발급 및 환불은 불가능합니다.</p>
+            </section>
+
+            <section>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>제7조 (저작권 및 이용 제한)</h2>
+              <p style={{ opacity: 0.8 }}>본 서비스에서 제공하는 모든 텍스트, 이미지, 분석 알고리즘의 저작권은 회사에 있으며, 무단 복제 및 상업적 이용을 엄격히 금합니다.</p>
             </section>
           </div>
 

@@ -30,6 +30,10 @@ export default function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+        <Script
+          src="https://t1.kakaocdn.net/kakao_js_sdk/1.43.0/kakao.min.js"
+          strategy="beforeInteractive"
+        />
       </head>
       <body className={outfit.className}>
         <div style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>

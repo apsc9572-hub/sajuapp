@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     }
 
     console.log("[Confirm API] Full Body Keys:", Object.keys(body));
-    const { paymentKey, orderId, amount, skip, userEmail, kakaoToken, sajuData, deliveryMethod, images } = body;
+    const { paymentKey, orderId, amount, skip, userEmail, kakaoToken, sajuData, deliveryMethod, images, phoneNumber } = body;
     
     console.log("[Confirm API] Parameters check:", { 
       hasEmail: !!userEmail, 
@@ -56,7 +56,9 @@ export async function POST(request: Request) {
 
     if (responseOk) {
       // Trigger background analysis
-      if (sajuData && userEmail) {
+      const hasDeliveryTarget = deliveryMethod === "kakao" ? !!phoneNumber : !!userEmail;
+      
+      if (sajuData && hasDeliveryTarget) {
         const actualOrigin = new URL(request.url).origin;
         const isDevelopment = process.env.NODE_ENV === 'development';
         const isLocalHost = actualOrigin.includes("localhost") || actualOrigin.includes("127.0.0.1") || actualOrigin.includes("::1");
@@ -68,18 +70,21 @@ export async function POST(request: Request) {
 
         console.log("[Confirm API] Origin:", actualOrigin, "Is it Local?", isLocal);
 
+        const payload = {
+          userEmail: userEmail || "",
+          kakaoToken,
+          sajuData,
+          orderId,
+          deliveryMethod,
+          images,
+          phoneNumber
+        };
+
         // LOCAL BYPASS: QStash cannot hit localhost. 
         if (isLocal) {
           console.log("[Confirm API] Local mode: Bypassing QStash and running delivery directly (Background).");
           // Non-blocking call to avoid browser timeout
-          processAndDeliverPremiumSaju({
-            userEmail,
-            kakaoToken,
-            sajuData,
-            orderId,
-            deliveryMethod,
-            images
-          }).catch(err => {
+          processAndDeliverPremiumSaju(payload).catch(err => {
             console.error("[Confirm API] Background Delivery Error:", err.message);
           });
         } else {
@@ -87,14 +92,7 @@ export async function POST(request: Request) {
           try {
             await qstash.publishJSON({
               url: `${webhookBaseUrl}/api/process-saju`,
-              body: {
-                userEmail,
-                kakaoToken,
-                sajuData,
-                orderId,
-                deliveryMethod,
-                images
-              },
+              body: payload,
             });
             console.log(`[QStash] Published task for Order: ${orderId}`);
           } catch (qstashError: any) {
@@ -103,7 +101,7 @@ export async function POST(request: Request) {
           }
         }
       } else {
-        console.warn("[Confirm API] Missing sajuData or userEmail, background processing skipped.");
+        console.warn("[Confirm API] Missing sajuData or delivery target (Email/Phone), background processing skipped.");
       }
 
       return NextResponse.json(result);

@@ -158,7 +158,7 @@ export const prepareAnalysisData = async (data: any) => {
     };
 
     const calculateSipsungDist = (isCorrected: boolean) => {
-        const counts: Record<string, number> = { siksin: 0, sanggwan: 0, pyeonja: 0, jeongja: 0, pyeongwan: 0, jeonggwan: 0, pyeonin: 0, jeongin: 0, bigyeon: 0, geobjae: 0 };
+        const counts: Record<string, number> = { bikyeop: 0, siksang: 0, jaeseong: 0, gwanseong: 0, inseong: 0 };
         const ilganEl = getElementFromChar(sajuRes.ilgan);
         const ilganYY = sajuRes.day.yinYang.stem;
         const positions: ("year" | "month" | "day" | "hour")[] = ["year", "month", "day", "hour"];
@@ -169,16 +169,15 @@ export const prepareAnalysisData = async (data: any) => {
         const isSummer = ['사', '오', '미'].includes(monthBr);
         const isAutumn = ['신', '유', '술'].includes(monthBr);
 
-        const getTenGodNew = (targetEl: string, targetYY: string) => {
+        const getTenGodGroup = (targetEl: string) => {
             const elOrder = ["wood", "fire", "earth", "metal", "water"];
             const iIdx = elOrder.indexOf(ilganEl);
             const tIdx = elOrder.indexOf(targetEl);
             const diff = (tIdx - iIdx + 5) % 5;
-            const sameYY = ilganYY === targetYY;
-            const map: Record<number, string[]> = {
-                0: ["비견", "겁재"], 1: ["식신", "상관"], 2: ["편재", "정재"], 3: ["편관", "정관"], 4: ["편인", "정인"]
+            const map: Record<number, string> = {
+                0: "bikyeop", 1: "siksang", 2: "jaeseong", 3: "gwanseong", 4: "inseong"
             };
-            return sameYY ? map[diff][0] : map[diff][1];
+            return map[diff];
         };
 
         const getFunctionalYY = (b: string) => {
@@ -191,24 +190,18 @@ export const prepareAnalysisData = async (data: any) => {
             const Bw = isCorrected ? BRANCH_WEIGHTS[i] : 1.0;
 
             // 1. Stem
-            const sKey = mapTenGodToKey(p.stemTenGod);
-            if (sKey) counts[sKey] += Sw;
-            else if (pos === 'day') counts['bigyeon'] += Sw;
+            const sEl = getElementFromChar(p.stemKo);
+            counts[getTenGodGroup(sEl)] += Sw;
 
             // 2. Branch with Seasonal Shift & Split
             if (isCorrected && pos === 'month') {
                 if (isWinter && p.branchKo === '축') {
-                    const tg = getTenGodNew('water', getFunctionalYY(p.branchKo));
-                    const k = mapTenGodToKey(tg); if (k) counts[k] += Bw;
+                    counts[getTenGodGroup('water')] += Bw;
                 } else if (isSpring && p.branchKo === '진') {
-                    // Split Jin in Spring: 67% Fire, 33% Earth
-                    const tgF = getTenGodNew('fire', getFunctionalYY(p.branchKo));
-                    const kF = mapTenGodToKey(tgF); if (kF) counts[kF] += (Bw * 0.67);
-                    const tgE = getTenGodNew('earth', getFunctionalYY(p.branchKo));
-                    const kE = mapTenGodToKey(tgE); if (kE) counts[kE] += (Bw * 0.33);
+                    counts[getTenGodGroup('fire')] += (Bw * 0.67);
+                    counts[getTenGodGroup('earth')] += (Bw * 0.33);
                 } else {
-                    const tg = getTenGodNew(getElementFromChar(p.branchKo), getFunctionalYY(p.branchKo));
-                    const k = mapTenGodToKey(tg); if (k) counts[k] += Bw;
+                    counts[getTenGodGroup(getElementFromChar(p.branchKo))] += Bw;
                 }
             } else {
                 let bEl = getElementFromChar(p.branchKo);
@@ -218,9 +211,7 @@ export const prepareAnalysisData = async (data: any) => {
                     else if (isSummer && (p.branchKo === '미' || p.branchKo === '술')) bEl = 'fire';
                     else if (isAutumn && (p.branchKo === '술' || p.branchKo === '축')) bEl = 'metal';
                 }
-                const tg = getTenGodNew(bEl, getFunctionalYY(p.branchKo));
-                const bKey = mapTenGodToKey(tg);
-                if (bKey) counts[bKey] += Bw;
+                counts[getTenGodGroup(bEl)] += Bw;
             }
         });
 

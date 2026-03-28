@@ -47,13 +47,18 @@ export default function PrivacyPage() {
               <p style={{ opacity: 0.8, marginBottom: "8px" }}>회사는 원활한 사주 분석 서비스를 제공하기 위해 아래와 같은 최소한의 개인정보를 수집합니다.</p>
               <ul style={{ opacity: 0.8, fontSize: "0.8rem", paddingLeft: "20px", margin: 0 }}>
                 <li>필수항목: 이름, 생년월일(양력/음력), 출생시간, 성별, 출생지(도시)</li>
+                <li>선택항목(서비스 전송): 이메일 주소, 휴대폰 번호</li>
                 <li>수집방법: 이용자가 서비스 내 입력 폼에 직접 입력</li>
               </ul>
             </section>
 
             <section>
               <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>2. 개인정보의 수집 및 이용 목적</h2>
-              <p style={{ opacity: 0.8 }}>회사는 수집한 개인정보를 오직 <strong>사용자 맞춤형 사주 분석 결과 생성 및 서비스 제공</strong> 목적을 위해서만 이용합니다. 수집된 정보는 마케팅 등 다른 용도로 활용되지 않습니다.</p>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>회사는 수집한 개인정보를 아래 목적을 위해서만 이용합니다.</p>
+              <ul style={{ opacity: 0.8, fontSize: "0.8rem", paddingLeft: "20px", margin: 0 }}>
+                <li>사용자 맞춤형 사주 분석 결과 생성 및 서비스 제공</li>
+                <li>프리미엄 사주 결과지 전송 (이메일 및 카카오 알림톡)</li>
+              </ul>
             </section>
 
             <section>
@@ -63,7 +68,38 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>4. 이용자의 권리 및 문의처</h2>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>4. 개인정보의 제3자 제공</h2>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>회사는 원활한 서비스 제공을 위해 아래와 같이 개인정보를 위탁/제공하고 있습니다.</p>
+              <table style={{ width: "100%", fontSize: "0.75rem", borderCollapse: "collapse", marginBottom: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>
+                <thead>
+                  <tr style={{ background: "rgba(0,0,0,0.02)" }}>
+                    <th style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>제공받는 자</th>
+                    <th style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>이용 목적</th>
+                    <th style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>제공 항목</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>알리고 (Aligo)</td>
+                    <td style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>카카오 알림톡 발송</td>
+                    <td style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>휴대폰 번호</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>토스페이먼츠</td>
+                    <td style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>결제 서비스 제공 및 본인인증</td>
+                    <td style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>결제정보 (카드사, 계좌정보 등)</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>Resend</td>
+                    <td style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>이메일 결과지 발송</td>
+                    <td style={{ padding: "8px", border: "1px solid rgba(0,0,0,0.05)" }}>이메일 주소</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>5. 이용자의 권리 및 문의처</h2>
               <div style={{ opacity: 0.8, background: "rgba(0,0,0,0.02)", padding: "16px", borderRadius: "12px", fontSize: "0.8rem", marginBottom: "8px" }}>
                 상호: 플레이앤겟<br />
                 사업자등록번호: 170-53-00867<br />

@@ -126,3 +126,75 @@ export async function callClaudeLatest(
   console.log("[AI] Claude 4.6 Sonnet call successful.");
   return text;
 }
+
+/**
+ * 알리고 알림톡 발송 함수
+ */
+export async function sendAlimTalk(params: {
+  receiver: string;
+  message: string;
+  emblem?: string;
+  button1?: { name: string; type: string; url_mobile?: string; url_pc?: string };
+  buttons?: any[]; // array of button objects matching Aligo spec
+}) {
+  const apiKey = process.env.ALIGO_API_KEY;
+  const userId = process.env.ALIGO_USER_ID;
+  const senderKey = process.env.ALIGO_SENDER_KEY;
+  const templateCode = process.env.ALIGO_TEMPLATE_CODE;
+  const sender = process.env.ALIGO_SENDER;
+
+  if (!apiKey || !userId || !senderKey || !templateCode || !sender) {
+    console.error("[Aligo] Missing configuration", { apiKey: !!apiKey, userId: !!userId, senderKey: !!senderKey, templateCode: !!templateCode, sender: !!sender });
+    return { status: "error", message: "Missing configuration" };
+  }
+
+  // Direct send to Aligo AlimTalk API (as per official docs - no token step needed)
+  console.log("[Aligo] Sending AlimTalk... apikey:", apiKey.slice(0, 6) + "...", "userid:", userId, "receiver:", params.receiver);
+
+  // Build URL-encoded body like the official curl example: --data-urlencode
+  const bodyParams = new URLSearchParams();
+  bodyParams.append("apikey", apiKey);
+  bodyParams.append("userid", userId);
+  bodyParams.append("senderkey", senderKey);
+  bodyParams.append("tpl_code", templateCode);
+  bodyParams.append("sender", sender);
+  bodyParams.append("receiver_1", params.receiver);
+  bodyParams.append("subject_1", "청아매당 프리미엄 사주 결과");
+  bodyParams.append("message_1", params.message);
+  // testMode: Y for debugging auth without consuming points (remove in production)
+  // bodyParams.append("testMode", "Y");
+
+  if (params.buttons) {
+    bodyParams.append("button_1", JSON.stringify({
+      button: params.buttons
+    }));
+  } else if (params.button1) {
+    bodyParams.append("button_1", JSON.stringify({
+      button: [
+        {
+          name: params.button1.name,
+          linkType: params.button1.type,
+          linkMo: params.button1.url_mobile,
+          linkPc: params.button1.url_pc
+        }
+      ]
+    }));
+  }
+
+  try {
+    const response = await fetch("https://kakaoapi.aligo.in/akv10/alimtalk/send/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: bodyParams.toString(),
+    });
+
+    const result = await response.json();
+    console.log("[Aligo] Send Result:", JSON.stringify(result));
+    return result;
+  } catch (error) {
+    console.error("[Aligo] Request Failed:", error);
+    return { status: "error", message: "Request failed" };
+  }
+}

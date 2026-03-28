@@ -30,10 +30,12 @@ export async function POST(req: NextRequest) {
     const body = JSON.parse(bodyText);
     console.log("[QStash Worker] Verified task:", body);
 
-    const { userEmail, sajuData, orderId, kakaoToken, deliveryMethod, images } = body;
+    const { userEmail, sajuData, orderId, kakaoToken, deliveryMethod, images, phoneNumber } = body;
 
-    if (!userEmail || !sajuData || !orderId) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const hasDeliveryTarget = deliveryMethod === "kakao" ? !!phoneNumber : !!userEmail;
+
+    if (!hasDeliveryTarget || !sajuData || !orderId) {
+      return NextResponse.json({ error: "Missing required fields (Email/Phone, SajuData, or OrderId)" }, { status: 400 });
     }
 
     // Trigger the heavy processing
@@ -43,7 +45,8 @@ export async function POST(req: NextRequest) {
       sajuData,
       orderId,
       deliveryMethod,
-      images
+      images,
+      phoneNumber
     });
 
     return NextResponse.json({ success: true });

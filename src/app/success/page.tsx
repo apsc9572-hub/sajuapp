@@ -98,6 +98,7 @@ function SuccessContent() {
         userEmail: data.userEmail, 
         deliveryMethod: data.deliveryMethod,
         kakaoToken,
+        phoneNumber: data.phoneNumber,
         sajuData: analysisData,
         images: capturedImages 
       };

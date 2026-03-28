@@ -870,8 +870,9 @@ function PremiumSajuContent() {
   const [userEmail, setUserEmail] = useState("");
   const [emailId, setEmailId] = useState("");
   const [emailDomain, setEmailDomain] = useState("naver.com");
-  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "kakao">("email");
+  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "kakao">("kakao");
   const [kakaoToken, setKakaoToken] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [customerKey] = useState(() => uuidv4());
@@ -935,6 +936,7 @@ function PremiumSajuContent() {
         if (parsed.isLunar !== undefined) setIsLunar(parsed.isLunar);
         if (parsed.gender) setGender(parsed.gender);
         if (parsed.birthCity) setBirthCity(parsed.birthCity);
+        if (parsed.phoneNumber) setPhoneNumber(parsed.phoneNumber);
         if (parsed.userEmail) {
           const email = parsed.userEmail as string;
           setUserEmail(email);
@@ -1030,41 +1032,48 @@ function PremiumSajuContent() {
           const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "b60b41a84d11534e64bd1422cba88b5d";
           try {
             Kakao.init(key);
-            console.log("Kakao SDK Initialized with key:", key);
+            console.log("Kakao SDK Initialized. Modules:", Object.keys(Kakao));
           } catch (e) {
-            console.error("Kakao Init Error during useEffect:", e);
+            console.error("Kakao Init Error:", e);
           }
         }
         setKakaoReady(true);
-        console.log("Loaded Kakao Modules in useEffect:", Object.keys(Kakao));
       }
     };
 
-    if (kakaoReady || (window as any).Kakao) {
-      initKakao();
-    }
-  }, [kakaoReady]);
+    const timer = setInterval(() => {
+      const Kakao = (window as any).Kakao;
+      if (Kakao && Kakao.init) {
+        initKakao();
+        if (Kakao.Auth) {
+          clearInterval(timer);
+        }
+      }
+    }, 300);
 
+    return () => clearInterval(timer);
+  }, []);
+
+  /* 
+  // Kakao Login is removed as per user request to simplify to phone-only AlimTalk
   const handleKakaoSync = () => {
     const Kakao = (window as any).Kakao;
-    if (!Kakao || !Kakao.Auth) {
-      alert("카카오톡 SDK 또는 인증 모듈을 불러오는 중입니다. 1~2초 후 다시 시도해주세요.");
-      console.error("Kakao SDK or Auth module missing. Kakao Ready State:", kakaoReady);
-      if (Kakao) console.log("Current Kakao Keys:", Object.keys(Kakao));
+
+    if (!Kakao) {
+      alert("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
       return;
     }
-    
-    if (!Kakao.isInitialized()) {
-      try {
-        Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "b60b41a84d11534e64bd1422cba88b5d");
-      } catch (e) {
-        console.error("Kakao Init Error during Sync:", e);
-      }
+
+    if (!Kakao.Auth) {
+      alert("카카오톡 인증 모듈을 불러오는 중입니다. 1~2초 후 다시 시도해주세요.");
+      return;
     }
 
+    // In v1 SDK, login is the standard popup method.
     Kakao.Auth.login({
-      scope: 'profile_nickname, account_email, gender, talk_message',
+      scope: 'profile_nickname, account_email, gender',
       success: function(authObj: any) {
+        console.log("Kakao Login Success:", authObj);
         Kakao.API.request({
           url: '/v2/user/me',
           success: function(res: any) {
@@ -1074,7 +1083,13 @@ function PremiumSajuContent() {
                 setGender(kakaoAccount.gender === "male" ? "M" : "F");
               }
               if (kakaoAccount.email) {
-                setUserEmail(kakaoAccount.email);
+                const email = kakaoAccount.email;
+                setUserEmail(email);
+                if (email.includes("@")) {
+                  const [id, domain] = email.split("@");
+                  setEmailId(id);
+                  setEmailDomain(domain);
+                }
               }
               if (authObj.access_token) {
                 setKakaoToken(authObj.access_token);
@@ -1084,15 +1099,18 @@ function PremiumSajuContent() {
             }
           },
           fail: function(error: any) {
-            console.error(error);
+            console.error("Kakao API Request Fail:", error);
+            alert("카카오 정보를 불러오는데 실패했습니다.");
           }
         });
       },
       fail: function(err: any) {
-        console.error(err);
+        console.error("Kakao Auth Login Fail:", err);
+        alert("카카오 로그인에 실패했습니다.");
       },
     });
   };
+  */
 
   const handleKakaoShare = () => {
     if (!reading) return;
@@ -1111,7 +1129,8 @@ function PremiumSajuContent() {
       }
     }
 
-    Kakao.Share.sendDefault({
+    // In v1 SDK, Share is renamed to Link
+    Kakao.Link.sendDefault({
       objectType: 'feed',
       content: {
         title: '청아매당 PREMIUM 사주 감명',
@@ -1785,19 +1804,32 @@ function PremiumSajuContent() {
                 </div>
 
                   <div style={{ background: "white", padding: "16px", borderRadius: "20px", boxShadow: "0 10px 30px rgba(0,0,0,0.03)", border: "1px solid var(--glass-border)", display: "flex", flexDirection: "column", gap: "10px" }}>
-                    {/* Delivery Method Selector */}
                     <div style={{ display: "flex", gap: "8px", marginBottom: "10px", background: "rgba(0,0,0,0.04)", padding: "4px", borderRadius: "14px" }}>
                       <button 
-                        onClick={() => setDeliveryMethod("email")}
-                        style={{ flex: 1, padding: "10px 0", borderRadius: "10px", border: "none", background: deliveryMethod === "email" ? "white" : "transparent", color: deliveryMethod === "email" ? "var(--accent-indigo)" : "#999", fontWeight: "700", fontSize: "0.85rem", boxShadow: deliveryMethod === "email" ? "0 2px 8px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}
-                      >
-                        이메일로 받기
-                      </button>
-                      <button 
                         onClick={() => setDeliveryMethod("kakao")}
-                        style={{ flex: 1, padding: "10px 0", borderRadius: "10px", border: "none", background: deliveryMethod === "kakao" ? "white" : "transparent", color: deliveryMethod === "kakao" ? "#3C1E1E" : "#999", fontWeight: "700", fontSize: "0.85rem", boxShadow: deliveryMethod === "kakao" ? "0 2px 8px rgba(0,0,0,0.1)" : "none", transition: "all 0.2s" }}
+                        style={{ 
+                          flex: 1, padding: "10px 0", borderRadius: "10px", border: "none", 
+                          background: deliveryMethod === "kakao" ? "#FEE500" : "transparent", 
+                          color: deliveryMethod === "kakao" ? "#3C1E1E" : "#999", 
+                          fontWeight: "800", fontSize: "0.85rem", 
+                          boxShadow: deliveryMethod === "kakao" ? "0 2px 10px rgba(254,229,0,0.3)" : "none", 
+                          transition: "all 0.2s" 
+                        }}
                       >
                         카카오톡으로 받기
+                      </button>
+                      <button 
+                        onClick={() => setDeliveryMethod("email")}
+                        style={{ 
+                          flex: 1, padding: "10px 0", borderRadius: "10px", border: "none", 
+                          background: deliveryMethod === "email" ? "white" : "transparent", 
+                          color: deliveryMethod === "email" ? "var(--accent-indigo)" : "#999", 
+                          fontWeight: "700", fontSize: "0.85rem", 
+                          boxShadow: deliveryMethod === "email" ? "0 2px 8px rgba(0,0,0,0.1)" : "none", 
+                          transition: "all 0.2s" 
+                        }}
+                      >
+                        이메일로 받기
                       </button>
                     </div>
 
@@ -1833,21 +1865,25 @@ function PremiumSajuContent() {
                       </div>
                     ) : (
                       <div style={{ marginBottom: "4px" }}>
-                        <span style={{ display: "block", fontSize: "0.75rem", fontWeight: "800", color: "var(--accent-indigo)", marginLeft: "4px", marginBottom: "6px" }}>카카오 계정 연동 (필수)</span>
-                        <motion.button
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                          onClick={handleKakaoSync}
-                          style={{ 
-                            width: "100%", padding: "12px", borderRadius: "12px", background: "#FEE500", 
-                            color: "#3C1E1E", fontWeight: "800", fontSize: "0.9rem", border: "none", 
-                            display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", 
-                            boxShadow: "0 4px 12px rgba(254, 229, 0, 0.15)", cursor: "pointer" 
-                          }}
-                        >
-                          <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png" alt="kakao" style={{ width: "18px" }} />
-                          {kakaoToken ? "카카오 정보 연동 완료" : "카카오 1초 연동하기"}
-                        </motion.button>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                          <span style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--accent-indigo)", marginLeft: "4px" }}>알림톡 수신 번호 (필수)</span>
+                          <input 
+                            type="tel" 
+                            value={phoneNumber} 
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, '');
+                              if (val.length <= 11) setPhoneNumber(val);
+                            }} 
+                            placeholder="01012345678"
+                            style={{ 
+                              width: "100%", padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", 
+                              border: "none", fontSize: "0.95rem", fontWeight: "600", outline: "none"
+                            }} 
+                          />
+                          <p style={{ fontSize: '11px', color: '#999', margin: "2px 0 0 4px", lineHeight: "1.4" }}>
+                            * 입력하신 번호로 사주풀이 결과가 카카오톡으로 발송됩니다.
+                          </p>
+                        </div>
                       </div>
                     )}
                     <div onClick={() => setIsDatePickerOpen(true)} className="glass-input" style={{ cursor: "pointer", padding: "12px", borderRadius: "12px", background: "rgba(0,0,0,0.02)", fontSize: "0.95rem", textAlign: "center", fontWeight: "600" }}>{date}</div>
@@ -1886,16 +1922,16 @@ function PremiumSajuContent() {
                   </div>
                 <button 
                   onClick={() => setStep(1)} 
-                  disabled={deliveryMethod === "email" && !emailId}
+                  disabled={(deliveryMethod === "email" && !emailId) || (deliveryMethod === "kakao" && phoneNumber.length < 10)}
                   className="btn-primary" 
                   style={{ 
                     width: "100%", marginTop: "16px", padding: "14px", borderRadius: "16px", 
-                    background: deliveryMethod === "email" && !emailId ? "#ccc" : "linear-gradient(135deg, var(--accent-indigo), #1A1C2C)", 
-                    color: deliveryMethod === "email" && !emailId ? "#999" : "var(--accent-gold)", 
+                    background: ((deliveryMethod === "email" && !emailId) || (deliveryMethod === "kakao" && phoneNumber.length < 10)) ? "#ccc" : "linear-gradient(135deg, var(--accent-indigo), #1A1C2C)", 
+                    color: ((deliveryMethod === "email" && !emailId) || (deliveryMethod === "kakao" && phoneNumber.length < 10)) ? "#999" : "var(--accent-gold)", 
                     fontWeight: "700", fontSize: "1.05rem", border: "none", display: "flex", 
                     justifyContent: "center", alignItems: "center", gap: "8px", 
                     boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
-                    cursor: deliveryMethod === "email" && !emailId ? "not-allowed" : "pointer"
+                    cursor: ((deliveryMethod === "email" && !emailId) || (deliveryMethod === "kakao" && phoneNumber.length < 10)) ? "not-allowed" : "pointer"
                   }}
                 >
                   심층 질문 시작하기 <ArrowRight size={18} />
@@ -1963,10 +1999,10 @@ function PremiumSajuContent() {
                     <span style={{ fontSize: "0.85rem", color: "#999", fontWeight: "600" }}>태어난 도시</span>
                     <span style={{ fontSize: "0.95rem", color: "#333", fontWeight: "700" }}>{birthCity}</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span style={{ fontSize: "0.85rem", color: "#999", fontWeight: "600" }}>받으실 곳</span>
                     <span style={{ fontSize: "0.95rem", color: "var(--accent-indigo)", fontWeight: "700" }}>
-                      {deliveryMethod === "email" ? userEmail : "카카오톡 연동됨"}
+                      {deliveryMethod === "email" ? userEmail : `${phoneNumber.slice(0,3)}-${phoneNumber.slice(3,7)}-${phoneNumber.slice(7)}`}
                     </span>
                   </div>
                 </div>
@@ -2009,9 +2045,13 @@ function PremiumSajuContent() {
                     const paymentData = {
                       date, time, isLunar, isLeap, birthCity, gender, 
                       selectedCategory, userQuestion, userEmail,
-                      deliveryMethod // Added
+                      deliveryMethod, phoneNumber // Added
                     };
                     localStorage.setItem("premium_saju_data", JSON.stringify(paymentData));
+                    // Also save profile for future use
+                    localStorage.setItem("user_birth_profile", JSON.stringify({
+                      date, time, isLunar, gender, birthCity, userEmail, phoneNumber
+                    }));
                     setIsPaymentModalOpen(true);
                   }}
                   className="btn-primary" 
@@ -2285,15 +2325,6 @@ function PremiumSajuContent() {
         customerKey={customerKey}
       />
     </main>
-    <Script 
-      src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
-      onLoad={() => {
-        setKakaoReady(true);
-        if ((window as any).Kakao && !(window as any).Kakao.isInitialized()) {
-          (window as any).Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "b60b41a84d11534e64bd1422cba88b5d");
-        }
-      }}
-    />
     </>
   );
 }
