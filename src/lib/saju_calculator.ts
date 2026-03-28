@@ -140,6 +140,28 @@ function getTenGod(dayStem: string, targetStem: string): string {
 
 import { calculateSaju } from 'ssaju';
 
+function calculate12Woonseong(ilgan: string, branch: string): string {
+  const WOONSEONG_NAMES = ["장생", "목욕", "관대", "건록", "제왕", "쇠", "병", "사", "묘", "절", "태", "양"];
+  const BRANCHES_FOR_INDEX = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+  const jangsaengMap: Record<string, string> = {
+    "갑": "해", "병": "인", "무": "인", "경": "사", "임": "신", // Yang
+    "을": "오", "정": "유", "기": "유", "신": "자", "계": "묘"  // Yin
+  };
+  const isYang = ["갑", "병", "무", "경", "임"].includes(ilgan);
+  const startBranch = jangsaengMap[ilgan];
+  const startIdx = BRANCHES_FOR_INDEX.indexOf(startBranch);
+  const targetIdx = BRANCHES_FOR_INDEX.indexOf(branch);
+  if (startIdx === -1 || targetIdx === -1) return "-";
+  
+  let diff = 0;
+  if (isYang) {
+    diff = (targetIdx - startIdx + 12) % 12;
+  } else {
+    diff = (startIdx - targetIdx + 12) % 12;
+  }
+  return WOONSEONG_NAMES[diff];
+}
+
 export function calculateHighPrecisionSaju(params: {
   year: number; month: number; day: number; hour: number; minute: number;
   latitude: number; longitude: number; isLunar: boolean; isIntercalation?: boolean; gender: "M" | "F"
@@ -166,7 +188,7 @@ export function calculateHighPrecisionSaju(params: {
       yinYang: p.yinYang,
       hiddenStems: { 초기: hidden.초기, 중기: hidden.중기, 정기: hidden.정기 },
       hiddenText: `${hidden.초기} ${hidden.중기} ${hidden.정기}`.trim(),
-      stage12: ssajuRes.stages12.bong[key as keyof typeof ssajuRes.stages12.bong],
+      stage12: calculate12Woonseong(ilganKo, p.branchKo),
       sinsals: [],
       stemSinsals: [],
       branchSinsals: []
