@@ -656,8 +656,8 @@ export async function processAndDeliverPremiumSaju(params: {
             {
               name: "사주풀이 결과 보기",
               linkType: "WL",
-              linkMo: `https://www.cheongamaedang.com/result/${resultId}`,
-              linkPc: `https://www.cheongamaedang.com/result/${resultId}`
+              linkMo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://cheongamaedang.com'}/result/${resultId}`,
+              linkPc: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://cheongamaedang.com'}/result/${resultId}`
             }
           ]
         });

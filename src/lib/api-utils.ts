@@ -144,8 +144,9 @@ export async function sendAlimTalk(params: {
   const sender = process.env.ALIGO_SENDER;
 
   if (!apiKey || !userId || !senderKey || !templateCode || !sender) {
-    console.error("[Aligo] Missing configuration", { apiKey: !!apiKey, userId: !!userId, senderKey: !!senderKey, templateCode: !!templateCode, sender: !!sender });
-    return { status: "error", message: "Missing configuration" };
+    const missing = { apiKey: !!apiKey, userId: !!userId, senderKey: !!senderKey, templateCode: !!templateCode, sender: !!sender };
+    console.error("[Aligo] Missing configuration", missing);
+    throw new Error(`Aligo configuration missing: ${JSON.stringify(missing)}`);
   }
 
   // Direct send to Aligo AlimTalk API (as per official docs - no token step needed)
