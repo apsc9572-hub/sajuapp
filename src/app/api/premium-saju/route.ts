@@ -60,7 +60,7 @@ function extractDataRegex(raw: string): any {
     return result;
 }
 
-import { fetchWithRetry, callGPTLatest, callClaudeLatest } from '@/lib/api-utils';
+import { fetchWithRetry, callGPTPremium, callClaudeProfessional } from '@/lib/api-utils';
 
 async function callAIAnalysis(apiKey: string, sajuJson: any, userAnswers: any, phase: number, category: string, systemPrompt?: string) {
   const geminiModelId = 'gemini-2.0-flash';
@@ -209,15 +209,15 @@ ${sections[phase]}
       text = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
     } catch (err) {
       console.error(`[Phase 1 Error] Gemini failed, falling back to GPT 5.1 Mini:`, err);
-      text = await callGPTLatest(promptText, "You are a top-tier Korean Saju data master. Output JSON only.", "json_object");
+      text = await callGPTPremium(promptText, "You are a top-tier Korean Saju data master. Output JSON only.", "json_object");
     }
   } else {
     try {
-      text = await callGPTLatest(promptText, "You are a world-class Korean Saju master.", "text");
+      text = await callGPTPremium(promptText, "You are a world-class Korean Saju master.", "text");
     } catch (err) {
       console.error(`[Phase ${phase} Error] GPT failed, falling back to Claude:`, err);
       try {
-        text = await callClaudeLatest(promptText, "You are a world-class Korean Saju master.");
+        text = await callClaudeProfessional(promptText, "You are a world-class Korean Saju master.");
       } catch (claudeErr) {
         throw claudeErr;
       }
