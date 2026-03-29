@@ -436,7 +436,9 @@ const renderHighlightedText = (rawText: string, isDarkBg = false) => {
     if (!rawText) return null;
     let text = rawText
       .replace(/&nbsp;/g, ' ') // Strip &nbsp; entities
-      .replace(/<[^>]+>/g, '')
+      .replace(/<span[^>]*>/gi, '[major]') // Convert legacy back-end spans back to tags
+      .replace(/<\/span>/gi, '[/major]')
+      .replace(/<[^>]+>/g, '') // Strip remaining HTML
       .replace(/^\s*[\{\[\]\}]+\s*/gm, '')
       .trim();
     
@@ -581,9 +583,9 @@ export default function SajuResultView({ reading, detailedData, onCopy }: { read
                 </section>
 
                 {!(reading.isTotalFortune || reading.analysis?.isTotalFortune || reading.analysis?.detailed_fortune) && (
-                  <section style={{ background: "rgba(255,255,255,0.04)", padding: "20px", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <section>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}>
-                          <Sparkles size={16} color="var(--accent-gold)" />
+                          <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
                           <h4 style={{ fontSize: "0.95rem", fontWeight: "900", color: "var(--accent-gold)" }}>핵심 성패 시기 (2026-2028)</h4>
                       </div>
                       {renderHighlightedText(reading.analysis?.timing, true)}
@@ -591,9 +593,9 @@ export default function SajuResultView({ reading, detailedData, onCopy }: { read
                 )}
 
                 {reading.analysis?.detailed_fortune && (
-                  <section style={{ background: "rgba(255,255,255,0.04)", padding: "20px", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                  <section>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}>
-                          <Sparkles size={16} color="var(--accent-gold)" />
+                          <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
                           <h4 style={{ fontSize: "0.95rem", fontWeight: "900", color: "var(--accent-gold)" }}>분야별 상세 운세</h4>
                       </div>
                       {renderHighlightedText(reading.analysis?.detailed_fortune, true)}
@@ -601,9 +603,9 @@ export default function SajuResultView({ reading, detailedData, onCopy }: { read
                 )}
 
                 {reading.analysis?.turning_points && (
-                  <section style={{ background: "rgba(255,255,255,0.04)", padding: "20px", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.06)", marginTop: "12px" }}>
+                  <section>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}>
-                          <Sparkles size={16} color="var(--accent-gold)" />
+                          <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
                           <h4 style={{ fontSize: "0.95rem", fontWeight: "900", color: "var(--accent-gold)" }}>인생 주요 전환점 & 위험 시기</h4>
                       </div>
                       {renderHighlightedText(reading.analysis?.turning_points, true)}

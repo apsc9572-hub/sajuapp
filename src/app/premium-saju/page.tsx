@@ -2312,12 +2312,12 @@ function PremiumSajuContent() {
                             </section>
                           )}
 
-                          <section style={{ background: "rgba(255,255,255,0.05)", padding: "24px", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.1)" }}>
+                          <section>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                              <Sparkles size={18} color="var(--accent-gold)" />
+                              <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
                               <h4 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-gold)", margin: 0 }}>실전 개운 비책</h4>
                             </div>
-                            <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "var(--accent-gold)", fontWeight: "600", wordBreak: "keep-all" }}>
+                            <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all" }}>
                               {renderHighlightedText(reading.luck_advice, true)}
                             </div>
                           </section>

@@ -13,14 +13,14 @@ async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswe
 - 고민 해결이나 사업 시작 등에 가장 적절한 '최상의 시점'(예: 2026년 5월-7월)을 단 하나로 확정하십시오.
 - 출력 포맷: JSON {"best_period": "시기", "yongsin_strategy": "전략", "core_advice": "조언"}`,
     life_shape: `[섹션 1: 인생의 전체적인 형상 분석]
-- 반드시 공백 포함 **1,500자 ~ 1,800자** 범위로 작성하십시오.
+- 반드시 공백 포함 **1,800자 ~ 2,500자** 범위로 작성하십시오.
 - ${strategyContext}
 - **위 가이드라인을 '바탕'으로 하되, 절대로 날짜나 시기(연도/월)를 구체적으로 언급하지 마십시오.** (그것은 섹션 3의 역할입니다.)
 - 오직 내담자의 타고난 원국의 기운, 성정, 인생의 전체적인 풍경과 형상을 비유적으로 묘사하는 데에만 집중하십시오.
 - 시작은 내담자의 가슴을 관통하는 강렬한 운명적 비유(후킹)로 시작하십시오.
 - **프리미엄 골드 강조 (필수)**: 가장 통찰력 있는 비유나 핵심 성정 문장을 반드시 **[major]내용[/major]** 태그로 감싸십시오.`,
     solution: `[섹션 2: 고민에 대한 대가의 해답]
-- 반드시 공백 포함 **2,500자 ~ 3,000자** 범위로 작성하십시오.
+- 반드시 공백 포함 **1,800자 ~ 2,500자** 범위로 작성하십시오.
 - ${strategyContext}
 - **도입부 필수 형식**: 첫 문장은 반드시 '"${userAnswers[0]}"라는 질문을 하셨습니다.' 또는 '"${userAnswers[0]}"에 대해 물으셨군요.'와 같이 사용자의 질문을 직접 인용하며 시작하십시오. (AI가 아닌 사람처럼 느껴지도록 공감을 담으십시오.)
 - **섹션 1에서 다룬 운명적 형상을 반복하지 마십시오.**
@@ -28,7 +28,7 @@ async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswe
 - **프리미엄 골드 강조 (필수)**: 가장 결정적인 조언과 해답 문장을 반드시 **[major]내용[/major]** 태그로 감싸십시오.
 - 시기는 간략히만 언급하고, 구체적인 3개년 분석은 섹션 3으로 양보하십시오.`,
     timing: `[섹션 3: 3개년 상세 운세 (2026-2028)]
-- 반드시 공백 포함 **2,500자 ~ 2,800자** 범위로 작성하십시오.
+- 반드시 공백 포함 **1,800자 ~ 2,500자** 범위로 작성하십시오.
 - ${strategyContext}
 - **내용의 핵심**: 내담자가 선택한 메뉴("${userAnswers[0].split(': ')[1] || '선택 영역'}")를 중심으로 3년간의 운 흐름을 분석하십시오.
 - **연도별 구성 및 분량 배정 (필수)**: 
@@ -37,7 +37,7 @@ async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswe
 - **프리미엄 골드 강조 (필수)**: 각 연도별 가장 중요한 기회나 고비가 되는 시점의 문장을 반드시 **[major]내용[/major]** 태그로 감싸십시오.
 - 앞선 섹션들의 내용을 절대로 반복하지 말고, 오직 '운의 타이밍' 분석에만 집중하십시오.`,
     detailed_fortune: `[섹션 4: 분야별 인생 운세 분석]
-- 반드시 공백 포함 **3,000자 ~ 3,500자** 범위로 작성하십시오.
+- 반드시 공백 포함 **1,800자 ~ 2,500자** 범위로 작성하십시오.
 - ${strategyContext}
 - **내용의 핵심**: 특정 날짜나 연도를 언급하지 말고, 내담자 평생의 운의 흐름을 각 분야별로 아주 상세하고 깊이 있게 분석하십시오.
 - **절대 금지 사항**: 
@@ -51,13 +51,13 @@ async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswe
   5. 인간관계·자녀운: 주변인과의 인덕, 자녀와의 유대 및 노년의 안락함
 - **프리미엄 골드 강조**: 각 항목별 가장 결정적인 통찰 문장을 반드시 **[major]내용[/major]** 태그로 감싸십시오.`,
     turning_points: `[섹션 5: 인생 주요 전환점 & 위험 시기]
-- 반드시 공백 포함 **1,500자 ~ 2,000자** 범위로 작성하십시오.
+- 반드시 공백 포함 **1,800자 ~ 2,500자** 범위로 작성하십시오.
 - ${strategyContext}
 - **내용 1: 인생의 3~4개 대전환점**: 구체적인 나이(예: "34세 대운 교체 타이밍", "42세 문서운 발동")를 명시하며 삶이 변하는 지점을 짚어주십시오.
 - **내용 2: 위험 시기 및 주의사항**: 신살(백호, 양인 등)이나 흉운이 겹쳐 주의가 필요한 구체적 연도/월을 경고하고 대비책을 제시하십시오.
 - **프리미엄 골드 강조**: 전환점의 핵심 나이와 행동 지침을 **[major]내용[/major]** 태그로 감싸하십시오.`,
     luck_advice: `[섹션 6: 실전 개운(開運)의 비책]
-- 반드시 공백 포함 **1,200자 ~ 1,500자** 범위로 작성하십시오.
+- 반드시 공백 포함 **1,800자 ~ 2,500자** 범위로 작성하십시오.
 - ${strategyContext}
 - **필수 포함 요소**: 일상에서 실천 가능한 확실한 개운법(생활 습관, 행운을 주는 물건, 색상, 방향 등)을 구체적으로 서술하십시오.
 - **프리미엄 골드 강조 (필수)**: 가장 핵심적인 개운비책 문장을 반드시 **[major]내용[/major]** 태그로 감싸십시오.`,
@@ -85,7 +85,7 @@ async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswe
 2. **입체적 합성 분석**: 각 데이터를 단편적으로 설명하지 마십시오. 예를 들어, "현재의 대운이 용신운이며, 올해의 세운에서 천을귀인이 작용하므로 큰 재물적 성취가 예상됩니다"와 같이 요소 간의 상호작용을 논리적으로 융합하십시오.
 3. **명쾌한 해답 도출 (최우선)**: 내담자의 구체적인 질문([Answers])에 대해 수십 년 경력의 대가로서 **확신에 찬 해답**을 제시하십시오. 단호하고 권위 있는 어조(~이(가) 분명합니다, ~하십시오)를 유지하십시오.
 4. **시기 분석의 정밀성**: "시기" 질문 시 각 명식의 용신과 세운/월운 데이터를 대조하여 개별적으로 도출하십시오. '9~11월'과 같은 특정 예시에 얽매이지 말고 데이터에 근거한 독자적 시점을 명시하십시오.
-5. **포맷 준수**: '올해' 대신 '2026년'을 사용하고, 마크다운 강조 기호(**) 대신 지정된 태그([[단어]], [major]문장[/major])만 사용하십시오.
+5. **포맷 준수**: '올해' 대신 '2026년'을 사용하고, 마크다운 강조 기호(**) 대신 지정된 태그([major]문장[/major])만 사용하십시오. (주의: 태그 스펠링을 절대 틀리지 마십시오)
 6. **[핵심] 전격 존댓말 고정**: 모든 문장은 정중한 존댓말로 통일하십시오.
 7. **표현의 다양성 및 시점 중복 배제 (매우 중요)**: 동일한 단어나 문장 구조, 혹은 **이미 설명한 특정 시기(예: 2026년 상반기)**를 반복하여 분량을 채우지 마십시오. 매 단락마다 분석의 시점을 뒤로 전진시키거나 새로운 관점의 정보를 제공해야 합니다. 앞서 언급한 비유나 날짜를 재사용하지 마십시오.
 8. **부드럽고 품격 있는 말투**: 대가의 무게감이 느껴지도록 격식 있고 통찰력 있는 표현을 사용하십시오.
@@ -140,8 +140,9 @@ const stripAIMarkers = (text: string) => {
     .replace(/\(올해\)/g, '(2026년)')
     .replace(/\s올해\s/g, ' 2026년 ')
     .replace(/\\n/g, '\n')
-    .replace(/\[\[(.*?)\]\]/g, '<span style="color: #D4AF37; font-weight: bold;">$1</span>')
-    .replace(/\[major\](.*?)\[\/major\]/g, '<span style="color: #D4AF37; font-weight: bold; border-bottom: 2px solid rgba(212,163,115,0.4); padding-bottom: 1px;">$1</span>')
+    .replace(/\[\[(.*?)\]\]/g, '$1') // Remove double brackets but keep the text
+    // Normalize majar, major, etc to strictly [major] and [/major]
+    .replace(/\[?(\/?)maj[oa]r\]?/gi, '[$1major]')
     .replace(/★/g, ''); 
 
   processed = processed
@@ -263,6 +264,32 @@ export async function processAndDeliverPremiumSaju(params: {
 
     // 2. Data Preparation
     const analysis = reading.analysis || {};
+
+    // Email-safe text cleaner — converts [major] to bold, strips all other AI artifacts
+    const cleanForEmail = (text: string): string => {
+      if (!text || typeof text !== 'string') return '';
+      return text
+        // First handle complete [major]...[/major] tags → bold gold text
+        .replace(/\[major\]([\s\S]*?)\[\/major\]/g, '<b style="color:#D4A373;">$1</b>')
+        // Strip any broken/partial tags
+        .replace(/\[major\s*\]?/g, '')
+        .replace(/\[\/major\s*\]?/g, '')
+        .replace(/major\s*\]/g, '')
+        .replace(/\/major\s*\]?/g, '')
+        .replace(/\[\[(.*?)\]\]/g, '<b style="color:#D4A373;">$1</b>')
+        // Strip any remaining html spans from stripAIMarkers
+        .replace(/<span[^>]*>([\s\S]*?)<\/span>/g, '$1')
+        // Fix &nbsp; artifacts
+        .replace(/&nbsp;/g, ' ')
+        // Strip key: value JSON leakage
+        .replace(/^"?\s*[a-z_]+"\s*:\s*"?/, '')
+        .replace(/"?\s*}?\s*$/, '')
+        // Strip markdown
+        .replace(/\*{1,3}/g, '')
+        .replace(/---|###|```/g, '')
+        .trim();
+    };
+
     const inputData = sajuData.userInput || {};
     const p = sajuData.pillarDetails || sajuData.sajuRes?.pillarDetails || {};
     const elements = sajuData.correctedPercentages || {};
@@ -546,38 +573,38 @@ export async function processAndDeliverPremiumSaju(params: {
 
                 <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
                     <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">1. 인생의 전체적인 형상 분석</h2>
-                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.life_shape}</div>
+                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${cleanForEmail(analysis.life_shape)}</div>
                 </div>
 
                 <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
                     <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">2. 고민에 대한 대가의 해답</h2>
-                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.solution}</div>
+                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${cleanForEmail(analysis.solution)}</div>
                 </div>
 
                 ${analysis.isTotalFortune ? `
                 <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
                     <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">3. 분야별 상세 운세 분석</h2>
-                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.detailed_fortune}</div>
+                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${cleanForEmail(analysis.detailed_fortune)}</div>
                 </div>
 
                 <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
                     <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">4. 인생 주요 전환점 & 위험 시기</h2>
-                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.turning_points}</div>
+                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${cleanForEmail(analysis.turning_points)}</div>
                 </div>
 
                 <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
                     <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">5. 대가의 개운 비책</h2>
-                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.luck_advice}</div>
+                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${cleanForEmail(analysis.luck_advice)}</div>
                 </div>
                 ` : `
                 <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
                     <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">3. 성패의 시기 (2026-2028)</h2>
-                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.timing}</div>
+                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${cleanForEmail(analysis.timing)}</div>
                 </div>
 
                 <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
                     <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">4. 대가의 개운 비책</h2>
-                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.luck_advice}</div>
+                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${cleanForEmail(analysis.luck_advice)}</div>
                 </div>
                 `}
 
