@@ -710,7 +710,7 @@ export const StrengthIndexGraph = ({ score, deuk }: { score: number, deuk: any }
       <div style={{ textAlign: "center", marginBottom: "40px" }}>
         <div style={{ fontSize: "0.85rem", color: "#888", marginBottom: "8px", fontWeight: "700" }}>에너지 밸런스 지수: <span style={{ color: "#333" }}>{normalizedScore.toFixed(1)}</span></div>
         <div style={{ fontSize: "1.2rem", color: "#333", fontWeight: "900", wordBreak: "keep-all" }}>
-          님은 
+          귀하는 
           <TermTooltip term={normalizedScore >= 45 ? "신강" : "신약"}>
             <span style={{ color: "var(--accent-indigo)", borderBottom: "3px solid rgba(42,54,95,0.2)", paddingBottom: "2px", margin: "0 4px" }}>
               {normalizedScore >= 85 ? "태강한" : normalizedScore >= 65 ? "신강한" : normalizedScore >= 55 ? "약신강한" : normalizedScore >= 45 ? "중화된" : normalizedScore >= 35 ? "약신약한" : normalizedScore >= 15 ? "신약한" : "태약한"}
@@ -1440,20 +1440,25 @@ function PremiumSajuContent() {
       const dominantElement = elementsUI[0].label;
 
       const systemPrompt = `### [Role: 30년 경력의 VVIP 명리 마스터]
-당신은 입력받은 사주 데이터를 바탕으로 정밀 계산과 고품격 작문을 수행하는 지능형 엔진입니다. 당신의 목표는 사용자에게 깊은 통찰과 위로를 주는 **방대한 감명 리포트(총합 6,000자~6,500자)**를 작성하는 것입니다.
+당신은 입력받은 사주 데이터를 바탕으로 정밀 계산과 고품격 작문을 수행하는 지능형 엔진입니다. 당신의 목표는 귀하에게 깊은 통찰과 위로를 주는 **방대한 감명 리포트(총합 6,000자~6,500자)**를 작성하는 것입니다.
 
 **[핵심 원칙: 데이터 무결성과 신선도]**
 【반드시 지킬 것】 당신은 이전에 수행했던 그 어떤 분석 내용도 완전히 잊으십시오. 오직 **지금 입력된 이 데이터**만을 근거로 처음부터 새로 분석하십시오.
 
 **[매우 중요: 현재 시간적 배경]**
-현재 연도는 **2026년 병오년(丙午年)**이며, 내담자의 현재 나이는 **${koreanAge}세**입니다. 모든 감명은 반드시 2026년을 "올해"로 기준 삼아야 합니다.
+현재 연도는 **2026년 병오년(丙午年)**이며, 귀하의 현재 나이는 **${koreanAge}세**입니다. 모든 감명은 반드시 2026년을 "올해"로 기준 삼아야 합니다.
+
+**[언어 및 지칭 원칙: 극존칭 "귀하" 통일]**
+- 감명서 전체에서 사용자를 지칭할 때는 반드시 **"귀하"**라는 표현만을 사용하십시오. 
+- "님", "당신", "내담자", "사용자" 등의 표현은 절대 사용하지 마십시오.
+- 예: "귀하의 일간은...", "귀하가 직면할 시련은...", "귀하에게 드리는 비책은..." 등
 
 ### [Phase 2: 심층 작문 가이드 및 섹션별 지침]
-각 섹션은 전문가의 품격이 느껴지는 유려한 문체로 **매우 길고 상세하게(총합 6,500자 목표)** 작성하십시오. 특히, **"길흉화복의 가감 없는 전달"**을 원칙으로 삼아 좋은 점뿐만 아니라 **사용자가 직면할 수 있는 위험, 성격적 단점, 주의해야 할 흉운(凶運)**을 매우 구체적으로 경고하십시오.
+각 섹션은 전문가의 품격이 느껴지는 유려한 문체로 **매우 길고 상세하게(총합 6,500자 목표)** 작성하십시오. 특히, **"길흉화복의 가감 없는 전달"**을 원칙으로 삼아 좋은 점뿐만 아니라 **귀하가 직면할 수 있는 위험, 성격적 단점, 주의해야 할 흉운(凶運)**을 매우 구체적으로 경고하십시오.
 
 1. **[인생의 형상: 귀하의 타고난 에너지 지도]** (분량: **1,200자 내외**)
    - "사방의 강력한 편관(土)이라는 사회적 규율과 압박을, 내면의 거대한 지하 수맥(水)의 힘으로 뚫고 나가는 위대한 혁신가"의 서술 기조를 유지하십시오.
-   - 당신의 일간 '계수(癸水)'가 지닌 성격적 강점과 더불어, **내재된 예민함, 고립될 위험성, 감정적 기복 등 취약점**도 가감 없이 서술하십시오.
+   - 귀하의 일간 '${sajuRes.pillarDetails.day.stemKo}(${stemsHanja[sajuRes.pillarDetails.day.stemKo]})'가 지닌 성격적 강점과 더불어, **내재된 예민함, 고립될 위험성, 감정적 기복 등 취약점**도 가감 없이 서술하십시오.
 
 2. **[심층 솔루션: 운명의 처방전]** (분량: **2,800자 내외**)
    - 해당 카테고리 기운의 **생애 6단계 흐름(유년, 초년, 청년, 중년, 장년, 말년)**을 극도로 상세하게 분석하십시오.
@@ -1932,6 +1937,11 @@ function PremiumSajuContent() {
                         * 태어난 지역에 따른 시간차를 반영해 정밀하게 살핍니다.
                       </p>
                     </div>
+                    <div style={{ marginTop: "4px", padding: "10px", background: "rgba(42, 54, 95, 0.03)", borderRadius: "10px", border: "1px solid rgba(42, 54, 95, 0.05)" }}>
+                      <p style={{ fontSize: "0.7rem", color: "#666", margin: 0, textAlign: "center", lineHeight: "1.4", wordBreak: "keep-all" }}>
+                        💡 입력하신 <strong>이메일과 전화번호</strong>는 프리미엄 사주 결과를 보내는 용도로만 사용되며, 그 외 마케팅 용도로 활용되지 않습니다.
+                      </p>
+                    </div>
                   </div>
                 <button 
                   onClick={() => setStep(1)} 
@@ -2325,7 +2335,7 @@ function PremiumSajuContent() {
 
                         <div style={{ marginTop: "40px", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "32px" }}>
                           <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.5)", fontStyle: "italic" }}>
-                            * 본 분석은 사용자의 10가지 성향 답변과 타고난 사주 명식을 유기적으로 결합하여 도출된 초개인화 결과입니다.
+                            * 본 분석은 귀하의 10가지 성향 답변과 타고난 사주 명식을 유기적으로 결합하여 도출된 초개인화 결과입니다.
                           </p>
                         </div>
                       </div>

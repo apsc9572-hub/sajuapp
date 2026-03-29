@@ -42,7 +42,7 @@ export default async function ResultPage({ params }: Props) {
     analysis: {
       ...data.analysis,
       isTotalFortune, // Also inject into analysis object for deeper components
-      title: `${data.userInput?.name || "고객"}님의 인생 총운 심층 분석`
+      title: `${data.userInput?.name || "귀하"}님의 인생 총운 심층 분석`
     }
   };
 

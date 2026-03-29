@@ -65,7 +65,7 @@ export default function TermsPage() {
               <p style={{ opacity: 0.8, marginBottom: "8px" }}>2. 프리미엄 사주 서비스는 분석 완료 후 이용자가 입력한 <strong>이메일 전송 또는 카카오 알림톡</strong>을 통해 결과지에 접근할 수 있는 링크를 제공하는 방식으로 전달됩니다.</p>
               <p style={{ opacity: 0.8, marginBottom: "16px" }}>3. 제공된 프리미엄 사주 분석 결과의 보관 기간은 <strong>발송일로부터 1주일</strong>이며, 기간 만료 후에는 개인정보 보호 및 데이터 보안상 분석 내용이 자동으로 파기되어 재열람이 불가능합니다.</p>
               <p style={{ opacity: 0.8, background: "rgba(212, 175, 55, 0.05)", padding: "16px", borderRadius: "12px", border: "1px dashed var(--accent-gold)", fontWeight: "600" }}>
-                본 사주 결과는 단순 참고용이며, 어떠한 경우에도 법적·의학적 효력이 없습니다. 사용자가 본 서비스의 결과를 바탕으로 내린 결정에 대한 모든 책임은 사용자 본인에게 있습니다.
+                본 사주 결과는 단순 참고용이며, 어떠한 경우에도 법적·의학적 효력이 없습니다. 귀하가 본 서비스의 결과를 바탕으로 내린 결정에 대한 모든 책임은 귀하 본인에게 있습니다.
               </p>
             </section>
 

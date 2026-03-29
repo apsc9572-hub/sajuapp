@@ -83,7 +83,7 @@ const YongsinBox = ({ yongsin, desc }: { yongsin: any, desc: string }) => {
         <div style={{ padding: "24px 20px", background: "radial-gradient(circle at top left, #2A365F, #1A1C3C)", borderRadius: "24px", color: "white", boxShadow: "0 12px 40px rgba(26,28,60,0.25)", position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "100px", height: "100px", background: "rgba(212, 163, 115, 0.1)", borderRadius: "50%", filter: "blur(30px)" }} />
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-                <div style={{ padding: "6px 12px", background: "linear-gradient(135deg, #D4A373, #B8860B)", borderRadius: "30px", fontSize: "0.65rem", fontWeight: "900", color: "white", letterSpacing: "0.05em", boxShadow: "0 4px 10px rgba(184,134,11,0.3)" }}>나의 인생 용신 (Life Key)</div>
+                <div style={{ padding: "6px 12px", background: "linear-gradient(135deg, #D4A373, #B8860B)", borderRadius: "30px", fontSize: "0.65rem", fontWeight: "900", color: "white", letterSpacing: "0.05em", boxShadow: "0 4px 10px rgba(184,134,11,0.3)" }}>귀하의 인생 용신 (Life Key)</div>
             </div>
             
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", position: "relative", zIndex: 1 }}>
@@ -522,7 +522,7 @@ export default function SajuResultView({ reading, detailedData, onCopy }: { read
         {/* Energy Distribution Section */}
         <div style={{ margin: "16px 0", background: "white", padding: "16px 14px", borderRadius: "24px", border: "1px solid rgba(201,160,80,0.12)" }}>
             <div style={{ fontSize: "1rem", color: "#333", fontWeight: "900", marginBottom: "16px", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-              <Zap size={16} color="var(--accent-gold)" /> 나의 오행 에너지 분포
+              <Zap size={16} color="var(--accent-gold)" /> 귀하의 오행 에너지 분포
             </div>
             
             <div style={{ display: "flex", background: "#f5f5f7", padding: "4px", borderRadius: "12px", marginBottom: "20px" }}>

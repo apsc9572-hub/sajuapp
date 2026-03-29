@@ -72,7 +72,7 @@ export default function PaymentModal({ isOpen, onClose, amount, orderName, custo
       await widgets.requestPayment({
         orderId: orderId,
         orderName: orderName,
-        customerName: "청아매당 사용자",
+        customerName: "청아매당 귀하",
         customerEmail: "customer@example.com",
         successUrl: `${window.location.origin}/success?orderId=${orderId}`, // Explicitly add orderId to query just in case
         failUrl: `${window.location.origin}/fail`,
