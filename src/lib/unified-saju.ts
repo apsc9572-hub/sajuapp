@@ -84,8 +84,8 @@ export const getUnifiedSaju = (data: {
     });
 
     const sajuMap: Record<string, string> = {
-        '갑': 'wood', '을': 'wood', '병': 'fire', '정': 'fire', '무': 'earth', '기': 'earth', '경': 'metal', '신': 'metal', '임': 'water', '계': 'water',
-        '자': 'water', '축': 'earth', '인': 'wood', '묘': 'wood', '진': 'earth', '사': 'fire', '오': 'fire', '미': 'earth', '유': 'metal', '술': 'earth', '해': 'water'
+        '갑': 'wood', '을': 'wood', '경': 'metal', '신': 'metal', '임': 'water', '계': 'water', '병': 'fire', '정': 'fire', '무': 'earth', '기': 'earth',
+        '인': 'wood', '묘': 'wood', '유': 'metal', '해': 'water', '자': 'water', '사': 'fire', '오': 'fire', '진': 'earth', '술': 'earth', '축': 'earth', '미': 'earth'
     };
 
     const allChars = [
@@ -141,8 +141,8 @@ export const getUnifiedSaju = (data: {
         advanced: {
             geukguk: sajuRes.geukguk,
             sinsal: {
-                gilsin: [...sajuRes.year.sinsals, ...sajuRes.month.sinsals, ...sajuRes.day.sinsals, ...sajuRes.hour.sinsals].filter(s => !["천살","지살","망신살","겁살","재살","육해살","화개살"].includes(s)),
-                hyungsin: [...sajuRes.year.sinsals, ...sajuRes.month.sinsals, ...sajuRes.day.sinsals, ...sajuRes.hour.sinsals].filter(s => ["천살","지살","망신살","겁살","재살","육해살","화개살"].includes(s))
+                gilsin: [...sajuRes.year.sinsals, ...sajuRes.month.sinsals, ...sajuRes.day.sinsals, ...sajuRes.hour.sinsals].filter(s => !["천살","지살","망신살","겁살","재살","육해살","화개살","백호대살","양인살","괴강살","원진살","귀문관살","홍염살","도화살"].includes(s)),
+                hyungsin: [...sajuRes.year.sinsals, ...sajuRes.month.sinsals, ...sajuRes.day.sinsals, ...sajuRes.hour.sinsals].filter(s => ["천살","지살","망신살","겁살","재살","육해살","화개살","백호대살","양인살","괴강살","원진살","귀문관살","홍염살","도화살"].includes(s))
             },
             yongsin: [] 
         },
@@ -150,7 +150,7 @@ export const getUnifiedSaju = (data: {
         daeun: {
             basis: { direction: sajuRes.daeun.direction === "Forward" ? "forward" : "reverse" },
             list: sajuRes.daeun.cycles.map(c => ({
-                startAge: c.startAge - 1,
+                startAge: c.startAge,
                 ganzhi: c.ganzhi,
                 stemTenGod: c.stemTenGod,
                 branchTenGod: c.branchTenGod

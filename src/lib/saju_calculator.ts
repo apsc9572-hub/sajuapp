@@ -311,6 +311,14 @@ export function calculateHighPrecisionSaju(params: {
         pillar.branchSinsals.push("백호대살");
       }
 
+      // 16. Wonjin-sal (원진살)
+      const wonjinMap: Record<string, string> = { "자": "미", "축": "오", "인": "유", "묘": "신", "진": "해", "사": "술", "오": "축", "미": "자", "신": "묘", "유": "인", "술": "사", "해": "진" };
+      if (wonjinMap[res.year.branchKo] === pillar.branchKo) pillar.branchSinsals.push("원진살");
+
+      // 17. Gwimun-guansal (귀문관살)
+      const gwimunMap: Record<string, string[]> = { "자": ["유"], "축": ["인"], "인": ["축", "미"], "묘": ["신"], "진": ["해"], "사": ["술"], "오": ["해"], "미": ["인"], "신": ["묘"], "유": ["자"], "술": ["사"], "해": ["진", "오"] };
+      if (gwimunMap[res.year.branchKo]?.includes(pillar.branchKo)) pillar.branchSinsals.push("귀문관살");
+
       // Special cases: Doha, Yeokma, Hwagae from any position
       if (["자", "오", "묘", "유"].includes(pillar.branchKo) && !pillar.branchSinsals.includes("도화살")) pillar.branchSinsals.push("도화살");
       if (["인", "신", "사", "해"].includes(pillar.branchKo)) pillar.branchSinsals.push("역마살");

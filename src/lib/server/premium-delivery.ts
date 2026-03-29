@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { fetchWithRetry, callGPTLatest, callClaudeLatest, sendAlimTalk } from "../api-utils";
+import { fetchWithRetry, callGPTPremium, callClaudeProfessional, sendAlimTalk } from "../api-utils";
 import { SAJU_DICTIONARY } from "../premium-saju-utils";
 import { saveResult } from "./result-store";
 
@@ -133,17 +133,17 @@ ${instructions[section]}
 `;
 
   try {
-    // GPT 5.1 is now the primary engine
-    const text = await callGPTLatest(promptText, "You are a top-tier Korean Saju master.");
-    console.log(`[GPT API Success] Section: ${section}, Received ${text.length} characters.`);
+    // GPT-4o (High-Fidelity) is now the primary engine for Premium
+    const text = await callGPTPremium(promptText, "You are a top-tier Korean Saju master.");
+    console.log(`[Premium-AI] GPT Success: Section: ${section}, Received ${text.length} characters.`);
     return text.trim();
   } catch (err: any) {
-    console.warn(`[GPT Error] Falling back to Claude for section ${section}:`, err);
-    // Fallback if needed
+    console.warn(`[Premium-AI] GPT Error: Falling back to Claude for section ${section}:`, err);
     try {
-      return await callClaudeLatest(promptText, "You are a top-tier Korean Saju master.");
+      // Claude 3.5 Sonnet (Professional) for premium fallback
+      return await callClaudeProfessional(promptText, "You are a top-tier Korean Saju master.");
     } catch (claudeErr) {
-      console.error(`[AI Error] Both GPT and Claude failed for section ${section}:`, claudeErr);
+      console.error(`[Premium-AI] Error: Both GPT and Claude failed for section ${section}:`, claudeErr);
       throw claudeErr;
     }
   }

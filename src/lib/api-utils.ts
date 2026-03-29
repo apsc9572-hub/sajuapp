@@ -42,10 +42,10 @@ export async function fetchWithRetry(
 }
 
 /**
- * GPT 최신 모델(5.1) 호출 함수
- * 현재 시스템의 메인 분석 엔진으로 사용됨
+ * [Premium] GPT-4o High-Fidelity 모델
+ * 유료 사용자 전용 최상위 머신
  */
-export async function callGPTLatest(
+export async function callGPTPremium(
   prompt: string,
   systemPrompt: string,
   responseFormat: "text" | "json_object" = "text",
@@ -53,7 +53,7 @@ export async function callGPTLatest(
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
 
-  console.log(`[AI] Calling GPT 5.1 Latest Engine... (${responseFormat})`);
+  console.log(`[Premium-AI] Calling GPT-4o High-Fidelity...`);
 
   const response = await fetchWithRetry("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -68,35 +68,71 @@ export async function callGPTLatest(
         { role: "user", content: prompt },
       ],
       response_format: { type: responseFormat },
+      temperature: 0.8,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`GPT Premium Error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || "";
+}
+
+/**
+ * [Free] GPT-4o-Mini 모델
+ * 무료 사용자용 효율적인 기계
+ */
+export async function callGPTFree(
+  prompt: string,
+  systemPrompt: string,
+  responseFormat: "text" | "json_object" = "text",
+): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
+
+  console.log(`[Free-AI] Calling GPT-4o-Mini...`);
+
+  const response = await fetchWithRetry("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
+      ],
+      response_format: { type: responseFormat },
       temperature: 0.7,
     }),
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(`GPT API Error: ${response.status} - ${JSON.stringify(errorData)}`);
+    throw new Error(`GPT Free Error: ${response.status}`);
   }
 
   const data = await response.json();
-  const text = data.choices?.[0]?.message?.content;
-  if (!text) throw new Error("GPT response is empty");
-
-  console.log("[AI] GPT 5.1 call successful.");
-  return text;
+  return data.choices?.[0]?.message?.content || "";
 }
 
 /**
- * Claude 최신 모델(4.6) 호출 함수
- * GPT 실패 시 안정적인 폴백(Fallback) 엔진으로 사용됨
+ * [Professional Fallback] Claude 3.5 Sonnet
+ * 시스템 장애 시 최후의 보루
  */
-export async function callClaudeLatest(
+export async function callClaudeProfessional(
   prompt: string,
-  systemPrompt: string = "You are a professional Saju (Korean Astrology) expert.",
+  systemPrompt: string = "You are a professional Saju expert.",
 ): Promise<string> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
 
-  console.log("[AI] Calling Claude 4.6 Sonnet (Fallback)...");
+  console.log("[AI] Calling Claude 3.5 Professional Fallback...");
 
   const response = await fetchWithRetry("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -106,25 +142,20 @@ export async function callClaudeLatest(
       "anthropic-version": "2023-06-01"
     },
     body: JSON.stringify({
-      model: "claude-sonnet-4-6",
+      model: "claude-3-5-sonnet-20240620",
       max_tokens: 8192,
       system: systemPrompt,
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.7,
+      temperature: 0.8,
     }),
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(`Claude API Error: ${response.status} - ${JSON.stringify(errorData)}`);
+    throw new Error(`Claude API Error: ${response.status}`);
   }
 
   const data = await response.json();
-  const text = data.content?.[0]?.text;
-  if (!text) throw new Error("Claude response is empty");
-
-  console.log("[AI] Claude 4.6 Sonnet call successful.");
-  return text;
+  return data.content?.[0]?.text || "";
 }
 
 /**

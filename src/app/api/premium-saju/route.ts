@@ -208,7 +208,7 @@ ${sections[phase]}
       const resJson = await response.json();
       text = resJson.candidates?.[0]?.content?.parts?.[0]?.text;
     } catch (err) {
-      console.error(`[Phase 1 Error] Gemini failed, falling back to GPT 5.1:`, err);
+      console.error(`[Phase 1 Error] Gemini failed, falling back to GPT 5.1 Mini:`, err);
       text = await callGPTLatest(promptText, "You are a top-tier Korean Saju data master. Output JSON only.", "json_object");
     }
   } else {

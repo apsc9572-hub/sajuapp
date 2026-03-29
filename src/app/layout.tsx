@@ -12,6 +12,10 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "청아매당 운세 & 사주",
   description: "전통의 혜안으로 풀어내는 프리미엄 사주 및 운세 서비스, 청아매당",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 import Script from "next/script";

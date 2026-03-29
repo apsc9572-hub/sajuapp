@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { fetchWithRetry, callGPTLatest } from '@/lib/api-utils';
+import { fetchWithRetry, callGPTFree } from '@/lib/api-utils';
 
 export async function POST(req: Request) {
   try {
@@ -18,7 +18,12 @@ export async function POST(req: Request) {
 ${systemPrompt}
 
 You MUST return a JSON object containing EXACTLY these keys: ${keysStr}.
-Ensure each analysis is detailed and natural. **Strictly use polite language (하십시오체/해요체).** While you should explain the astrological reasoning (the "why"), do so in a way that is easy for laypeople to understand.
+Ensure each analysis is detailed and natural. **Strictly use polite language (하십시오체/해요체).**
+
+[최우선 지침: Zero Filler & Deep Reasoning]
+1. "좋을 수도 있고 나쁠 수도 있습니다", "노력하면 됩니다" 같은 누구나 아는 뻔한 잡설(Filler)을 절대 쓰지 마세요.
+2. 짧더라도 내용의 밀도를 극대화하세요. 단순한 '결과' 통보가 아니라, **'왜(Why)'** 그런 흐름이 나오는지 사주의 기운(오행의 균형, 합충 등)을 근거로 분석하세요.
+3. 명리적 근거를 바탕으로 구체성을 띄되, 내담자가 이해하기 쉽게 풀어서 설명하세요.
 
 For context, here is the raw JSON analysis again:
 ${JSON.stringify(sajuJson)}
@@ -28,10 +33,10 @@ Return ONLY valid JSON. Do not wrap in markdown code blocks (\`\`\`json).
 
     let jsonStr = "";
     
-    // Primary: GPT-4.1-Mini (via callGPTLatest)
+    // Primary: GPT-4o-Mini (via callGPTFree)
     try {
-      console.log("[AI] Primary Analysis: GPT-4.1-Mini");
-      jsonStr = await callGPTLatest(promptText, "You are a professional Saju (Korean Astrology) expert. Return ONLY valid JSON.", "json_object");
+      console.log("[AI] Primary Analysis: GPT-4o-Mini (Free Tier)");
+      jsonStr = await callGPTFree(promptText, "You are a professional Saju (Korean Astrology) expert. Return ONLY valid JSON.", "json_object");
     } catch (gptErr) {
       console.error("[GPT Error] Falling back to Gemini for saju analysis:", gptErr);
       
