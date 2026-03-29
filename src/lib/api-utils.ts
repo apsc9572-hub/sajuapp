@@ -53,7 +53,7 @@ export async function callGPTLatest(
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
 
-  console.log(`[AI] Calling GPT 5.1 Main Engine... (${responseFormat})`);
+  console.log(`[AI] Calling GPT 5.1 Latest Engine... (${responseFormat})`);
 
   const response = await fetchWithRetry("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -62,7 +62,7 @@ export async function callGPTLatest(
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4.1-mini",
+      model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt },

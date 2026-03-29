@@ -860,6 +860,18 @@ function PremiumSajuContent() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [userQuestion, setUserQuestion] = useState("");
 
+  // Clear existing cache ONLY when starting over at step 0
+  useEffect(() => {
+    if (step === 0) {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith("premium_saju_data")) {
+          localStorage.removeItem(key);
+        }
+      });
+      console.log("[Cache] Stale premium_saju_data cleared at step 0.");
+    }
+  }, [step]);
+
   // Input states
   const [date, setDate] = useState("1995-05-15");
   const [time, setTime] = useState("14:30");
@@ -870,12 +882,13 @@ function PremiumSajuContent() {
   const [userEmail, setUserEmail] = useState("");
   const [emailId, setEmailId] = useState("");
   const [emailDomain, setEmailDomain] = useState("naver.com");
-  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "kakao">("kakao");
+  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "kakao">("email");
   const [kakaoToken, setKakaoToken] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [customerKey] = useState(() => uuidv4());
+  const [currentOrderId, setCurrentOrderId] = useState(() => uuidv4());
   const [activeTab, setActiveTab] = useState<'base' | 'corrected'>('corrected');
   const [bazi, setBazi] = useState<any>(null);
 
@@ -1806,19 +1819,6 @@ function PremiumSajuContent() {
                   <div style={{ background: "white", padding: "16px", borderRadius: "20px", boxShadow: "0 10px 30px rgba(0,0,0,0.03)", border: "1px solid var(--glass-border)", display: "flex", flexDirection: "column", gap: "10px" }}>
                     <div style={{ display: "flex", gap: "8px", marginBottom: "10px", background: "rgba(0,0,0,0.04)", padding: "4px", borderRadius: "14px" }}>
                       <button 
-                        onClick={() => setDeliveryMethod("kakao")}
-                        style={{ 
-                          flex: 1, padding: "10px 0", borderRadius: "10px", border: "none", 
-                          background: deliveryMethod === "kakao" ? "#FEE500" : "transparent", 
-                          color: deliveryMethod === "kakao" ? "#3C1E1E" : "#999", 
-                          fontWeight: "800", fontSize: "0.85rem", 
-                          boxShadow: deliveryMethod === "kakao" ? "0 2px 10px rgba(254,229,0,0.3)" : "none", 
-                          transition: "all 0.2s" 
-                        }}
-                      >
-                        카카오톡으로 받기
-                      </button>
-                      <button 
                         onClick={() => setDeliveryMethod("email")}
                         style={{ 
                           flex: 1, padding: "10px 0", borderRadius: "10px", border: "none", 
@@ -1830,6 +1830,19 @@ function PremiumSajuContent() {
                         }}
                       >
                         이메일로 받기
+                      </button>
+                      <button 
+                        onClick={() => setDeliveryMethod("kakao")}
+                        style={{ 
+                          flex: 1, padding: "10px 0", borderRadius: "10px", border: "none", 
+                          background: deliveryMethod === "kakao" ? "#FEE500" : "transparent", 
+                          color: deliveryMethod === "kakao" ? "#3C1E1E" : "#999", 
+                          fontWeight: "800", fontSize: "0.85rem", 
+                          boxShadow: deliveryMethod === "kakao" ? "0 2px 10px rgba(254,229,0,0.3)" : "none", 
+                          transition: "all 0.2s" 
+                        }}
+                      >
+                        카카오톡(준비중)
                       </button>
                     </div>
 
@@ -2047,7 +2060,11 @@ function PremiumSajuContent() {
                       selectedCategory, userQuestion, userEmail,
                       deliveryMethod, phoneNumber // Added
                     };
+                    // Use unique orderId to prevent caching/stale data issues
+                    localStorage.setItem(`premium_saju_data_${currentOrderId}`, JSON.stringify(paymentData));
+                    // Legacy fallback for safety
                     localStorage.setItem("premium_saju_data", JSON.stringify(paymentData));
+                    
                     // Also save profile for future use
                     localStorage.setItem("user_birth_profile", JSON.stringify({
                       date, time, isLunar, gender, birthCity, userEmail, phoneNumber
@@ -2261,20 +2278,44 @@ function PremiumSajuContent() {
                             </div>
                           </section>
 
-                          <section>
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                              <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
-                              <h4 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-gold)", margin: 0 }}>핵심 성패 시기</h4>
-                            </div>
-                            <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all", textAlign: "left" }}>
-                              {renderHighlightedText(reading.analysis?.timing, true)}
-                            </div>
-                          </section>
+                          {/* Conditional: Timing (Standard) vs Detailed/Turning (Total Fortune) */}
+                          {reading.isTotalFortune || reading.analysis?.isTotalFortune ? (
+                            <>
+                              <section>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                                  <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
+                                  <h4 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-gold)", margin: 0 }}>분야별 상세 인생 운세</h4>
+                                </div>
+                                <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all", textAlign: "left" }}>
+                                  {renderHighlightedText(reading.analysis?.detailed_fortune, true)}
+                                </div>
+                              </section>
+                              <section>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                                  <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
+                                  <h4 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-gold)", margin: 0 }}>인생 주요 전환점 & 위험 시기</h4>
+                                </div>
+                                <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all", textAlign: "left" }}>
+                                  {renderHighlightedText(reading.analysis?.turning_points, true)}
+                                </div>
+                              </section>
+                            </>
+                          ) : (
+                            <section>
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                                <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
+                                <h4 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-gold)", margin: 0 }}>핵심 성패 시기 (2026-2028)</h4>
+                              </div>
+                              <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "rgba(255,255,255,0.9)", wordBreak: "keep-all", textAlign: "left" }}>
+                                {renderHighlightedText(reading.analysis?.timing, true)}
+                              </div>
+                            </section>
+                          )}
 
                           <section style={{ background: "rgba(255,255,255,0.05)", padding: "24px", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.1)" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
                               <Sparkles size={18} color="var(--accent-gold)" />
-                              <h4 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-gold)", margin: 0 }}>운을 바꾸는 개운법</h4>
+                              <h4 style={{ fontSize: "1.1rem", fontWeight: "800", color: "var(--accent-gold)", margin: 0 }}>실전 개운 비책</h4>
                             </div>
                             <div style={{ fontSize: "1rem", lineHeight: "1.9", color: "var(--accent-gold)", fontWeight: "600", wordBreak: "keep-all" }}>
                               {renderHighlightedText(reading.luck_advice, true)}
@@ -2323,6 +2364,7 @@ function PremiumSajuContent() {
         amount={5000}
         orderName={`PREMIUM 심층 감명 (${selectedCategory})`}
         customerKey={customerKey}
+        fixedOrderId={currentOrderId}
       />
     </main>
     </>

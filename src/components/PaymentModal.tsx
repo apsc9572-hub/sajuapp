@@ -12,9 +12,10 @@ interface PaymentModalProps {
   amount: number;
   orderName: string;
   customerKey: string;
+  fixedOrderId?: string;
 }
 
-export default function PaymentModal({ isOpen, onClose, amount, orderName, customerKey }: PaymentModalProps) {
+export default function PaymentModal({ isOpen, onClose, amount, orderName, customerKey, fixedOrderId }: PaymentModalProps) {
   const widgetsRef = useRef<TossPaymentsWidgets | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [devClicks, setDevClicks] = useState(0);
@@ -64,8 +65,8 @@ export default function PaymentModal({ isOpen, onClose, amount, orderName, custo
     if (!widgets) return;
 
     try {
-      // Create a unique order ID
-      const orderId = uuidv4();
+      // Use the fixedOrderId if provided, otherwise generate a new one
+      const orderId = fixedOrderId || uuidv4();
       
       // Request payment
       await widgets.requestPayment({
@@ -73,7 +74,7 @@ export default function PaymentModal({ isOpen, onClose, amount, orderName, custo
         orderName: orderName,
         customerName: "청아매당 사용자",
         customerEmail: "customer@example.com",
-        successUrl: `${window.location.origin}/success`,
+        successUrl: `${window.location.origin}/success?orderId=${orderId}`, // Explicitly add orderId to query just in case
         failUrl: `${window.location.origin}/fail`,
       });
     } catch (error) {

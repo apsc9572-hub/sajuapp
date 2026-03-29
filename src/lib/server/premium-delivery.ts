@@ -4,7 +4,7 @@ import { SAJU_DICTIONARY } from "../premium-saju-utils";
 import { saveResult } from "./result-store";
 
 // AI helper functions
-async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswers: any, section: 'strategy' | 'life_shape' | 'solution' | 'timing' | 'luck_advice') {
+async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswers: any, section: 'strategy' | 'life_shape' | 'solution' | 'timing' | 'luck_advice' | 'detailed_fortune' | 'turning_points') {
   const strategyContext = (section !== 'strategy' && systemPrompt) ? `\n[핵심 일관성 가이드라인 (반드시 준수)]\n${systemPrompt}\n` : "";
   
   const instructions: any = {
@@ -17,28 +17,50 @@ async function callAIDeepAnalysis(systemPrompt: string, sajuJson: any, userAnswe
 - ${strategyContext}
 - **위 가이드라인을 '바탕'으로 하되, 절대로 날짜나 시기(연도/월)를 구체적으로 언급하지 마십시오.** (그것은 섹션 3의 역할입니다.)
 - 오직 내담자의 타고난 원국의 기운, 성정, 인생의 전체적인 풍경과 형상을 비유적으로 묘사하는 데에만 집중하십시오.
-- 시작은 내담자의 가슴을 관통하는 강렬한 운명적 비유(후킹)로 시작하십시오.`,
+- 시작은 내담자의 가슴을 관통하는 강렬한 운명적 비유(후킹)로 시작하십시오.
+- **프리미엄 골드 강조 (필수)**: 가장 통찰력 있는 비유나 핵심 성정 문장을 반드시 **[major]내용[/major]** 태그로 감싸십시오.`,
     solution: `[섹션 2: 고민에 대한 대가의 해답]
 - 반드시 공백 포함 **2,500자 ~ 3,000자** 범위로 작성하십시오.
 - ${strategyContext}
-- **도입부 필수 형식**: 첫 문장은 반드시 '"${userAnswers[0]}"라는 질문을 하셨습니다.' 또는 '"${userAnswers[0]}"에 대해 물으셨군요.'와 같이 사용자의 질문을 직접 인용하며 시작하십시오.
+- **도입부 필수 형식**: 첫 문장은 반드시 '"${userAnswers[0]}"라는 질문을 하셨습니다.' 또는 '"${userAnswers[0]}"에 대해 물으셨군요.'와 같이 사용자의 질문을 직접 인용하며 시작하십시오. (AI가 아닌 사람처럼 느껴지도록 공감을 담으십시오.)
 - **섹션 1에서 다룬 운명적 형상을 반복하지 마십시오.**
-- 내담자의 구체적인 고민에 대해 명리학적 대가의 관점에서 직접적이고 명쾌한 해답을 제시하십시오.
+- 내담자의 구체적인 고민에 대해 명리학적 대가의 관점에서 직접적이고 [major]명쾌한 해답[/major]을 제시하십시오.
+- **프리미엄 골드 강조 (필수)**: 가장 결정적인 조언과 해답 문장을 반드시 **[major]내용[/major]** 태그로 감싸십시오.
 - 시기는 간략히만 언급하고, 구체적인 3개년 분석은 섹션 3으로 양보하십시오.`,
-    timing: `[섹션 3: 성패의 시기 (2026-2028)]
-- 반드시 공백 포함 **2,100자 ~ 2,300자** 범위로 작성하십시오.
+    timing: `[섹션 3: 3개년 상세 운세 (2026-2028)]
+- 반드시 공백 포함 **2,500자 ~ 2,800자** 범위로 작성하십시오.
 - ${strategyContext}
-- **연도별 대중소(大中小) 구성 (필수)**: 
-  1. 가장 중요한 **2026년**의 상반기/하반기 흐름을 **3개 문단**으로 매우 상세히 분석하십시오. (월별 고비와 승부처 명시)
-  2. **2027년**의 조율 과정을 **1개 문단**으로 분석하십시오.
-  3. **2028년**의 안착 상황을 **1개 문단**으로 마무리하십시오.
-- **중복 언급 금지**: 2026년 내에서도 앞 단락에서 다룬 달(Month)을 다음 단락에서 다시 언급하며 내용을 중복하지 마십시오. 시간의 전진을 멈추지 마십시오.
+- **내용의 핵심**: 내담자가 선택한 메뉴("${userAnswers[0].split(': ')[1] || '선택 영역'}")를 중심으로 3년간의 운 흐름을 분석하십시오.
+- **연도별 구성 및 분량 배정 (필수)**: 
+  1. 가장 중요한 **2026년**의 상반기/하반기 흐름을 **전체 섹션의 60% 이상 분량**으로 매우 상세히 분석하십시오. (월별 고비와 승부처 명시)
+  2. **2027년**과 **2028년**의 흐름을 나머지 40% 분량으로 분석하여 안착 과정을 서술하십시오.
+- **프리미엄 골드 강조 (필수)**: 각 연도별 가장 중요한 기회나 고비가 되는 시점의 문장을 반드시 **[major]내용[/major]** 태그로 감싸십시오.
 - 앞선 섹션들의 내용을 절대로 반복하지 말고, 오직 '운의 타이밍' 분석에만 집중하십시오.`,
-    luck_advice: `[섹션 4: 개운(開運)의 비책]
-- 반드시 공백 포함 **1,000자 ~ 1,200자** 범위로 작성하십시오.
+    detailed_fortune: `[섹션 4: 분야별 인생 운세 분석]
+- 반드시 공백 포함 **3,000자 ~ 3,500자** 범위로 작성하십시오.
 - ${strategyContext}
-- **시기 분석이나 고민 해답을 반복하지 마십시오.**
-- 일상에서 실천 가능한 철학적이고 비유적인 비책(행동, 습관 등)을 제시하십시오.`
+- **내용의 핵심**: 특정 날짜나 연도를 언급하지 말고, 내담자 평생의 운의 흐름을 각 분야별로 아주 상세하고 깊이 있게 분석하십시오.
+- **절대 금지 사항**: 
+  1. 이모지 사용 엄금 (💰, 💼, ❤️ 등 절대 사용 금지)
+  2. 구체적인 날짜나 연도(2026년 등) 언급 금지. 인생 전체의 흐름(청년기, 중년기, 장년기 등)으로 서술하십시오.
+- **필수 포함 5대 테마**: 아래 주제들을 각각 심층 분석하십시오:
+  1. 재물운: 평생의 부(富)의 크기와 돈이 모이는 특징, 자산 관리 성향
+  2. 사업·직업운: 타고난 직업적 천명, 성공의 임계점, 명예의 높이
+  3. 연애·결혼운: 평생의 인연의 특징, 원만한 관계를 위한 핵심 덕목
+  4. 건강운: 타고난 체질적 특징과 평생 주의해야 할 건강 관리법
+  5. 인간관계·자녀운: 주변인과의 인덕, 자녀와의 유대 및 노년의 안락함
+- **프리미엄 골드 강조**: 각 항목별 가장 결정적인 통찰 문장을 반드시 **[major]내용[/major]** 태그로 감싸십시오.`,
+    turning_points: `[섹션 5: 인생 주요 전환점 & 위험 시기]
+- 반드시 공백 포함 **1,500자 ~ 2,000자** 범위로 작성하십시오.
+- ${strategyContext}
+- **내용 1: 인생의 3~4개 대전환점**: 구체적인 나이(예: "34세 대운 교체 타이밍", "42세 문서운 발동")를 명시하며 삶이 변하는 지점을 짚어주십시오.
+- **내용 2: 위험 시기 및 주의사항**: 신살(백호, 양인 등)이나 흉운이 겹쳐 주의가 필요한 구체적 연도/월을 경고하고 대비책을 제시하십시오.
+- **프리미엄 골드 강조**: 전환점의 핵심 나이와 행동 지침을 **[major]내용[/major]** 태그로 감싸하십시오.`,
+    luck_advice: `[섹션 6: 실전 개운(開運)의 비책]
+- 반드시 공백 포함 **1,200자 ~ 1,500자** 범위로 작성하십시오.
+- ${strategyContext}
+- **필수 포함 요소**: 일상에서 실천 가능한 확실한 개운법(생활 습관, 행운을 주는 물건, 색상, 방향 등)을 구체적으로 서술하십시오.
+- **프리미엄 골드 강조 (필수)**: 가장 핵심적인 개운비책 문장을 반드시 **[major]내용[/major]** 태그로 감싸십시오.`,
   };
 
   const promptText = `
@@ -87,9 +109,9 @@ ${instructions[section]}
     const text = await callGPTLatest(promptText, "You are a top-tier Korean Saju master.");
     console.log(`[GPT API Success] Section: ${section}, Received ${text.length} characters.`);
     return text.trim();
-  } catch (err) {
+  } catch (err: any) {
     console.warn(`[GPT Error] Falling back to Claude for section ${section}:`, err);
-    // Fallback to Claude 4.6 Sonnet
+    // Fallback if needed
     try {
       return await callClaudeLatest(promptText, "You are a top-tier Korean Saju master.");
     } catch (claudeErr) {
@@ -153,48 +175,87 @@ export async function processAndDeliverPremiumSaju(params: {
     console.log(`[Background] Gemini Key presence: ${!!apiKeyGemini}, Resend Key presence: ${!!process.env.RESEND_API_KEY}`);
     if (!apiKeyGemini) throw new Error("Missing GEMINI_API_KEY");
     
-    // Initialize Resend inside function for environment safety
     const resend = new Resend(process.env.RESEND_API_KEY);
-
-    const { sajuJson, systemPrompt, userAnswers } = sajuData;
+    const { sajuJson, systemPrompt, userAnswers, category, question } = sajuData;
+    
+    // Robust category detection
+    const firstAnswer = userAnswers[0] || "";
+    // Robust detection: Check both the input category and the userAnswers array
+    const isTotalFortune = category === "인생총운" || 
+                          firstAnswer.includes("인생총운") || 
+                          firstAnswer.includes("관심 영역: 인생총운");
+    
+    // Explicitly set final category string
+    const finalCategory = isTotalFortune ? "인생총운" : (category || (firstAnswer.includes(': ') ? firstAnswer.split(': ')[1] : "일반 상담"));
 
     // 1. AI Analysis (Core Strategy first, then multi-stage)
-    console.log(`[AI] Starting analysis pipeline (Strategy -> Parallel Detailed Stages)...`);
+    console.log(`[AI] Starting analysis pipeline (Strategy -> Parallel Detailed Stages) for ${category} (TotalFortune: ${isTotalFortune})...`);
     const partStart = Date.now();
     
     let reading: any = null;
     try {
-        // Step A: Generate Core Strategy (Yongsin & Best Period)
+        // Step A: Generate Core Strategy
         const strategyRaw = await callAIDeepAnalysis(systemPrompt, sajuJson, userAnswers, 'strategy');
         let strategyContext = strategyRaw;
         try {
-          // Verify if it's JSON, if not, or malformed, just use the string
           const sObj = JSON.parse(strategyRaw.substring(strategyRaw.indexOf('{'), strategyRaw.lastIndexOf('}') + 1));
           strategyContext = JSON.stringify(sObj);
         } catch (e) {
-          console.warn("[AI] Core Strategy JSON parsing failed, using raw text as context.");
+          console.warn("[AI] Core Strategy JSON parsing failed.");
         }
 
-        // Step B: Generate Detailed Sections based on Strategy
-        const [part1, part2, part3, part4] = await Promise.all([
-          callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'life_shape'),
-          callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'solution'),
-          callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'timing'),
-          callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'luck_advice')
-        ]);
+        // Step B: Generate Detailed Sections based on Strategy and Category
+        if (isTotalFortune) {
+          console.log("[AI] Category is Total Fortune. Generating 5 specialized sections (No Timing)...");
+          // Batch 1: Life Shape and Solution (Foundational)
+          const [p1, p2] = await Promise.all([
+            callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'life_shape'),
+            callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'solution')
+          ]);
+          
+          // Batch 2: Detailed Fortune, Turning Points, and Luck Advice (Secondary)
+          const [p3, p4, p5] = await Promise.all([
+            callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'detailed_fortune'),
+            callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'turning_points'),
+            callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'luck_advice')
+          ]);
+          
+          reading = {
+            analysis: {
+              life_shape: stripAIMarkers(p1),
+              solution: stripAIMarkers(p2),
+              detailed_fortune: stripAIMarkers(p3),
+              turning_points: stripAIMarkers(p4),
+              luck_advice: stripAIMarkers(p5),
+              isTotalFortune: true
+            }
+          };
+        } else {
+          // Batch 1: Life Shape and Solution
+          const [p1, p2] = await Promise.all([
+            callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'life_shape'),
+            callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'solution')
+          ]);
+          
+          // Batch 2: Timing and Luck Advice
+          const [p3, p4] = await Promise.all([
+            callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'timing'),
+            callAIDeepAnalysis(strategyContext, sajuJson, userAnswers, 'luck_advice')
+          ]);
+          
+          reading = {
+            analysis: {
+              life_shape: stripAIMarkers(p1),
+              solution: stripAIMarkers(p2),
+              timing: stripAIMarkers(p3),
+              luck_advice: stripAIMarkers(p4),
+            }
+          };
+        }
       
       console.log(`[AI] All parts completed in ${Date.now() - partStart}ms`);
-      
-      reading = {
-        analysis: {
-          life_shape: stripAIMarkers(part1),
-          solution: stripAIMarkers(part2),
-          timing: stripAIMarkers(part3),
-          luck_advice: stripAIMarkers(part4),
-        }
-      };
     } catch (aiError: any) {
-       console.error(`[AI] Parallel analysis failed:`, aiError.message, aiError.stack);
+       console.error(`[AI] Parallel analysis failed:`, aiError.message);
        throw aiError;
     }
 
@@ -202,7 +263,7 @@ export async function processAndDeliverPremiumSaju(params: {
 
     // 2. Data Preparation
     const analysis = reading.analysis || {};
-    const userInput = sajuData.userInput || {};
+    const inputData = sajuData.userInput || {};
     const p = sajuData.pillarDetails || sajuData.sajuRes?.pillarDetails || {};
     const elements = sajuData.correctedPercentages || {};
     const elementsBase = sajuData.basePercentages || {};
@@ -414,9 +475,9 @@ export async function processAndDeliverPremiumSaju(params: {
                 </div>
 
                 <div style="background-color: #fcfaf7; border: 1px solid rgba(212, 163, 115, 0.2); border-radius: 10px; padding: 10px; margin-bottom: 20px; line-height: 1.6; text-align: center; font-size: 11px; color: #555;">
-                    <span style="display: inline-block; margin: 0 3px;"><b>생년월일</b> ${userInput.birthDate}</span> | 
-                    <span style="display: inline-block; margin: 0 3px;"><b>태어난 시</b> ${userInput.birthTime}</span> | 
-                    <span style="display: inline-block; margin: 0 3px;"><b>성별</b> ${userInput.gender}</span>
+                    <span style="display: inline-block; margin: 0 3px;"><b>생년월일</b> ${inputData.birthDate}</span> | 
+                    <span style="display: inline-block; margin: 0 3px;"><b>태어난 시</b> ${inputData.birthTime}</span> | 
+                    <span style="display: inline-block; margin: 0 3px;"><b>성별</b> ${inputData.gender}</span>
                 </div>
 
                     ${images?.pillar ? 
@@ -493,15 +554,32 @@ export async function processAndDeliverPremiumSaju(params: {
                     <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.solution}</div>
                 </div>
 
+                ${analysis.isTotalFortune ? `
+                <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
+                    <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">3. 분야별 상세 운세 분석</h2>
+                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.detailed_fortune}</div>
+                </div>
+
+                <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
+                    <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">4. 인생 주요 전환점 & 위험 시기</h2>
+                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.turning_points}</div>
+                </div>
+
+                <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
+                    <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">5. 대가의 개운 비책</h2>
+                    <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.luck_advice}</div>
+                </div>
+                ` : `
                 <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
                     <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">3. 성패의 시기 (2026-2028)</h2>
                     <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.timing}</div>
                 </div>
 
                 <div style="background-color: #2A365F; color: #fff; padding: 22px 10px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 1px solid #D4A373;">
-                    <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">4. 개운의 비책</h2>
+                    <h2 style="color: #D4A373; font-size: 16px; margin: 0; text-align: center; border-bottom: 1px solid rgba(212,163,115,0.2); padding-bottom: 10px;">4. 대가의 개운 비책</h2>
                     <div style="font-size: 14px; opacity: 0.95; line-height: 1.7; margin-top: 15px; word-break: keep-all; text-align: left; white-space: pre-wrap;">${analysis.luck_advice}</div>
                 </div>
+                `}
 
                 <div style="text-align: center; border-top: 1px solid #eee; padding-top: 40px; margin-top: 50px;">
                     <div style="margin-bottom: 35px; padding: 25px; background: #fff; border-radius: 15px; border: 1px solid #e9e0d2; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
@@ -623,13 +701,14 @@ export async function processAndDeliverPremiumSaju(params: {
       resultId = await saveResult(orderId, {
         orderId,
         userInput: {
-          name: userInput.name,
-          birthDate: userInput.birthDate,
-          birthTime: userInput.birthTime,
-          gender: userInput.gender,
-          question: userInput.userAnswers?.[0] || userInput.question,
+          name: inputData.name,
+          birthDate: inputData.birthDate,
+          birthTime: inputData.birthTime,
+          gender: inputData.gender,
+          question: inputData.userAnswers?.[0] || inputData.question || question,
         },
         analysis: reading.analysis,
+        isTotalFortune, // Explicitly save flag at top level
         detailedData, // Pass all visual data
         images, // Pass captured PNGs as fallback
         yongsin: sajuData.yongsin, // Full object {johu, eokbu}
@@ -656,8 +735,8 @@ export async function processAndDeliverPremiumSaju(params: {
             {
               name: "사주풀이 결과 보기",
               linkType: "WL",
-              linkMo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://cheongamaedang.com'}/result/${resultId}`,
-              linkPc: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://cheongamaedang.com'}/result/${resultId}`
+              linkMo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.cheongamaedang.com'}/result/${resultId}`,
+              linkPc: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.cheongamaedang.com'}/result/${resultId}`
             }
           ]
         });

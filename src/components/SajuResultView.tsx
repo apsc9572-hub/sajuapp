@@ -447,19 +447,25 @@ const renderHighlightedText = (rawText: string, isDarkBg = false) => {
       const isHeader = /^[\d\s]*[📍📅🔍💡🎯🏆💎✨■]/.test(trimmed) || trimmed.startsWith('###') || trimmed.startsWith('##') || (trimmed.startsWith('【') && trimmed.endsWith('】'));
       
       const processSpans = (innerContent: string) => {
-        const segments = innerContent.split(/(★.*?★)/);
+        // Handle both ★...★ and [major]...[/major] for backwards compatibility and consistency
+        const segments = innerContent.split(/(★.*?★|\[major\].*?\[\/major\])/g);
         return segments.map((seg, idx) => {
           if (seg.startsWith('★') && seg.endsWith('★')) {
             const clean = seg.slice(1, -1);
-            return <motion.span key={idx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: "var(--accent-gold)", fontWeight: "800" }}>{clean}</motion.span>;
+            return <motion.span key={idx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: "var(--accent-gold)", fontWeight: "800", borderBottom: "1.5px solid rgba(212,163,115,0.3)" }}>{clean}</motion.span>;
           }
-          return seg;
+          if (seg.startsWith('[major]') && seg.endsWith('[/major]')) {
+            const clean = seg.slice(7, -8);
+            return <motion.span key={idx} initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: "var(--accent-gold)", fontWeight: "800", borderBottom: "1.5px solid rgba(212,163,115,0.3)" }}>{clean}</motion.span>;
+          }
+          // Cleanup any stray tag fragments like [/major] or [major] that might have survived split
+          return seg.replace(/\[\/?major\]/g, "");
         });
       };
 
       return (
         <div key={i} style={{ marginBottom: isHeader ? "10px" : "12px", marginTop: isHeader && i > 0 ? "20px" : "0", lineHeight: "1.7", fontSize: isHeader ? "0.92rem" : "0.78rem", fontWeight: isHeader ? "700" : "400", color: isHeader ? (isDarkBg ? "var(--accent-gold)" : "var(--accent-indigo)") : (isDarkBg ? "rgba(255, 255, 255, 0.85)" : "var(--text-secondary)"), whiteSpace: "pre-wrap" }}>
-          {processSpans(para)}
+          {processSpans(trimmed)}
         </div>
       );
     });
@@ -573,21 +579,43 @@ export default function SajuResultView({ reading, detailedData, onCopy }: { read
                     </div>
                     {renderHighlightedText(reading.analysis?.solution, true)}
                 </section>
+
+                {!(reading.isTotalFortune || reading.analysis?.isTotalFortune || reading.analysis?.detailed_fortune) && (
+                  <section style={{ background: "rgba(255,255,255,0.04)", padding: "20px", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}>
+                          <Sparkles size={16} color="var(--accent-gold)" />
+                          <h4 style={{ fontSize: "0.95rem", fontWeight: "900", color: "var(--accent-gold)" }}>핵심 성패 시기 (2026-2028)</h4>
+                      </div>
+                      {renderHighlightedText(reading.analysis?.timing, true)}
+                  </section>
+                )}
+
+                {reading.analysis?.detailed_fortune && (
+                  <section style={{ background: "rgba(255,255,255,0.04)", padding: "20px", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}>
+                          <Sparkles size={16} color="var(--accent-gold)" />
+                          <h4 style={{ fontSize: "0.95rem", fontWeight: "900", color: "var(--accent-gold)" }}>분야별 상세 운세</h4>
+                      </div>
+                      {renderHighlightedText(reading.analysis?.detailed_fortune, true)}
+                  </section>
+                )}
+
+                {reading.analysis?.turning_points && (
+                  <section style={{ background: "rgba(255,255,255,0.04)", padding: "20px", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.06)", marginTop: "12px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}>
+                          <Sparkles size={16} color="var(--accent-gold)" />
+                          <h4 style={{ fontSize: "0.95rem", fontWeight: "900", color: "var(--accent-gold)" }}>인생 주요 전환점 & 위험 시기</h4>
+                      </div>
+                      {renderHighlightedText(reading.analysis?.turning_points, true)}
+                  </section>
+                )}
                 
                 <section>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}>
                         <div style={{ width: "4px", height: "16px", background: "var(--accent-gold)", borderRadius: "2px" }} />
                         <h4 style={{ fontSize: "0.95rem", fontWeight: "900", color: "var(--accent-gold)" }}>실전 개운 비책</h4>
                     </div>
-                    {renderHighlightedText(reading.luck_advice, true)}
-                </section>
-
-                <section style={{ background: "rgba(255,255,255,0.04)", padding: "20px", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px" }}>
-                        <Sparkles size={16} color="var(--accent-gold)" />
-                        <h4 style={{ fontSize: "0.95rem", fontWeight: "900", color: "var(--accent-gold)" }}>핵심 성패 시기 (2026-2028)</h4>
-                    </div>
-                    {renderHighlightedText(reading.analysis?.timing, true)}
+                    {renderHighlightedText(reading.luck_advice || reading.analysis?.luck_advice, true)}
                 </section>
             </div>
         </div>

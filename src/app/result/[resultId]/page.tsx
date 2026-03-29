@@ -28,11 +28,20 @@ export default async function ResultPage({ params }: Props) {
   }
 
   // Map data to SajuResultView format
+  // Detect Total Fortune from ALL available signals, including the stored question
+  const isTotalFortune = 
+    data.isTotalFortune === true || 
+    data.analysis?.isTotalFortune === true || 
+    !!data.analysis?.detailed_fortune ||
+    (data.userInput?.question || "").includes("인생총운");
+
   const reading = {
     ...data,
+    isTotalFortune,
     subheadline: "귀하의 타고난 기운과 미래의 흐름을 정밀하게 분석한 결과입니다.",
     analysis: {
       ...data.analysis,
+      isTotalFortune, // Also inject into analysis object for deeper components
       title: `${data.userInput?.name || "고객"}님의 인생 총운 심층 분석`
     }
   };

@@ -302,7 +302,7 @@ export const prepareAnalysisData = async (data: any) => {
             }
         },
         systemPrompt: "### 전문가 리포트",
-        userAnswers: [`${selectedCategory}: ${userQuestion}`],
+        userAnswers: [`관심 영역: ${selectedCategory}`, `구체적 질문: ${userQuestion}`],
         sajuRes, basePercentages, correctedPercentages, baseStrength, correctedStrength, elementalLabels, y,
         yongsin, baseSipsungCounts: calculateSipsungDist(false), correctedSipsungCounts: calculateSipsungDist(true),
         stages12: { year: sajuRes.year.stage12, month: sajuRes.month.stage12, day: sajuRes.day.stage12, hour: sajuRes.hour.stage12 },

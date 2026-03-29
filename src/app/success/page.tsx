@@ -43,18 +43,23 @@ function SuccessContent() {
   const amount = searchParams.get("amount");
 
   const confirmPayment = async () => {
-    const savedData = localStorage.getItem("premium_saju_data");
-    const kakaoToken = sessionStorage.getItem("kakao_access_token");
-
+    const specificKey = orderId ? `premium_saju_data_${orderId}` : null;
+    const genericKey = "premium_saju_data";
+    
+    // Prioritize specific key, then fallback to generic
+    const savedData = (specificKey ? localStorage.getItem(specificKey) : null) || localStorage.getItem(genericKey);
+    
     if (!savedData) {
-      setStatus("error");
-      setErrorMessage("입력된 사주 정보가 없습니다. 세션이 만료되었을 수 있습니다.");
+      console.error("[Success] No saved data found for order:", orderId);
+      window.location.href = "/fail?message=데이터를 찾을 수 없습니다.";
       return;
     }
 
     try {
       const data = JSON.parse(savedData);
+      console.log("[Success] Data retrieved for order:", orderId, "Category:", data.selectedCategory);
       setUserEmail(data.userEmail || "");
+      const kakaoToken = sessionStorage.getItem("kakao_access_token");
       const analysisData = await prepareAnalysisData(data);
       setSajuDataForCapture(analysisData);
 
@@ -113,8 +118,11 @@ function SuccessContent() {
       });
 
       if (res.ok) {
+        const specificKey = orderId ? `premium_saju_data_${orderId}` : null;
+        if (specificKey) localStorage.removeItem(specificKey);
         localStorage.removeItem("premium_saju_data");
         console.log("[Success] Payment confirmed and background tasks triggered.");
+        setStatus("completed");
       } else {
         const errData = await res.json();
         setStatus("error");
@@ -128,7 +136,8 @@ function SuccessContent() {
   };
 
   const fetchAnalysisForCopy = async () => {
-    const savedData = localStorage.getItem("premium_saju_data");
+    const specificKey = orderId ? `premium_saju_data_${orderId}` : null;
+    const savedData = (specificKey ? localStorage.getItem(specificKey) : null) || localStorage.getItem("premium_saju_data");
     // Even if no localStorage, we can still show a generic success message if show=true
     if (!savedData) {
       setStatus("completed");
@@ -189,7 +198,8 @@ ${analysisResult.luck_advice?.replace(/<[^>]*>?/gm, '')}
   };
 
   useEffect(() => {
-    const savedData = localStorage.getItem("premium_saju_data");
+    const specificKey = orderId ? `premium_saju_data_${orderId}` : null;
+    const savedData = (specificKey ? localStorage.getItem(specificKey) : null) || localStorage.getItem("premium_saju_data");
     if (savedData) {
       try {
         const data = JSON.parse(savedData);
