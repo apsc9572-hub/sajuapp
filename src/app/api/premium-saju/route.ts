@@ -135,7 +135,7 @@ async function callAIAnalysis(apiKey: string, sajuJson: any, userAnswers: any, p
 - **프리미엄 골드 강조**: 핵심 재능을 **[major]내용[/major]** 태그로 감싸십시오.
 - 출력 포맷: JSON {"solution": "내용"}`
       : `### [섹션 2: 고민에 대한 대가의 해답]
-- 반드시 공백 포함 **1,800자 ~ 2,500자** 범위로 작성하십시오.
+- 반드시 공백 포함 **2,500자 ~ 3,000자** 범위로 작성하십시오.
 - ${strategyText}
 - 내담자의 구체적인 고민("${userAnswers[0]}")에 대해 직접적이고 [major]명쾌한 해답[/major]을 제시하십시오.
 - 첫 문장은 반드시 사용자의 질문을 직접 언급하며 공감을 표하며 시작하십시오.
