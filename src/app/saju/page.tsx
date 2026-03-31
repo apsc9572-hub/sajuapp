@@ -433,6 +433,11 @@ function SajuContent() {
           time: toKr(sajuRes.pillarDetails.hour.stem + sajuRes.pillarDetails.hour.branch)
         };
 
+        const pillarSummary = `${baziData.year}(${sajuRes.pillarDetails.year.stem}${sajuRes.pillarDetails.year.branch})년 ` +
+                             `${baziData.month}(${sajuRes.pillarDetails.month.stem}${sajuRes.pillarDetails.month.branch})월 ` +
+                             `${baziData.day}(${sajuRes.pillarDetails.day.stem}${sajuRes.pillarDetails.day.branch})일 ` +
+                             `${baziData.time}(${sajuRes.pillarDetails.hour.stem}${sajuRes.pillarDetails.hour.branch})시`;
+
         const [y] = date.split('-').map(Number);
         const age = 2026 - y + 1;
 
@@ -459,6 +464,11 @@ function SajuContent() {
           systemPrompt: `전통 사주 전문가로서 ${age}세 사용자인 '귀하'의 인생 전체를 관통하는 명리학적 풀이를 제공하세요.
 당신은 '청아매당'의 최고 권위자입니다. 귀하의 명식을 살펴 인생의 큰 흐름을 날카롭고 깊이 있게 분석하십시오.
 
+[사용자 사주 명식 요약 (최우선 참조 데이터)]
+- 명식: ${pillarSummary} (이 데이터는 정밀 천문 계산 결과이므로, 연도 기반의 일반적 추측보다 이 명식을 절대적으로 우선하여 분석하십시오.)
+- 성별: ${gender === 'M' ? '남성' : '여성'}
+- 현재 나이: ${age}세
+
 [JSON 구조 및 세부 지침]
 다음의 키를 가진 JSON 객체로만 응답하십시오:
 - "general": 전체적인 인생의 격국과 그릇 분석 (1000자 내외)
@@ -478,8 +488,8 @@ function SajuContent() {
 [중요 지침]
 1. 모든 문단 끝에는 문단 나누기(\\n\\n)를 반드시 사용하십시오.
 2. 팩트 중심의 엄격하고 권위 있는 말투를 유지하십시오.
-3. 긍정 50%, 조심할 점 50%의 비율을 지키십시오.`,
-          sajuJson: { ...sajuRes, age },
+4. 분석 시 제공된 한자 명식(${pillarSummary})을 바탕으로 일간(Daily Master)과 격국을 정확히 판별하십시오. 1991년생이라도 입춘 전이라면 '말띠(경오년)'일 수 있으며, 반드시 제공된 명식 텍스트를 기준으로 하십시오.`,
+          sajuJson: { ...sajuRes, age, pillarSummary },
           expectedKeys: ["general", "early", "adolescence", "youth", "middle", "mature", "late", "general_summary", "general_keyword", "daeun", "sinsal", "gaewun", "life_balance"]
         };
 
