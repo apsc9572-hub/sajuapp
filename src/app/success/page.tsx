@@ -28,6 +28,7 @@ function SuccessContent() {
   const [isCopying, setIsCopying] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [sajuDataForCapture, setSajuDataForCapture] = useState<any>(null);
+  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "kakao" | "">("");
   
   const capturePillarRef = useRef<HTMLDivElement>(null);
   const captureStarBaseRef = useRef<HTMLDivElement>(null);
@@ -204,6 +205,7 @@ ${analysisResult.luck_advice?.replace(/<[^>]*>?/gm, '')}
       try {
         const data = JSON.parse(savedData);
         if (data.userEmail) setUserEmail(data.userEmail);
+        if (data.deliveryMethod) setDeliveryMethod(data.deliveryMethod);
       } catch (e) {}
     }
 
@@ -363,8 +365,7 @@ ${analysisResult.luck_advice?.replace(/<[^>]*>?/gm, '')}
                   <h2 style={{ fontSize: "1.4rem", fontWeight: "900", color: "var(--accent-indigo)", marginBottom: "12px", fontFamily: "'Nanum Myeongjo', serif" }}>분석이 시작되었습니다</h2>
                   <p style={{ color: "#555", fontSize: "0.9rem", lineHeight: "1.7", marginBottom: "25px", wordBreak: "keep-all" }}>
                     귀하의 사주 기운을 세밀히 분석하여 명확한 답을 도출 중입니다.<br/><br/>
-                    약 <b>1~5분 이내</b>에 귀하의 <b>카카오톡과 이메일</b>로 소중히 전달해 드립니다.<br/><br/>
-                    메일 하단의 버튼을 통해 전체 내용을 복사하실 수 있습니다.
+                    약 <b>1~10분 이내</b>에 귀하의 <b>{deliveryMethod === 'kakao' ? '카카오톡' : (deliveryMethod === 'email' ? '이메일' : '카카오톡 또는 이메일')}</b>로 소중히 전달해 드립니다.
                   </p>
                 </>
               )}
