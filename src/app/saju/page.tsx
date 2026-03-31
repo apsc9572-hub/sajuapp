@@ -442,7 +442,7 @@ function SajuContent() {
         const age = 2026 - y + 1;
 
         // Cache Check
-        const cacheKey = `saju_cache_v13_${date}_${time}_${isLunar}_${gender}_${birthCity}`;
+        const cacheKey = `saju_cache_v14_${date}_${time}_${isLunar}_${gender}_${birthCity}`;
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
           try {
@@ -460,6 +460,13 @@ function SajuContent() {
           }
         }
 
+        const currentDaeunIdx = sajuRes.daeun.list.findIndex((c: any, i: number, arr: any[]) => {
+          const nextStart = arr[i+1]?.startAge || 999;
+          return age >= c.startAge && age < nextStart;
+        });
+        const currentDaeun = sajuRes.daeun.list[currentDaeunIdx] || sajuRes.daeun.list[0];
+        const currentDaeunStr = currentDaeun ? `${currentDaeun.ganzhi}대운 (${currentDaeun.startAge}세 ~ ${sajuRes.daeun.list[currentDaeunIdx+1]?.startAge - 1 || currentDaeun.startAge + 9}세)` : "알 수 없음";
+
         const payload = {
           systemPrompt: `전통 사주 전문가로서 ${age}세 사용자인 '귀하'의 인생 전체를 관통하는 명리학적 풀이를 제공하세요.
 당신은 '청아매당'의 최고 권위자입니다. 귀하의 명식을 살펴 인생의 큰 흐름을 날카롭고 깊이 있게 분석하십시오.
@@ -468,19 +475,20 @@ function SajuContent() {
 - 명식: ${pillarSummary} (이 데이터는 정밀 천문 계산 결과이므로, 연도 기반의 일반적 추측보다 이 명식을 절대적으로 우선하여 분석하십시오.)
 - 성별: ${gender === 'M' ? '남성' : '여성'}
 - 현재 나이: ${age}세
+- **현재 대운: ${currentDaeunStr}** (현재 이 대운 시기를 지나고 있으므로, 대운 분석 섹션에서는 반드시 이 기간을 중점적으로 다루십시오.)
 
 [JSON 구조 및 세부 지침]
 다음의 키를 가진 JSON 객체로만 응답하십시오:
-- "general": 전체적인 인생의 격국과 그릇 분석 (1000자 내외)
+- "general": **[필독] 특정 연도의 운세(2026년 등)가 아닌, 인생 전체의 격국, 그릇의 크기, 타고난 천성과 평생을 관통하는 대세적 흐름을 깊이 있게 분석** (1000자 내외)
 - "early": 초년운 (0세 ~ 19세): 성장 배경, 유아기 분석 (600자 내외)
 - "adolescence": 청소년운 (13세 ~ 18세): 감수성과 자아 형성 (600자 내외)
 - "youth": 청년운 (19세 ~ 39세): 사회 진출, 초기 사회 활동기 (600자 내외)
 - "middle": 중년운 (40세 ~ 54세): 인생의 전성기, 성취와 안정 (600자 내외)
 - "mature": 장년운 (55세 ~ 69세): 제2의 도약, 삶의 결실 (600자 내외)
 - "late": 말년운 (70세 이후): 인생의 마무리와 평온함 (600자 내외)
-- "general_summary": 전체 운세 3문장 요약
-- "general_keyword": 상징적 키워드
-- "daeun": 현재 대운의 의미 분석
+- "general_summary": 전체 평생 운세 3문장 요약 (특정 연도 언급 금지)
+- "general_keyword": 인생을 상징하는 핵심 키워드
+- "daeun": **현재 대운(${currentDaeunStr})**이 귀하의 현재 인생 단계에서 가지는 명리학적 의미와 사회적/심리적 변화 분석. (유년기의 대운이 아닌, 현재의 대운을 분석할 것)
 - "sinsal": 핵심 신살의 영향
 - "gaewun": 구체적인 개운 비책
 - "life_balance": { "wealth": 0~100점, "love": 0~100점, "career": 0~100점, "health": 0~100점 } (명리학적 근거에 기반한 실시간 점수 산출)
