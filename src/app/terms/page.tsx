@@ -61,7 +61,7 @@ export default function TermsPage() {
 
             <section>
               <h2 style={{ fontSize: "1.1rem", fontWeight: "700", color: "var(--accent-indigo)", marginBottom: "12px", borderLeft: "3px solid var(--accent-gold)", paddingLeft: "10px" }}>제3조 (서비스의 성격 및 제공 방식)</h2>
-              <p style={{ opacity: 0.8, marginBottom: "8px" }}>1. 본 서비스가 제공하는 모든 분석 결과는 명리학적 알고리즘에 기반한 추정치이며, 이는 과학적 사실이나 확정적 미래를 보장하지 않는 엔터테인먼트 및 참고용 정보입니다.</p>
+              <p style={{ opacity: 0.8, marginBottom: "8px" }}>1. 본 서비스는 전통 명리학 데이터와 인공지능(AI) 기술을 결합하여 분석 결과를 제공하는 'AI 사주' 서비스이며, 모든 분석 결과는 명리학적 알고리즘 및 AI 추론에 기반한 추정치입니다. 이는 과학적 사실이나 확정적 미래를 보장하지 않는 엔터테인먼트 및 참고용 정보입니다.</p>
               <p style={{ opacity: 0.8, marginBottom: "8px" }}>2. 프리미엄 사주 서비스는 분석 완료 후 이용자가 입력한 <strong>이메일 전송 또는 카카오 알림톡</strong>을 통해 결과지에 접근할 수 있는 링크를 제공하는 방식으로 전달됩니다.</p>
               <p style={{ opacity: 0.8, marginBottom: "16px" }}>3. 제공된 프리미엄 사주 분석 결과의 보관 기간은 <strong>발송일로부터 1주일</strong>이며, 기간 만료 후에는 개인정보 보호 및 데이터 보안상 분석 내용이 자동으로 파기되어 재열람이 불가능합니다.</p>
               <p style={{ opacity: 0.8, background: "rgba(212, 175, 55, 0.05)", padding: "16px", borderRadius: "12px", border: "1px dashed var(--accent-gold)", fontWeight: "600" }}>

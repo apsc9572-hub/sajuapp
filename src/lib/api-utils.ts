@@ -158,75 +158,56 @@ export async function callClaudeProfessional(
   return data.content?.[0]?.text || "";
 }
 
+import { SolapiMessageService } from "solapi";
+
 /**
- * 알리고 알림톡 발송 함수
+ * 솔라피(Solapi) 알림톡 발송 함수
  */
 export async function sendAlimTalk(params: {
   receiver: string;
   message: string;
-  emblem?: string;
-  button1?: { name: string; type: string; url_mobile?: string; url_pc?: string };
-  buttons?: any[]; // array of button objects matching Aligo spec
+  buttons?: any[]; // Solapi button format or Aligo format (will be mapped)
 }) {
-  const apiKey = process.env.ALIGO_API_KEY;
-  const userId = process.env.ALIGO_USER_ID;
-  const senderKey = process.env.ALIGO_SENDER_KEY;
-  const templateCode = process.env.ALIGO_TEMPLATE_CODE;
-  const sender = process.env.ALIGO_SENDER;
+  const apiKey = process.env.SOLAPI_API_KEY;
+  const apiSecret = process.env.SOLAPI_API_SECRET;
+  const pfId = process.env.SOLAPI_PFID;
+  const templateId = process.env.SOLAPI_TEMPLATE_ID;
+  const sender = process.env.SOLAPI_SENDER;
 
-  if (!apiKey || !userId || !senderKey || !templateCode || !sender) {
-    const missing = { apiKey: !!apiKey, userId: !!userId, senderKey: !!senderKey, templateCode: !!templateCode, sender: !!sender };
-    console.error("[Aligo] Missing configuration", missing);
-    throw new Error(`Aligo configuration missing: ${JSON.stringify(missing)}`);
+  if (!apiKey || !apiSecret || !pfId || !templateId || !sender) {
+    const missing = { apiKey: !!apiKey, apiSecret: !!apiSecret, pfId: !!pfId, templateId: !!templateId, sender: !!sender };
+    console.error("[Solapi] Missing configuration", missing);
+    throw new Error(`Solapi configuration missing: ${JSON.stringify(missing)}`);
   }
 
-  // Direct send to Aligo AlimTalk API (as per official docs - no token step needed)
-  console.log("[Aligo] Sending AlimTalk... apikey:", apiKey.slice(0, 6) + "...", "userid:", userId, "receiver:", params.receiver);
+  const messageService = new SolapiMessageService(apiKey, apiSecret);
 
-  // Build URL-encoded body like the official curl example: --data-urlencode
-  const bodyParams = new URLSearchParams();
-  bodyParams.append("apikey", apiKey);
-  bodyParams.append("userid", userId);
-  bodyParams.append("senderkey", senderKey);
-  bodyParams.append("tpl_code", templateCode);
-  bodyParams.append("sender", sender);
-  bodyParams.append("receiver_1", params.receiver);
-  bodyParams.append("subject_1", "청아매당 프리미엄 사주 결과");
-  bodyParams.append("message_1", params.message);
-  // testMode: Y for debugging auth without consuming points (remove in production)
-  // bodyParams.append("testMode", "Y");
+  // Map buttons from Aligo-style (current codebase) to Solapi-style if needed
+  const mappedButtons = params.buttons?.map(btn => ({
+    buttonName: btn.name || btn.buttonName,
+    buttonType: btn.linkType || btn.buttonType,
+    linkMo: btn.linkMo,
+    linkPc: btn.linkPc
+  }));
 
-  if (params.buttons) {
-    bodyParams.append("button_1", JSON.stringify({
-      button: params.buttons
-    }));
-  } else if (params.button1) {
-    bodyParams.append("button_1", JSON.stringify({
-      button: [
-        {
-          name: params.button1.name,
-          linkType: params.button1.type,
-          linkMo: params.button1.url_mobile,
-          linkPc: params.button1.url_pc
-        }
-      ]
-    }));
-  }
+  console.log("[Solapi] Sending AlimTalk to:", params.receiver, "Template:", templateId);
 
   try {
-    const response = await fetch("https://kakaoapi.aligo.in/akv10/alimtalk/send/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: bodyParams.toString(),
+    const result = await messageService.sendOne({
+      to: params.receiver.replace(/-/g, ''), // Ensure no dashes
+      from: sender,
+      text: params.message,
+      kakaoOptions: {
+        pfId: pfId,
+        templateId: templateId,
+        buttons: mappedButtons
+      }
     });
 
-    const result = await response.json();
-    console.log("[Aligo] Send Result:", JSON.stringify(result));
+    console.log("[Solapi] Send Result:", JSON.stringify(result));
     return result;
   } catch (error) {
-    console.error("[Aligo] Request Failed:", error);
+    console.error("[Solapi] Request Failed:", error);
     return { status: "error", message: "Request failed" };
   }
 }

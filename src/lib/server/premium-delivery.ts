@@ -782,19 +782,15 @@ export async function processAndDeliverPremiumSaju(params: {
 
     // 5. Aligo AlimTalk Delivery (Professional)
     if (deliveryMethod === "kakao" && phoneNumber) {
-      console.log(`[Kakao] Sending AlimTalk via Aligo to ${phoneNumber}...`);
+      console.log(`[Kakao] Sending AlimTalk via Solapi to ${phoneNumber}...`);
       try {
         await sendAlimTalk({
           receiver: phoneNumber,
-          // IMPORTANT: This message MUST match the approved Aligo template UG_5237 exactly
-          message: `청아매당에 귀한 발걸음 해주셔서 감사합니다. 귀하의 사주에 대한 질문의 답변이 도착 하였습니다. 감사합니다.`,
+          // IMPORTANT: This message MUST match the approved Solapi template exactly, including NEWLINES AND DOTS
+          message: `안녕하세요. 청아매당 입니다.\n귀하의 질문에 대한 프리미엄 사주 풀이가 도착 하였습니다.\n감사합니다.`,
           buttons: [
             {
-              name: "채널추가",
-              linkType: "AC"
-            },
-            {
-              name: "사주풀이 결과 보기",
+              name: "사주 결과 전체 보기",
               linkType: "WL",
               linkMo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.cheongamaedang.com'}/result/${resultId}`,
               linkPc: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.cheongamaedang.com'}/result/${resultId}`
