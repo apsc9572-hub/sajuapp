@@ -82,7 +82,7 @@ export default function RootLayout({
                 fontWeight: "400",
                 letterSpacing: "-0.01em"
               }}>
-                <p style={{ marginBottom: "1px" }}>대표: 박성철 | 주소: 인천시 계양구 용종로 124 134-1402</p>
+                <p style={{ marginBottom: "1px" }}>상호명: 플레이앤겟 | 대표: 박성철 | 주소: 인천시 계양구 용종로 124 134-1402</p>
                 <p style={{ marginBottom: "1px" }}>사업자번호: 170-53-00867 | 전화: 010-8243-7516</p>
                 <p style={{ marginBottom: "0px" }}>© {new Date().getFullYear()} 청아매당. All rights reserved.</p>
               </div>
