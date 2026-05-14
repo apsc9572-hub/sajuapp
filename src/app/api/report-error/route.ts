@@ -10,14 +10,14 @@ export async function POST(request: Request) {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER || "apsc9572@gmail.com",
+        user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS, // .env 파일에 설정 필요
       },
     });
 
     const mailOptions = {
-      from: process.env.EMAIL_USER || "apsc9572@gmail.com",
-      to: "apsc9572@gmail.com",
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
       subject: `[청아매당] 프리미엄 사주 분석 실패 리포트 (${userEmail})`,
       text: `
 [오류 보고 상세]

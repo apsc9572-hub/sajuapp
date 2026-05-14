@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER || "apsc9572@gmail.com",
+        user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
     });
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     `;
 
     const mailOptions = {
-      from: `"청아매당" <${process.env.EMAIL_USER || "apsc9572@gmail.com"}>`,
+      from: `"청아매당" <${process.env.EMAIL_USER}>`,
       to: userEmail,
       subject: `[청아매당] 프리미엄 사주 감명 결과지가 도착했습니다.`,
       html: htmlContent,

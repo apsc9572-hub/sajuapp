@@ -6,7 +6,7 @@ export async function GET() {
     
     try {
         const mockSajuData = {
-            userEmail: "apsc9572@gmail.com",
+            userEmail: process.env.EMAIL_USER || "",
             sajuJson: { user_info: { gender: "남성", day_master: "계유" }, elements_ratio: { water: 59.1 } },
             systemPrompt: "Diagnostic prompt",
             userAnswers: ["Test Question"],
@@ -15,7 +15,7 @@ export async function GET() {
 
         // Call the REAL delivery function
         await processAndDeliverPremiumSaju({
-            userEmail: "apsc9572@gmail.com",
+            userEmail: process.env.EMAIL_USER || "",
             orderId: "DIAG-" + Date.now(),
             sajuData: mockSajuData,
             deliveryMethod: "email",

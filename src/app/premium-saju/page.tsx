@@ -1042,7 +1042,7 @@ function PremiumSajuContent() {
       if (typeof window !== "undefined" && (window as any).Kakao) {
         const Kakao = (window as any).Kakao;
         if (!Kakao.isInitialized()) {
-          const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "b60b41a84d11534e64bd1422cba88b5d";
+          const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "";
           try {
             Kakao.init(key);
             console.log("Kakao SDK Initialized. Modules:", Object.keys(Kakao));
@@ -1134,7 +1134,7 @@ function PremiumSajuContent() {
     
     const Kakao = (window as any).Kakao;
     if (!Kakao.isInitialized()) {
-      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "b60b41a84d11534e64bd1422cba88b5d";
+      const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY || "";
       try {
         Kakao.init(key);
       } catch (e) {

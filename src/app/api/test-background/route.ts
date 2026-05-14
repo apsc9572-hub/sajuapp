@@ -4,7 +4,7 @@ import { processAndDeliverPremiumSaju } from "@/lib/server/premium-delivery";
 export async function GET() {
   // Dummy data for testing
   const testData = {
-    userEmail: "apsc9572@gmail.com", // Replace with your test email
+    userEmail: process.env.EMAIL_USER || "", // Uses env var
     orderId: "TEST_ORDER_" + Date.now(),
     sajuData: {
       sajuJson: {
@@ -29,7 +29,7 @@ export async function GET() {
 
     return NextResponse.json({ 
       success: true, 
-      message: "분석 프로세스가 백그라운드에서 시작되었습니다. 약 1~2분 후 이메일(apsc9572@gmail.com)을 확인해 주세요.",
+      message: `분석 프로세스가 백그라운드에서 시작되었습니다. 약 1~2분 후 이메일을 확인해 주세요.`,
       status: "Processing"
     });
   } catch (error: any) {
