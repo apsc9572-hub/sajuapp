@@ -17,42 +17,37 @@ export async function POST(request: Request) {
     }
 
     console.log("[Confirm API] Full Body Keys:", Object.keys(body));
-    const { paymentKey, orderId, amount, skip, userEmail, kakaoToken, sajuData, deliveryMethod, images, phoneNumber } = body;
+    const { paymentKey, orderId, amount, userEmail, kakaoToken, sajuData, deliveryMethod, images, phoneNumber } = body;
     
     console.log("[Confirm API] Parameters check:", { 
       hasEmail: !!userEmail, 
       hasSaju: !!sajuData, 
-      isSkip: skip === "true",
       method: deliveryMethod 
     });
 
     let result: any = { status: "DONE" };
     let responseOk = true;
 
-    // Only hit Toss API if not skipping
-    if (skip !== "true") {
-      console.log("[Confirm API] Proceeding with Toss Payment Confirmation...");
-      const secretKey = process.env.TOSS_SECRET_KEY;
-      if (!secretKey) {
-        throw new Error("TOSS_SECRET_KEY is missing");
-      }
-
-      const basicAuth = Buffer.from(`${secretKey}:`).toString("base64");
-      const response = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
-        method: "POST",
-        headers: {
-          Authorization: `Basic ${basicAuth}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ paymentKey, orderId, amount }),
-      });
-
-      result = await response.json();
-      responseOk = response.ok;
-      console.log("[Confirm API] Toss Response OK:", responseOk, result);
-    } else {
-      console.log("[Confirm API] Skipping Toss Payment (Test Mode)");
+    // Always hit Toss API for verification
+    console.log("[Confirm API] Proceeding with Toss Payment Confirmation...");
+    const secretKey = process.env.TOSS_SECRET_KEY;
+    if (!secretKey) {
+      throw new Error("TOSS_SECRET_KEY is missing");
     }
+
+    const basicAuth = Buffer.from(`${secretKey}:`).toString("base64");
+    const response = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${basicAuth}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ paymentKey, orderId, amount }),
+    });
+
+    result = await response.json();
+    responseOk = response.ok;
+    console.log("[Confirm API] Toss Response OK:", responseOk, result);
 
     if (responseOk) {
       // Trigger background analysis

@@ -882,7 +882,7 @@ function PremiumSajuContent() {
   const [userEmail, setUserEmail] = useState("");
   const [emailId, setEmailId] = useState("");
   const [emailDomain, setEmailDomain] = useState("naver.com");
-  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "kakao">("email");
+  const [deliveryMethod, setDeliveryMethod] = useState<"email" | "kakao">("kakao");
   const [kakaoToken, setKakaoToken] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
@@ -907,8 +907,6 @@ function PremiumSajuContent() {
 
   const resultRef = useRef<HTMLDivElement>(null);
 
-  const [clickCount, setClickCount] = useState(0);
-  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (emailId) {
@@ -918,25 +916,6 @@ function PremiumSajuContent() {
     }
   }, [emailId, emailDomain]);
 
-  const handleDevReset = () => {
-    setClickCount((prev) => {
-      const newCount = prev + 1;
-      if (newCount >= 5) {
-        localStorage.clear();
-        sessionStorage.clear();
-        document.cookie.split("; ").forEach((c) => {
-          const cookieName = encodeURIComponent(c.split("=")[0]);
-          document.cookie = cookieName + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        });
-        alert("개발자 모드: 모든 캐시 및 쿠키가 초기화되었습니다.");
-        window.location.reload();
-        return 0;
-      }
-      if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = setTimeout(() => setClickCount(0), 2000);
-      return newCount;
-    });
-  };
 
   // Local Storage
   useEffect(() => {
@@ -1800,7 +1779,7 @@ function PremiumSajuContent() {
             <button onClick={handleBack} style={{ background: "rgba(0,0,0,0.05)", border: "none", color: "var(--text-primary)", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <ArrowLeft size={16} />
             </button>
-            <div style={{ textAlign: "center", cursor: "pointer", userSelect: "none" }} onClick={handleDevReset}>
+            <div style={{ textAlign: "center", userSelect: "none" }}>
               <div style={{ fontSize: "1.05rem", fontWeight: "800", color: "var(--accent-gold)", letterSpacing: "0.1em", margin: 0, fontFamily: "'Nanum Myeongjo', serif" }}>PREMIUM 심층 감명</div>
             </div>
             <div style={{ width: "32px" }}></div>
@@ -1847,7 +1826,7 @@ function PremiumSajuContent() {
                           transition: "all 0.2s" 
                         }}
                       >
-                        카카오톡(준비중)
+                        카카오톡
                       </button>
                     </div>
 

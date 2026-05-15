@@ -18,8 +18,6 @@ interface PaymentModalProps {
 export default function PaymentModal({ isOpen, onClose, amount, orderName, customerKey, fixedOrderId }: PaymentModalProps) {
   const widgetsRef = useRef<TossPaymentsWidgets | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [devClicks, setDevClicks] = useState(0);
-  const devTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Use the client key from environment variables
   const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || ""; 
@@ -115,18 +113,6 @@ export default function PaymentModal({ isOpen, onClose, amount, orderName, custo
             background: "linear-gradient(135deg, var(--accent-indigo), #1A1C2C)"
           }}>
             <div 
-              onClick={() => {
-                setDevClicks(prev => {
-                  const next = prev + 1;
-                  if (next >= 10) {
-                    window.location.href = `/success?skip=true&paymentKey=dev&orderId=dev&amount=5000`;
-                    return 0;
-                  }
-                  if (devTimeoutRef.current) clearTimeout(devTimeoutRef.current);
-                  devTimeoutRef.current = setTimeout(() => setDevClicks(0), 3000);
-                  return next;
-                });
-              }}
               style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "default", userSelect: "none" }}
             >
               <CreditCard size={18} color="var(--accent-gold)" />

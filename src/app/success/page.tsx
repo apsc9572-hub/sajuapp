@@ -100,7 +100,6 @@ function SuccessContent() {
         paymentKey, 
         orderId, 
         amount,
-        skip: searchParams.get("skip"),
         userEmail: data.userEmail, 
         deliveryMethod: data.deliveryMethod,
         kakaoToken,
@@ -214,8 +213,6 @@ ${analysisResult.luck_advice?.replace(/<[^>]*>?/gm, '')}
       confirmPayment();
     } else if (searchParams.get("result") === "true") {
       fetchAnalysisForCopy();
-    } else if (searchParams.get("show") === "true" || searchParams.get("skip") === "true") {
-      setStatus("completed");
     } else {
       setStatus("error");
       setErrorMessage("잘못된 접근입니다.");
