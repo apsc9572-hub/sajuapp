@@ -204,11 +204,15 @@ export default function Home() {
                       <Crown size={22} color="var(--accent-gold)" />
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: "0.6rem", color: "var(--accent-gold)", fontWeight: 800, letterSpacing: "0.1em", marginBottom: "2px" }}>
-                        VVIP 전용 특별 풀이
-                      </div>
                       <div style={{ fontSize: "1rem", color: "white", fontWeight: 800, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis" }}>
                         나만의 프리미엄 맞춤 사주
+                      </div>
+                      <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.8)", fontWeight: 600, marginTop: "4px", wordBreak: "keep-all" }}>
+                        조후·궁성 정밀 보정으로 완성한 가장 완벽한 사주 풀이
+                      </div>
+                      <div style={{ fontSize: "0.58rem", color: "rgba(255,255,255,0.5)", fontWeight: 400, marginTop: "6px", lineHeight: "1.5" }}>
+                        • 조후: 타고난 계절의 온도와 기운<br />
+                        • 궁성: 부모·사회·나·자녀의 자리
                       </div>
                     </div>
                   </div>
