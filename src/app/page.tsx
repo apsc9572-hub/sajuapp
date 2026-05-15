@@ -10,10 +10,10 @@ import TraditionalBackground from "@/components/TraditionalBackground";
 
 export default function Home() {
   const menus = [
-    { title: "오늘의 흐름", icon: <Sparkles className="w-8 h-8" strokeWidth={1.2} />, color: "var(--accent-indigo)", link: "/fortune?type=daily" },
-    { title: "이달의 흐름", icon: <MoonStar className="w-8 h-8" strokeWidth={1.2} />, color: "var(--accent-indigo)", link: "/fortune?type=monthly" },
-    { title: "올해의 흐름", icon: <Scroll className="w-8 h-8" strokeWidth={1.2} />, color: "var(--accent-indigo)", link: "/fortune?type=yearly" },
-    { title: "전통 사주", icon: <BookOpen className="w-8 h-8" strokeWidth={1.2} />, color: "var(--accent-indigo)", link: "/saju" },
+    { title: "오늘의 흐름", icon: <Sparkles className="w-8 h-8" strokeWidth={1.2} />, color: "var(--accent-indigo)", link: "/fortune?type=daily", isFree: true },
+    { title: "이달의 흐름", icon: <MoonStar className="w-8 h-8" strokeWidth={1.2} />, color: "var(--accent-indigo)", link: "/fortune?type=monthly", isFree: true },
+    { title: "올해의 흐름", icon: <Scroll className="w-8 h-8" strokeWidth={1.2} />, color: "var(--accent-indigo)", link: "/fortune?type=yearly", isFree: true },
+    { title: "전통 사주", icon: <BookOpen className="w-8 h-8" strokeWidth={1.2} />, color: "var(--accent-indigo)", link: "/saju", isFree: true },
   ];
   const [clickCount, setClickCount] = useState(0);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -169,6 +169,27 @@ export default function Home() {
               }}>
                 전통의 지혜로 당신의 길을 비추다
               </p>
+              <motion.p 
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.2, duration: 0.8 }}
+                style={{ 
+                  fontSize: "0.72rem",
+                  color: "var(--accent-indigo)",
+                  letterSpacing: "-0.01em",
+                  margin: "8px 0 0 0",
+                  fontFamily: "'Nanum Myeongjo', serif",
+                  fontWeight: "800",
+                  textAlign: "center",
+                  background: "rgba(42, 54, 95, 0.05)",
+                  padding: "4px 14px",
+                  borderRadius: "20px",
+                  border: "1px solid rgba(42, 54, 95, 0.1)",
+                  boxShadow: "0 2px 10px rgba(0,0,0,0.03)"
+                }}
+              >
+                별도의 로그인 없이 모든 서비스를 바로 이용하실 수 있습니다
+              </motion.p>
             </div>
           </motion.div>
 
@@ -208,7 +229,7 @@ export default function Home() {
                         나만의 프리미엄 맞춤 사주
                       </div>
                       <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.8)", fontWeight: 600, marginTop: "4px", wordBreak: "keep-all" }}>
-                        조후·궁성 정밀 보정으로 완성한 가장 완벽한 사주 풀이
+                        무료 사주는 반쪽짜리일 뿐, 조후·궁성 정밀 보정으로 완성한 가장 완벽한 사주 풀이
                       </div>
                       <div style={{ fontSize: "0.58rem", color: "rgba(255,255,255,0.5)", fontWeight: 400, marginTop: "6px", lineHeight: "1.5" }}>
                         • 조후: 타고난 계절의 온도와 기운<br />
@@ -282,13 +303,36 @@ export default function Home() {
                         color: menu.color,
                         boxShadow: "0 10px 25px rgba(0,0,0,0.1)", // 더 강한 그림자
                         border: "1px solid rgba(42, 54, 95, 0.15)", // 더 진한 테두리
-                        transition: "box-shadow 0.3s ease"
+                        transition: "box-shadow 0.3s ease",
+                        position: "relative"
                       }}
                       whileHover={{
                         boxShadow: "0 20px 30px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,1), 0 0 15px rgba(255,255,255,0.8)"
                       }}
                     >
                       {menu.icon}
+                      {menu.isFree && (
+                        <div style={{
+                          position: "absolute",
+                          top: "-6px",
+                          right: "-6px",
+                          background: "#E63946", // 더 진하고 선명한 레드
+                          color: "white",
+                          fontSize: "0.62rem", // 약간 더 크게
+                          fontWeight: 900, // 가장 두껍게
+                          padding: "3px 8px", // 패딩 증가
+                          borderRadius: "12px",
+                          boxShadow: "0 4px 12px rgba(230, 57, 70, 0.4)", // 더 강력한 그림자
+                          border: "2px solid white", // 테두리 두껍게
+                          zIndex: 10,
+                          letterSpacing: "-0.02em",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center"
+                        }}>
+                          무료
+                        </div>
+                      )}
                     </motion.div>
                     <span style={{ 
                       fontSize: "0.6rem", 
