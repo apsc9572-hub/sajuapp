@@ -302,6 +302,69 @@ export default function Home() {
                 </Link>
               ))}
             </motion.div>
+ 
+            {/* Why Cheongamaedang Section */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+              viewport={{ once: true }}
+              style={{ 
+                width: "100%", maxWidth: "480px", margin: "40px auto 20px", padding: "0 20px" 
+              }}
+            >
+              <div style={{ textAlign: "center", marginBottom: "24px" }}>
+                <h2 style={{ 
+                  fontSize: "1.3rem", fontWeight: "900", color: "var(--accent-indigo)", 
+                  fontFamily: "'Nanum Myeongjo', serif", letterSpacing: "-0.02em" 
+                }}>
+                  왜 <span style={{ color: "var(--accent-gold)" }}>청아매당</span>이어야 할까요?
+                </h2>
+                <div style={{ width: "30px", height: "2px", background: "var(--accent-gold)", margin: "10px auto" }}></div>
+              </div>
+ 
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {[
+                  { 
+                    title: "조후·궁성 정밀 보정", 
+                    desc: "단순히 글자만 읽지 않습니다. 타고난 계절의 기운(조후)과 인생의 자리(궁성)를 분석하여 당신의 진짜 운명을 찾아냅니다.",
+                    icon: <Activity size={20} />
+                  },
+                  { 
+                    title: "5,000자 이상의 심층 풀이", 
+                    desc: "가벼운 몇 마디 풀이가 아닌, 인생의 총체적인 흐름과 구체적인 대안을 담은 방대한 분량의 프리미엄 분석을 제공합니다.",
+                    icon: <Scroll size={20} />
+                  },
+                  { 
+                    title: "언제 어디서나 비대면 감명", 
+                    desc: "직접 방문할 필요 없이, 검증된 명리 대가의 분석 결과를 이메일이나 카카오톡으로 간편하게 소장하실 수 있습니다.",
+                    icon: <Heart size={20} />
+                  }
+                ].map((item, idx) => (
+                  <motion.div 
+                    key={idx}
+                    whileHover={{ x: 5 }}
+                    style={{ 
+                      display: "flex", gap: "16px", padding: "18px", background: "white", 
+                      borderRadius: "20px", border: "1px solid rgba(42, 54, 95, 0.06)",
+                      boxShadow: "0 8px 20px rgba(0,0,0,0.02)"
+                    }}
+                  >
+                    <div style={{ 
+                      width: "42px", height: "42px", borderRadius: "12px", 
+                      background: "rgba(201, 160, 80, 0.1)", color: "var(--accent-gold)",
+                      display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                    }}>
+                      {item.icon}
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: "800", color: "var(--accent-indigo)", marginBottom: "6px" }}>{item.title}</h4>
+                      <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", lineHeight: "1.6", margin: 0, wordBreak: "keep-all" }}>{item.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
 
         </div>
 
