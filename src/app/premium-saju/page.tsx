@@ -1863,7 +1863,10 @@ function PremiumSajuContent() {
                     ) : (
                       <div style={{ marginBottom: "4px" }}>
                         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                          <span style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--accent-indigo)", marginLeft: "4px" }}>알림톡 수신 번호 (필수)</span>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "2px", marginLeft: "4px" }}>
+                            <span style={{ fontSize: "0.75rem", fontWeight: "800", color: "var(--accent-indigo)" }}>알림톡 수신 번호 (필수)</span>
+                            <span style={{ fontWeight: "400", color: "#999", fontSize: "0.7rem" }}>(결과 전송 외 다른 용도로 사용하지 않습니다)</span>
+                          </div>
                           <input 
                             type="tel" 
                             value={phoneNumber} 

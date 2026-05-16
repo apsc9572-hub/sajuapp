@@ -200,7 +200,7 @@ export default function Home() {
               transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
               style={{ width: "100%", maxWidth: "480px", margin: "5px auto 20px", padding: "0 10px", perspective: "1000px" }}
             >
-              <Link href="/premium-saju" style={{ textDecoration: "none" }}>
+              <Link href="/premium-info" style={{ textDecoration: "none" }}>
                 <motion.div
                   whileHover={{ scale: 1.02, y: -2, boxShadow: "0 20px 40px rgba(201, 160, 80, 0.2)" }}
                   whileTap={{ scale: 0.98, y: 0 }}
@@ -225,11 +225,11 @@ export default function Home() {
                       <Crown size={22} color="var(--accent-gold)" />
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: "1rem", color: "white", fontWeight: 800, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <div style={{ fontSize: "1.05rem", color: "#F0D786", fontWeight: 900, letterSpacing: "-0.02em", overflow: "hidden", textOverflow: "ellipsis", textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}>
                         나만의 프리미엄 맞춤 사주
                       </div>
                       <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.8)", fontWeight: 600, marginTop: "4px", wordBreak: "keep-all" }}>
-                        무료 사주는 반쪽짜리일 뿐, 조후·궁성 정밀 보정으로 완성한 가장 완벽한 사주 풀이
+                        무료사주는 반쪽짜리 사주입니다. 조후와 궁성을 보정한 당신의 완벽한 사주를 확인하세요
                       </div>
                       <div style={{ fontSize: "0.58rem", color: "rgba(255,255,255,0.5)", fontWeight: 400, marginTop: "6px", lineHeight: "1.5" }}>
                         • 조후: 타고난 계절의 온도와 기운<br />
@@ -246,105 +246,108 @@ export default function Home() {
               </Link>
             </motion.div>
 
+            {/* Free Fortune Section (Grouping) */}
             <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
               style={{ 
-                display: "grid", 
-                gridTemplateColumns: "repeat(4, 1fr)", 
-                gap: "12px 6px", 
+                width: "100%", 
                 maxWidth: "480px", 
-                margin: "0 auto",
-                padding: "0 10px",
-                perspective: "1000px" 
+                margin: "0 auto", 
+                padding: "0 10px" 
               }}
-              variants={{
-                hidden: { opacity: 0 },
-                show: {
-                  opacity: 1,
-                  transition: { staggerChildren: 0.1 }
-                }
-              }}
-              initial="hidden"
-              animate="show"
             >
-              {menus.map((menu, index) => (
-                <Link href={menu.link} key={menu.title} style={{ textDecoration: "none" }}>
-                  <motion.div
-                    variants={{
-                      hidden: { opacity: 0, scale: 0.8, y: 20 },
-                      show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 20 } }
-                    }}
-                    style={{ 
-                      cursor: "pointer", 
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "10px",
-                      textAlign: "center",
-                      transformStyle: "preserve-3d"
-                    }}
-                    whileHover={{ 
-                      scale: 1.05, 
-                      y: -8, 
-                      rotateX: 5, 
-                      rotateY: -5,
-                      filter: "brightness(1.05)"
-                    }}
-                    whileTap={{ scale: 0.95, y: 0, rotateX: 0, rotateY: 0 }}
-                  >
-                    <motion.div 
-                      style={{
-                        width: "clamp(50px, 13vw, 62px)",
-                        height: "clamp(50px, 13vw, 62px)",
-                        borderRadius: "50%",
-                        background: "#FFFFFF",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: menu.color,
-                        boxShadow: "0 10px 25px rgba(0,0,0,0.1)", // 더 강한 그림자
-                        border: "1px solid rgba(42, 54, 95, 0.15)", // 더 진한 테두리
-                        transition: "box-shadow 0.3s ease",
-                        position: "relative"
-                      }}
-                      whileHover={{
-                        boxShadow: "0 20px 30px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,1), 0 0 15px rgba(255,255,255,0.8)"
-                      }}
-                    >
-                      {menu.icon}
-                      {menu.isFree && (
-                        <div style={{
-                          position: "absolute",
-                          top: "-6px",
-                          right: "-6px",
-                          background: "#E63946", // 더 진하고 선명한 레드
-                          color: "white",
-                          fontSize: "0.62rem", // 약간 더 크게
-                          fontWeight: 900, // 가장 두껍게
-                          padding: "3px 8px", // 패딩 증가
-                          borderRadius: "12px",
-                          boxShadow: "0 4px 12px rgba(230, 57, 70, 0.4)", // 더 강력한 그림자
-                          border: "2px solid white", // 테두리 두껍게
-                          zIndex: 10,
-                          letterSpacing: "-0.02em",
+              <div style={{
+                background: "rgba(255, 255, 255, 0.6)",
+                borderRadius: "24px",
+                padding: "20px 12px 16px",
+                border: "1px solid rgba(42, 54, 95, 0.08)",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.03)",
+                position: "relative"
+              }}>
+                <div style={{ 
+                  position: "absolute", 
+                  top: "-12px", 
+                  left: "20px", 
+                  background: "var(--accent-indigo)", 
+                  color: "white", 
+                  fontSize: "0.65rem", 
+                  fontWeight: 800, 
+                  padding: "4px 12px", 
+                  borderRadius: "10px",
+                  boxShadow: "0 4px 10px rgba(42, 54, 95, 0.2)"
+                }}>
+                  무료 서비스
+                </div>
+
+                <div 
+                  style={{ 
+                    display: "grid", 
+                    gridTemplateColumns: "repeat(4, 1fr)", 
+                    gap: "12px 6px",
+                    perspective: "1000px" 
+                  }}
+                >
+                  {menus.map((menu, index) => (
+                    <Link href={menu.link} key={menu.title} style={{ textDecoration: "none" }}>
+                      <motion.div
+                        variants={{
+                          hidden: { opacity: 0, scale: 0.8, y: 20 },
+                          show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 20 } }
+                        }}
+                        style={{ 
+                          cursor: "pointer", 
                           display: "flex",
+                          flexDirection: "column",
                           alignItems: "center",
-                          justifyContent: "center"
-                        }}>
-                          무료
-                        </div>
-                      )}
-                    </motion.div>
-                    <span style={{ 
-                      fontSize: "0.6rem", 
-                      fontWeight: 900, 
-                      color: "var(--accent-indigo)", 
-                      letterSpacing: "-0.5px",
-                      marginTop: "1px",
-                      textShadow: "0 2px 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 1)" // 가독성을 위한 강한 화이트 쉐도우
-                    }}>{menu.title}</span>
-                  </motion.div>
-                </Link>
-              ))}
+                          gap: "10px",
+                          textAlign: "center",
+                          transformStyle: "preserve-3d"
+                        }}
+                        whileHover={{ 
+                          scale: 1.05, 
+                          y: -8, 
+                          rotateX: 5, 
+                          rotateY: -5,
+                          filter: "brightness(1.05)"
+                        }}
+                        whileTap={{ scale: 0.95, y: 0, rotateX: 0, rotateY: 0 }}
+                      >
+                        <motion.div 
+                          style={{
+                            width: "clamp(50px, 13vw, 62px)",
+                            height: "clamp(50px, 13vw, 62px)",
+                            borderRadius: "50%",
+                            background: "#FFFFFF",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: menu.color,
+                            boxShadow: "0 10px 25px rgba(0,0,0,0.1)", 
+                            border: "1px solid rgba(42, 54, 95, 0.15)", 
+                            transition: "box-shadow 0.3s ease",
+                            position: "relative"
+                          }}
+                          whileHover={{
+                            boxShadow: "0 20px 30px rgba(0,0,0,0.1), inset 0 2px 0 rgba(255,255,255,1), 0 0 15px rgba(255,255,255,0.8)"
+                          }}
+                        >
+                          {menu.icon}
+                        </motion.div>
+                        <span style={{ 
+                          fontSize: "0.6rem", 
+                          fontWeight: 900, 
+                          color: "var(--accent-indigo)", 
+                          letterSpacing: "-0.5px",
+                          marginTop: "1px",
+                          textShadow: "0 2px 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 1)" 
+                        }}>{menu.title}</span>
+                      </motion.div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             </motion.div>
  
             {/* Why Cheongamaedang Section */}
